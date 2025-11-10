@@ -8,8 +8,10 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Petflix API is running' });
 });
 
-// API v1 routes will be added here
-// router.use('/api/v1/users', userRoutes);
+// API v1 routes
+import userRoutes from './userRoutes';
+
+router.use('/api/v1/users', userRoutes);
 // router.use('/api/v1/videos', videoRoutes);
 // router.use('/api/v1/comments', commentRoutes);
 // router.use('/api/v1/playlists', playlistRoutes);
