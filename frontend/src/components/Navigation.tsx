@@ -4,12 +4,17 @@ import { useAuth } from '../hooks/useAuth';
 export default function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, loading } = useAuth();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  // Don't show navigation while checking auth
+  if (loading) {
+    return null;
+  }
 
   return (
     <nav style={{
@@ -39,16 +44,17 @@ export default function Navigation() {
             Search
           </Link>
           
-          {isAuthenticated ? (
+          {isAuthenticated && user ? (
             <>
+              <Link to="/home" style={{ color: '#36454F', textDecoration: 'none' }}>
+                Home
+              </Link>
               <Link to="/feed" style={{ color: '#36454F', textDecoration: 'none' }}>
                 Feed
               </Link>
-              {user && (
-                <Link to={`/user/${user.username}`} style={{ color: '#36454F', textDecoration: 'none' }}>
-                  {user.username}
-                </Link>
-              )}
+              <Link to={`/user/${user.username}`} style={{ color: '#36454F', textDecoration: 'none', fontWeight: 'bold' }}>
+                {user.username}
+              </Link>
               <Link to="/settings" style={{ color: '#36454F', textDecoration: 'none' }}>
                 Settings
               </Link>

@@ -26,6 +26,9 @@ export function useAuth() {
       return;
     }
 
+    // Set loading to true when checking
+    setLoading(true);
+
     try {
       const response = await fetch(`${API_URL}/api/v1/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -35,7 +38,6 @@ export function useAuth() {
         const userData = await response.json();
         setUser(userData);
         setIsAuthenticated(true);
-        setLoading(false);
       } else {
         // Token invalid
         if (response.status === 401 || response.status === 404) {
@@ -43,11 +45,13 @@ export function useAuth() {
           setUser(null);
           setIsAuthenticated(false);
         }
-        setLoading(false);
       }
     } catch (err) {
       console.error('Auth check error:', err);
       // Don't clear token on network errors - might be temporary
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
       setLoading(false);
     }
   };
@@ -60,12 +64,24 @@ export function useAuth() {
       checkAuth();
     };
 
+    // Listen for custom auth event
     window.addEventListener('auth-changed', handleAuthChange);
+    // Listen for storage changes (cross-tab)
     window.addEventListener('storage', handleAuthChange);
+    
+    // Poll for changes (fallback)
+    const interval = setInterval(() => {
+      const token = localStorage.getItem('auth_token');
+      const currentAuth = !!token && !!user;
+      if (!!token !== currentAuth) {
+        checkAuth();
+      }
+    }, 500);
 
     return () => {
       window.removeEventListener('auth-changed', handleAuthChange);
       window.removeEventListener('storage', handleAuthChange);
+      clearInterval(interval);
     };
   }, []);
 
