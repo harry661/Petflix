@@ -8,7 +8,7 @@ import {
   VideoSearchResponse,
   ErrorResponse,
 } from '../types';
-import { extractYouTubeVideoId, validateYouTubeUrl } from '../middleware/validation';
+// YouTube URL validation is handled in youtubeService
 import { searchYouTubeVideos, getYouTubeVideoDetails } from '../services/youtubeService';
 
 /**
@@ -307,6 +307,58 @@ export const getFeed = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Get feed error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get videos by user
+ * GET /api/v1/videos/user/:userId
+ */
+export const getVideosByUser = async (
+  req: Request<{ userId: string }>,
+  res: Response
+) => {
+  try {
+    const { userId } = req.params;
+
+    const { data: videos, error } = await supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        created_at,
+        updated_at
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      res.status(500).json({ error: 'Failed to load videos' });
+      return;
+    }
+
+    // Get YouTube thumbnails for videos
+    const videosWithThumbnails = await Promise.all(
+      (videos || []).map(async (video) => {
+        try {
+          const youtubeData = await getYouTubeVideoDetails(video.youtube_video_id);
+          return {
+            ...video,
+            thumbnail: youtubeData.thumbnail,
+          };
+        } catch (err) {
+          return video;
+        }
+      })
+    );
+
+    res.json({ videos: videosWithThumbnails });
+  } catch (error) {
+    console.error('Get videos by user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
