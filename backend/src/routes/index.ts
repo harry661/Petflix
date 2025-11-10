@@ -3,6 +3,11 @@ import { notFoundHandler } from '../middleware/errorHandler';
 
 const router = Router();
 
+// Root route
+router.get('/', (req, res) => {
+  res.json({ message: 'Petflix API v1', endpoints: '/api/v1' });
+});
+
 // Health check
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Petflix API is running' });
