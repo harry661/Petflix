@@ -1,38 +1,27 @@
-// Super simple test - no router, no imports that could fail
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import SearchPage from './pages/SearchPage';
+import VideoDetailPage from './pages/VideoDetailPage';
+import UserProfilePage from './pages/UserProfilePage';
+import AccountSettingsPage from './pages/AccountSettingsPage';
+import FeedPage from './pages/FeedPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+
 function App() {
   return (
-    <div style={{ padding: '40px', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ color: '#36454F', fontSize: '32px' }}>✅ Petflix is Working!</h1>
-      <p style={{ fontSize: '18px', marginTop: '20px' }}>
-        If you see this, React is rendering correctly.
-      </p>
-      <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#ADD8E6', borderRadius: '8px' }}>
-        <h2>Test Backend Connection:</h2>
-        <button 
-          onClick={async () => {
-            try {
-              const res = await fetch('http://localhost:3000/health');
-              const data = await res.json();
-              alert('Backend is working!\n' + JSON.stringify(data, null, 2));
-            } catch (err) {
-              alert('Backend error: ' + err);
-            }
-          }}
-          style={{ 
-            padding: '10px 20px', 
-            fontSize: '16px',
-            backgroundColor: '#36454F',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            marginTop: '10px'
-          }}
-        >
-          Test Backend Health
-        </button>
-      </div>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/video/:id" element={<VideoDetailPage />} />
+        <Route path="/user/:username" element={<UserProfilePage />} />
+        <Route path="/settings" element={<AccountSettingsPage />} />
+        <Route path="/feed" element={<FeedPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
+    </Router>
   );
 }
 
