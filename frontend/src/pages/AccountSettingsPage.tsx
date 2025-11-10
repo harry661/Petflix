@@ -39,13 +39,21 @@ export default function AccountSettingsPage() {
         });
       } else {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to load user:', response.status, errorData);
+        
         if (response.status === 401) {
           // Token invalid or expired
           localStorage.removeItem('auth_token');
           window.dispatchEvent(new Event('auth-changed'));
           navigate('/login');
+          return;
+        } else if (response.status === 404) {
+          // User not found - token might be valid but user deleted
+          setError('Your account was not found. Please log in again.');
+          localStorage.removeItem('auth_token');
+          window.dispatchEvent(new Event('auth-changed'));
         } else {
-          setError(errorData.error || 'Failed to load user data');
+          setError(errorData.error || 'Failed to load user data. Please try again.');
         }
       }
     } catch (err: any) {

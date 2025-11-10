@@ -191,13 +191,24 @@ export const getCurrentUser = async (req: Request, res: Response<UserProfileResp
       return;
     }
 
-    const { data: user, error } = await supabaseAdmin!
+    if (!supabaseAdmin) {
+      res.status(500).json({ error: 'Database configuration error' });
+      return;
+    }
+
+    const { data: user, error } = await supabaseAdmin
       .from('users')
       .select('id, username, email, profile_picture_url, bio, created_at, updated_at')
       .eq('id', req.user.userId)
       .single();
 
-    if (error || !user) {
+    if (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Failed to fetch user data', details: error.message });
+      return;
+    }
+
+    if (!user) {
       res.status(404).json({ error: 'User not found' });
       return;
     }
