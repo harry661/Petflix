@@ -1,7 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -108,143 +105,87 @@ export default function TestPage() {
     }
   };
 
-  const clearToken = () => {
-    localStorage.removeItem('auth_token');
-    setTestResult({ success: true, message: 'Token cleared' });
-  };
-
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="container mx-auto max-w-4xl space-y-6">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-2">Petflix API Tester</h1>
-          <p className="text-muted-foreground">Test backend endpoints</p>
-        </div>
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
+      <h1>Petflix API Tester</h1>
+      <p>Test backend endpoints</p>
 
-        {/* Health Check */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Health Check</CardTitle>
-            <CardDescription>Test if backend is running</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={testHealth} disabled={loading}>
-              {loading ? 'Testing...' : 'Test /health'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Registration Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Register User</CardTitle>
-            <CardDescription>Create a new user account</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Username</label>
-              <Input
-                placeholder="testuser"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                placeholder="test@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
-              <Input
-                type="password"
-                placeholder="Test1234"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground">
-                Must be 8+ chars with uppercase, lowercase, and number
-              </p>
-            </div>
-            <Button onClick={testRegister} disabled={loading} className="w-full">
-              {loading ? 'Registering...' : 'Register'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Login */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Login with existing credentials</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                placeholder="test@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
-              <Input
-                type="password"
-                placeholder="Your password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-            </div>
-            <Button onClick={testLogin} disabled={loading} className="w-full">
-              {loading ? 'Logging in...' : 'Login'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Get Current User */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Get Current User</CardTitle>
-            <CardDescription>Test authenticated endpoint</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Button onClick={testGetMe} disabled={loading}>
-                {loading ? 'Loading...' : 'Get /me'}
-              </Button>
-              <Button onClick={clearToken} variant="outline">
-                Clear Token
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Token: {localStorage.getItem('auth_token') ? '✅ Stored' : '❌ Not found'}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        {testResult && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {testResult.success ? '✅ Success' : '❌ Error'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <pre className="bg-muted p-4 rounded-md overflow-auto text-sm">
-                {JSON.stringify(testResult, null, 2)}
-              </pre>
-            </CardContent>
-          </Card>
-        )}
+      <div style={{ marginBottom: '20px' }}>
+        <h2>Health Check</h2>
+        <button onClick={testHealth} disabled={loading} style={{ padding: '10px 20px' }}>
+          {loading ? 'Testing...' : 'Test /health'}
+        </button>
       </div>
+
+      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
+        <h2>Register User</h2>
+        <div style={{ marginBottom: '10px' }}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            style={{ padding: '8px', marginRight: '10px', width: '200px' }}
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            style={{ padding: '8px', marginRight: '10px', width: '200px' }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            style={{ padding: '8px', marginRight: '10px', width: '200px' }}
+          />
+        </div>
+        <button onClick={testRegister} disabled={loading} style={{ padding: '10px 20px' }}>
+          Register
+        </button>
+      </div>
+
+      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
+        <h2>Login</h2>
+        <div style={{ marginBottom: '10px' }}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            style={{ padding: '8px', marginRight: '10px', width: '200px' }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            style={{ padding: '8px', marginRight: '10px', width: '200px' }}
+          />
+        </div>
+        <button onClick={testLogin} disabled={loading} style={{ padding: '10px 20px' }}>
+          Login
+        </button>
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <h2>Get Current User</h2>
+        <button onClick={testGetMe} disabled={loading} style={{ padding: '10px 20px' }}>
+          Get /me
+        </button>
+        <p>Token: {localStorage.getItem('auth_token') ? '✅ Stored' : '❌ Not found'}</p>
+      </div>
+
+      {testResult && (
+        <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
+          <h3>{testResult.success ? '✅ Success' : '❌ Error'}</h3>
+          <pre style={{ overflow: 'auto', fontSize: '12px' }}>
+            {JSON.stringify(testResult, null, 2)}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }
-
