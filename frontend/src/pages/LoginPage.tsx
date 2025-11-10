@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { authService } from '@/services/authService';
+import { useNavigate, Link } from 'react-router-dom';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -26,80 +24,143 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await authService.login({
-        email: formData.email,
-        password: formData.password,
+      const response = await fetch(`${API_URL}/api/v1/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Login failed. Please check your credentials.');
+        return;
+      }
+
+      // Store token
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+
       navigate('/feed');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">
-            Sign in to your Petflix account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-                {error}
-              </div>
-            )}
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#F0F0DC',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '40px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        maxWidth: '500px',
+        width: '100%'
+      }}>
+        <h1 style={{ color: '#36454F', marginTop: 0, textAlign: 'center' }}>
+          Welcome Back
+        </h1>
+        <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
+          Sign in to your Petflix account
+        </p>
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
+        {error && (
+          <div style={{
+            backgroundColor: '#ffebee',
+            color: '#c62828',
+            padding: '12px',
+            borderRadius: '6px',
+            marginBottom: '20px',
+            fontSize: '14px'
+          }}>
+            {error}
+          </div>
+        )}
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
-            </div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
 
-            <div className="text-center text-sm">
-              <span className="text-muted-foreground">Don't have an account? </span>
-              <button
-                type="button"
-                onClick={() => navigate('/register')}
-                className="text-primary hover:underline"
-              >
-                Create account
-              </button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: '#ADD8E6',
+              color: '#36454F',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              marginBottom: '20px'
+            }}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+
+          <p style={{ textAlign: 'center', color: '#666', fontSize: '14px' }}>
+            Don't have an account?{' '}
+            <Link to="/register" style={{ color: '#ADD8E6', textDecoration: 'none', fontWeight: 'bold' }}>
+              Create account
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }

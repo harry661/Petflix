@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { authService } from '@/services/authService';
+import { useNavigate, Link } from 'react-router-dom';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -20,7 +18,6 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (!formData.username || !formData.email || !formData.password) {
       setError('All fields are required');
       return;
@@ -39,115 +36,198 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await authService.register({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
+      const response = await fetch(`${API_URL}/api/v1/users/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Registration failed');
+        return;
+      }
+
+      // Store token
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+
+      // Show welcome message and redirect
+      alert('Welcome to Petflix! Your account has been created successfully.');
       navigate('/feed');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-          <CardDescription className="text-center">
-            Join Petflix to discover and share pet videos
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-                {error}
-              </div>
-            )}
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#F0F0DC',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '40px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        maxWidth: '500px',
+        width: '100%'
+      }}>
+        <h1 style={{ color: '#36454F', marginTop: 0, textAlign: 'center' }}>
+          Create Account
+        </h1>
+        <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
+          Join Petflix to discover and share pet videos
+        </p>
 
-            <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">
-                Username
-              </label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Choose a username"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required
-                minLength={3}
-                maxLength={20}
-              />
-            </div>
+        {error && (
+          <div style={{
+            backgroundColor: '#ffebee',
+            color: '#c62828',
+            padding: '12px',
+            borderRadius: '6px',
+            marginBottom: '20px',
+            fontSize: '14px'
+          }}>
+            {error}
+          </div>
+        )}
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              Username
+            </label>
+            <input
+              type="text"
+              placeholder="Choose a username (3-20 characters)"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              required
+              minLength={3}
+              maxLength={20}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="At least 8 characters"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                minLength={8}
-              />
-              <p className="text-xs text-muted-foreground">
-                Must contain uppercase, lowercase, and number
-              </p>
-            </div>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
-                Confirm Password
-              </label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                required
-              />
-            </div>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="At least 8 characters"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              minLength={8}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+            <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+              Must contain uppercase, lowercase, and number
+            </p>
+          </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </Button>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              required
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
 
-            <div className="text-center text-sm">
-              <span className="text-muted-foreground">Already have an account? </span>
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                className="text-primary hover:underline"
-              >
-                Sign in
-              </button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '14px',
+              backgroundColor: '#ADD8E6',
+              color: '#36454F',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              marginBottom: '20px'
+            }}
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+
+          <p style={{ textAlign: 'center', color: '#666', fontSize: '14px' }}>
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: '#ADD8E6', textDecoration: 'none', fontWeight: 'bold' }}>
+              Sign in
+            </Link>
+          </p>
+
+          <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '20px' }}>
+            By creating an account, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
