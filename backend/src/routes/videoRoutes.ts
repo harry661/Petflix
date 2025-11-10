@@ -4,6 +4,7 @@ import {
   shareVideo,
   getVideoById,
   getFeed,
+  getVideosByUser,
   deleteVideo,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
@@ -12,6 +13,7 @@ const router = Router();
 
 // Public routes
 router.get('/search', optionalAuthenticate, searchVideos);
+router.get('/user/:userId', optionalAuthenticate, getVideosByUser);
 router.get('/:id', optionalAuthenticate, getVideoById);
 
 // Protected routes

@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   getUserById,
   updateProfile,
+  searchUsers,
 } from '../controllers/userController';
 import {
   followUser,
@@ -20,6 +21,7 @@ const router = Router();
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+router.get('/search', searchUsers);
 router.get('/:userId', getUserById);
 router.get('/:userId/followers', getFollowers);
 router.get('/:userId/following', getFollowing);

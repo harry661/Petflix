@@ -197,6 +197,40 @@ export const getCurrentUser = async (req: Request, res: Response<UserProfileResp
 };
 
 /**
+ * Search users by username
+ * GET /api/v1/users/search?username=...
+ */
+export const searchUsers = async (
+  req: Request<{}, any, {}, { username?: string }>,
+  res: Response
+) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      res.status(400).json({ error: 'Username query parameter is required' });
+      return;
+    }
+
+    const { data: users, error } = await supabaseAdmin!
+      .from('users')
+      .select('id, username, email, profile_picture_url, bio, created_at, updated_at')
+      .ilike('username', `%${username}%`)
+      .limit(10);
+
+    if (error) {
+      res.status(500).json({ error: 'Failed to search users' });
+      return;
+    }
+
+    res.json({ users: users || [] });
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Get user profile by ID
  * GET /api/v1/users/:userId
  */
