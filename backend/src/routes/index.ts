@@ -21,7 +21,8 @@ router.use('/api/v1/users', userRoutes);
 router.use('/api/v1/videos', videoRoutes);
 import commentRoutes from './commentRoutes';
 router.use('/api/v1/comments', commentRoutes);
-// router.use('/api/v1/playlists', playlistRoutes);
+import playlistRoutes from './playlistRoutes';
+router.use('/api/v1/playlists', playlistRoutes);
 // router.use('/api/v1/push_notifications', pushNotificationRoutes);
 
 // 404 handler for API routes

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navigation from './components/Navigation';
 import LandingPage from './pages/LandingPage';
 import SearchPage from './pages/SearchPage';
 import VideoDetailPage from './pages/VideoDetailPage';
@@ -11,6 +12,7 @@ import RegisterPage from './pages/RegisterPage';
 function App() {
   return (
     <Router>
+      <Navigation />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/search" element={<SearchPage />} />
