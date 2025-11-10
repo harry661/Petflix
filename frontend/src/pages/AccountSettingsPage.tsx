@@ -38,10 +38,19 @@ export default function AccountSettingsPage() {
           bio: userData.bio || '',
         });
       } else {
-        navigate('/login');
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          // Token invalid or expired
+          localStorage.removeItem('auth_token');
+          window.dispatchEvent(new Event('auth-changed'));
+          navigate('/login');
+        } else {
+          setError(errorData.error || 'Failed to load user data');
+        }
       }
-    } catch (err) {
-      setError('Failed to load user data');
+    } catch (err: any) {
+      console.error('Error loading user:', err);
+      setError('Failed to load user data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -91,7 +100,31 @@ export default function AccountSettingsPage() {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: '#666' }}>Loading...</p>
+        <p style={{ color: '#666' }}>Loading your settings...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
+        <p style={{ color: '#c62828', marginBottom: '20px' }}>
+          {error || 'Unable to load your account. Please try logging in again.'}
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#ADD8E6',
+            color: '#36454F',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          Go to Login
+        </button>
       </div>
     );
   }
