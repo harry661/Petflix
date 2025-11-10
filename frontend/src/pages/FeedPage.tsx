@@ -1,21 +1,28 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function FeedPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     loadFeed();
-  }, []);
+  }, [isAuthenticated]);
 
   const loadFeed = async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
-      setError('Please log in to view your feed');
-      setLoading(false);
+      navigate('/login');
       return;
     }
 

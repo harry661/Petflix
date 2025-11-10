@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, user: authUser } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -15,13 +17,28 @@ export default function AccountSettingsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     loadUser();
-  }, []);
+  }, [isAuthenticated]);
 
   const loadUser = async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
       navigate('/login');
+      return;
+    }
+    
+    // Use auth user if available, otherwise fetch
+    if (authUser) {
+      setUser(authUser);
+      setFormData({
+        profile_picture_url: authUser.profile_picture_url || '',
+        bio: authUser.bio || '',
+      });
+      setLoading(false);
       return;
     }
 
