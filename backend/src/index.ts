@@ -1,34 +1,39 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import routes from './routes';
+import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: CORS_ORIGIN,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check route
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Petflix API is running' });
-});
+// Request logging middleware (development only)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
+}
 
-// API routes will be added here
-app.get('/api/v1', (req, res) => {
-  res.json({ message: 'Petflix API v1' });
-});
+// Routes
+app.use('/', routes);
 
-// Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`📡 CORS enabled for: ${CORS_ORIGIN}`);
 });
 
