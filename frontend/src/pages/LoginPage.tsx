@@ -67,14 +67,13 @@ export default function LoginPage() {
 
       // Store token
       localStorage.setItem('auth_token', data.token);
+      console.log('Token stored, navigating to feed...');
       
       // Trigger custom event so Navigation updates
       window.dispatchEvent(new Event('auth-changed'));
       
-      // Small delay to ensure navigation updates, then navigate
-      setTimeout(() => {
-        navigate('/feed');
-      }, 100);
+      // Force navigation - use window.location for immediate redirect to home
+      window.location.href = '/home';
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {

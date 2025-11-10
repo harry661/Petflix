@@ -35,17 +35,19 @@ export function useAuth() {
         const userData = await response.json();
         setUser(userData);
         setIsAuthenticated(true);
+        setLoading(false);
       } else {
         // Token invalid
-        localStorage.removeItem('auth_token');
-        setUser(null);
-        setIsAuthenticated(false);
+        if (response.status === 401 || response.status === 404) {
+          localStorage.removeItem('auth_token');
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        setLoading(false);
       }
     } catch (err) {
       console.error('Auth check error:', err);
-      setIsAuthenticated(false);
-      setUser(null);
-    } finally {
+      // Don't clear token on network errors - might be temporary
       setLoading(false);
     }
   };

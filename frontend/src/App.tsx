@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import LandingPage from './pages/LandingPage';
+import HomePage from './pages/HomePage';
 import SearchPage from './pages/SearchPage';
 import VideoDetailPage from './pages/VideoDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
@@ -15,6 +16,7 @@ function App() {
       <Navigation />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/video/:id" element={<VideoDetailPage />} />
         <Route path="/user/:username" element={<UserProfilePage />} />

@@ -3,16 +3,23 @@ import { useNavigate } from 'react-router-dom';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
 
   useEffect(() => {
+    // If user is already logged in, redirect to home
+    if (!authLoading && isAuthenticated) {
+      navigate('/home');
+      return;
+    }
+
     // Check if tutorial was already shown in this session
     const tutorialShown = sessionStorage.getItem('petflix_tutorial_shown');
-    if (!tutorialShown) {
+    if (!tutorialShown && !isAuthenticated) {
       setShowTutorial(true);
     }
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   const handleSkipTutorial = () => {
     sessionStorage.setItem('petflix_tutorial_shown', 'true');
