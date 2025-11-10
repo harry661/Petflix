@@ -25,7 +25,7 @@ export default function Navigation() {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <Link to="/" style={{
+        <Link to={isAuthenticated ? "/home" : "/"} style={{
           fontSize: '24px',
           fontWeight: 'bold',
           color: '#36454F',
