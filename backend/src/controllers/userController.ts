@@ -40,13 +40,19 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
     }
 
     // Check if user already exists
-    const { data: existingUser, error: checkError } = await supabaseAdmin!
+    const { data: existingUsers, error: checkError } = await supabaseAdmin!
       .from('users')
       .select('id')
       .or(`username.eq.${username},email.eq.${email}`)
-      .single();
+      .limit(1);
 
-    if (existingUser) {
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error checking existing user:', checkError);
+      res.status(500).json({ error: 'Failed to check user existence' });
+      return;
+    }
+
+    if (existingUsers && existingUsers.length > 0) {
       res.status(409).json({ error: 'Username or email already exists' });
       return;
     }
