@@ -79,13 +79,13 @@ export default function RegisterPage() {
 
       // Store token
       localStorage.setItem('auth_token', data.token);
-      console.log('✅ Token stored:', data.token.substring(0, 20) + '...');
+      console.log('✅ Token stored, redirecting to home...');
       
-      // Show welcome message and redirect
+      // Show welcome message
       alert('Welcome to Petflix! Your account has been created successfully.');
       
-      // Immediately redirect - page reload will trigger useAuth to check token
-      window.location.replace('/home');
+      // Force full page reload to ensure all state resets and useAuth runs
+      window.location.href = '/home';
     } catch (err: any) {
       console.error('Registration error:', err);
       if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {

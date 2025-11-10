@@ -11,10 +11,37 @@ export default function Navigation() {
     navigate('/');
   };
 
-  // Don't show navigation while checking auth
+  // Show minimal nav while loading
   if (loading) {
-    return null;
+    return (
+      <nav style={{
+        backgroundColor: 'white',
+        padding: '15px 20px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        marginBottom: '20px'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Link to="/" style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: '#36454F',
+            textDecoration: 'none'
+          }}>
+            🐾 Petflix
+          </Link>
+          <div style={{ color: '#666', fontSize: '14px' }}>Loading...</div>
+        </div>
+      </nav>
+    );
   }
+  
+  console.log('🧭 Navigation render - isAuthenticated:', isAuthenticated, 'user:', user?.username);
 
   return (
     <nav style={{
