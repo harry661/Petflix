@@ -11,15 +11,23 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return;
+    // Wait for auth check to complete
+    if (authLoading) {
+      return;
+    }
     
+    // If not authenticated, redirect to landing page
     if (!isAuthenticated) {
+      console.log('Not authenticated, redirecting to landing page');
       navigate('/');
       return;
     }
     
-    loadTrendingVideos();
-  }, [isAuthenticated, authLoading]);
+    // Load videos only if authenticated
+    if (isAuthenticated && user) {
+      loadTrendingVideos();
+    }
+  }, [isAuthenticated, authLoading, user]);
 
   const loadTrendingVideos = async () => {
     try {

@@ -19,7 +19,10 @@ export function useAuth() {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('auth_token');
+    console.log('🔍 Checking auth, token exists:', !!token);
+    
     if (!token) {
+      console.log('❌ No token found');
       setIsAuthenticated(false);
       setUser(null);
       setLoading(false);
@@ -30,15 +33,18 @@ export function useAuth() {
     setLoading(true);
 
     try {
+      console.log('📡 Fetching user data...');
       const response = await fetch(`${API_URL}/api/v1/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (response.ok) {
         const userData = await response.json();
+        console.log('✅ User authenticated:', userData.username);
         setUser(userData);
         setIsAuthenticated(true);
       } else {
+        console.log('❌ Auth failed:', response.status);
         // Token invalid
         if (response.status === 401 || response.status === 404) {
           localStorage.removeItem('auth_token');
@@ -47,7 +53,7 @@ export function useAuth() {
         }
       }
     } catch (err) {
-      console.error('Auth check error:', err);
+      console.error('❌ Auth check error:', err);
       // Don't clear token on network errors - might be temporary
       setIsAuthenticated(false);
       setUser(null);

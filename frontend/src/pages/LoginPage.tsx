@@ -67,13 +67,10 @@ export default function LoginPage() {
 
       // Store token
       localStorage.setItem('auth_token', data.token);
+      console.log('✅ Token stored:', data.token.substring(0, 20) + '...');
       
-      // Trigger custom event so Navigation updates immediately
-      const authEvent = new Event('auth-changed');
-      window.dispatchEvent(authEvent);
-      
-      // Force a page reload to ensure all state updates
-      window.location.href = '/home';
+      // Immediately redirect - page reload will trigger useAuth to check token
+      window.location.replace('/home');
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {
