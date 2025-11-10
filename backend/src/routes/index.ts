@@ -15,9 +15,10 @@ router.get('/health', (req, res) => {
 
 // API v1 routes
 import userRoutes from './userRoutes';
+import videoRoutes from './videoRoutes';
 
 router.use('/api/v1/users', userRoutes);
-// router.use('/api/v1/videos', videoRoutes);
+router.use('/api/v1/videos', videoRoutes);
 // router.use('/api/v1/comments', commentRoutes);
 // router.use('/api/v1/playlists', playlistRoutes);
 // router.use('/api/v1/push_notifications', pushNotificationRoutes);
