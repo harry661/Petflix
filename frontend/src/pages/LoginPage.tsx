@@ -33,38 +33,55 @@ export default function LoginPage() {
         }),
       });
 
+      // Handle non-OK responses
       if (!response.ok) {
         let errorMessage = 'Login failed. Please check your credentials.';
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
-          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+          // If response isn't JSON, use status text
+          errorMessage = `Server error: ${response.status} ${response.statusText || 'Unknown error'}`;
         }
         setError(errorMessage);
         setLoading(false);
         return;
       }
 
-      const data = await response.json();
-
-      // Store token
-      if (data.token) {
-        localStorage.setItem('auth_token', data.token);
-        // Trigger custom event so Navigation updates
-        window.dispatchEvent(new Event('auth-changed'));
+      // Parse successful response
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        setError('Invalid response from server. Please try again.');
+        setLoading(false);
+        return;
       }
 
-      // Navigate to feed
-      navigate('/feed');
+      // Validate response has token
+      if (!data.token) {
+        setError('Login successful but no token received. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Store token
+      localStorage.setItem('auth_token', data.token);
+      
+      // Trigger custom event so Navigation updates
+      window.dispatchEvent(new Event('auth-changed'));
+      
+      // Small delay to ensure navigation updates, then navigate
+      setTimeout(() => {
+        navigate('/feed');
+      }, 100);
     } catch (err: any) {
       console.error('Login error:', err);
-      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-        setError('Cannot connect to server. Please make sure the backend is running on ' + API_URL);
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {
+        setError(`Cannot connect to server at ${API_URL}. Please make sure the backend is running.`);
       } else {
         setError(err.message || 'Login failed. Please try again.');
       }
-    } finally {
       setLoading(false);
     }
   };
