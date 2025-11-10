@@ -33,12 +33,20 @@ export default function LoginPage() {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || 'Login failed. Please check your credentials.');
+        let errorMessage = 'Login failed. Please check your credentials.';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        setError(errorMessage);
+        setLoading(false);
         return;
       }
+
+      const data = await response.json();
 
       // Store token
       if (data.token) {
@@ -47,7 +55,12 @@ export default function LoginPage() {
 
       navigate('/feed');
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        setError('Cannot connect to server. Please make sure the backend is running on ' + API_URL);
+      } else {
+        setError(err.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

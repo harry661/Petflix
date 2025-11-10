@@ -46,12 +46,21 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await response.json();
-
+      // Check if response is ok before trying to parse JSON
       if (!response.ok) {
-        setError(data.error || 'Registration failed');
+        let errorMessage = 'Registration failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        setError(errorMessage);
+        setLoading(false);
         return;
       }
+
+      const data = await response.json();
 
       // Store token
       if (data.token) {
@@ -62,7 +71,13 @@ export default function RegisterPage() {
       alert('Welcome to Petflix! Your account has been created successfully.');
       navigate('/feed');
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      // Network errors, CORS errors, etc.
+      console.error('Registration error:', err);
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        setError('Cannot connect to server. Please make sure the backend is running on ' + API_URL);
+      } else {
+        setError(err.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
