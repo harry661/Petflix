@@ -81,15 +81,14 @@ export default function RegisterPage() {
       localStorage.setItem('auth_token', data.token);
       
       // Trigger custom event so Navigation updates immediately
-      window.dispatchEvent(new Event('auth-changed'));
+      const authEvent = new Event('auth-changed');
+      window.dispatchEvent(authEvent);
       
       // Show welcome message and redirect
       alert('Welcome to Petflix! Your account has been created successfully.');
       
-      // Small delay to ensure state updates, then navigate
-      setTimeout(() => {
-        window.location.href = '/home';
-      }, 200);
+      // Force a page reload to ensure all state updates
+      window.location.href = '/home';
     } catch (err: any) {
       console.error('Registration error:', err);
       if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {

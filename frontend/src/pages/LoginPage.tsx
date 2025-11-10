@@ -67,12 +67,12 @@ export default function LoginPage() {
 
       // Store token
       localStorage.setItem('auth_token', data.token);
-      console.log('Token stored, navigating to feed...');
       
-      // Trigger custom event so Navigation updates
-      window.dispatchEvent(new Event('auth-changed'));
+      // Trigger custom event so Navigation updates immediately
+      const authEvent = new Event('auth-changed');
+      window.dispatchEvent(authEvent);
       
-      // Force navigation - use window.location for immediate redirect to home
+      // Force a page reload to ensure all state updates
       window.location.href = '/home';
     } catch (err: any) {
       console.error('Login error:', err);
