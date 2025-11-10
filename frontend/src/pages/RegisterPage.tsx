@@ -65,6 +65,8 @@ export default function RegisterPage() {
       // Store token
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
+        // Trigger custom event so Navigation updates
+        window.dispatchEvent(new Event('auth-changed'));
       }
 
       // Show welcome message and redirect

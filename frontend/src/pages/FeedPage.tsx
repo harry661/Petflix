@@ -83,14 +83,33 @@ export default function FeedPage() {
             textAlign: 'center',
             padding: '60px',
             backgroundColor: 'white',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
+            <h2 style={{ color: '#36454F', fontSize: '24px', marginBottom: '15px' }}>
+              Welcome to Petflix! 🐾
+            </h2>
             <p style={{ color: '#666', fontSize: '18px', marginBottom: '20px' }}>
               Your feed is empty
             </p>
-            <p style={{ color: '#999', fontSize: '14px' }}>
-              Follow other users to see their shared videos here
+            <p style={{ color: '#999', fontSize: '14px', marginBottom: '30px' }}>
+              Follow other users to see their shared videos here, or start by searching for pet videos!
             </p>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <a
+                href="/search"
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#ADD8E6',
+                  color: '#36454F',
+                  textDecoration: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 'bold'
+                }}
+              >
+                Search Videos
+              </a>
+            </div>
           </div>
         ) : (
           <div style={{

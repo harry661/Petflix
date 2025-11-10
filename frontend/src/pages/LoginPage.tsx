@@ -51,8 +51,11 @@ export default function LoginPage() {
       // Store token
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
+        // Trigger custom event so Navigation updates
+        window.dispatchEvent(new Event('auth-changed'));
       }
 
+      // Navigate to feed
       navigate('/feed');
     } catch (err: any) {
       console.error('Login error:', err);
