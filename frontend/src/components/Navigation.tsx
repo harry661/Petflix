@@ -1,69 +1,13 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  const checkAuth = () => {
-    const token = localStorage.getItem('auth_token');
-    setIsAuthenticated(!!token);
-    
-    if (token) {
-      loadUser();
-    } else {
-      setUser(null);
-    }
-  };
-
-  useEffect(() => {
-    checkAuth();
-  }, [location.pathname]);
-
-  // Listen for custom auth events
-  useEffect(() => {
-    const handleAuthChange = () => {
-      checkAuth();
-    };
-    
-    window.addEventListener('auth-changed', handleAuthChange);
-    window.addEventListener('storage', handleAuthChange);
-    
-    // Check periodically (fallback)
-    const interval = setInterval(checkAuth, 2000);
-    
-    return () => {
-      window.removeEventListener('auth-changed', handleAuthChange);
-      window.removeEventListener('storage', handleAuthChange);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const loadUser = async () => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) return;
-
-    try {
-      const response = await fetch(`${API_URL}/api/v1/users/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      }
-    } catch (err) {
-      // Not logged in
-    }
-  };
+  const { isAuthenticated, user, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    setIsAuthenticated(false);
-    setUser(null);
+    logout();
     navigate('/');
   };
 

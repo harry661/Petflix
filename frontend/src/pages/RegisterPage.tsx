@@ -46,41 +46,57 @@ export default function RegisterPage() {
         }),
       });
 
-      // Check if response is ok before trying to parse JSON
+      // Handle non-OK responses
       if (!response.ok) {
         let errorMessage = 'Registration failed';
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
-          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+          errorMessage = `Server error: ${response.status} ${response.statusText || 'Unknown error'}`;
         }
         setError(errorMessage);
         setLoading(false);
         return;
       }
 
-      const data = await response.json();
-
-      // Store token
-      if (data.token) {
-        localStorage.setItem('auth_token', data.token);
-        // Trigger custom event so Navigation updates
-        window.dispatchEvent(new Event('auth-changed'));
+      // Parse successful response
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        setError('Invalid response from server. Please try again.');
+        setLoading(false);
+        return;
       }
 
+      // Validate response has token
+      if (!data.token) {
+        setError('Registration successful but no token received. Please try logging in.');
+        setLoading(false);
+        return;
+      }
+
+      // Store token
+      localStorage.setItem('auth_token', data.token);
+      
+      // Trigger custom event so Navigation updates
+      window.dispatchEvent(new Event('auth-changed'));
+      
       // Show welcome message and redirect
       alert('Welcome to Petflix! Your account has been created successfully.');
-      navigate('/feed');
+      
+      // Small delay to ensure navigation updates, then navigate
+      setTimeout(() => {
+        navigate('/feed');
+      }, 100);
     } catch (err: any) {
-      // Network errors, CORS errors, etc.
       console.error('Registration error:', err);
-      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
-        setError('Cannot connect to server. Please make sure the backend is running on ' + API_URL);
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {
+        setError(`Cannot connect to server at ${API_URL}. Please make sure the backend is running.`);
       } else {
         setError(err.message || 'Registration failed. Please try again.');
       }
-    } finally {
       setLoading(false);
     }
   };
