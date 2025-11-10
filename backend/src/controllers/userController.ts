@@ -39,22 +39,35 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
       return;
     }
 
+    // Check if Supabase admin client is available
+    if (!supabaseAdmin) {
+      console.error('Supabase admin client not initialized');
+      res.status(500).json({ error: 'Database configuration error' });
+      return;
+    }
+
     // Check if user already exists
-    const { data: existingUsersByUsername, error: usernameError } = await supabaseAdmin!
+    const { data: existingUsersByUsername, error: usernameError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('username', username)
       .limit(1);
 
-    const { data: existingUsersByEmail, error: emailError } = await supabaseAdmin!
+    const { data: existingUsersByEmail, error: emailError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', email)
       .limit(1);
 
-    if (usernameError || emailError) {
-      console.error('Error checking existing user:', usernameError || emailError);
-      res.status(500).json({ error: 'Failed to check user existence' });
+    if (usernameError) {
+      console.error('Error checking username:', usernameError);
+      res.status(500).json({ error: 'Failed to check user existence', details: usernameError.message });
+      return;
+    }
+
+    if (emailError) {
+      console.error('Error checking email:', emailError);
+      res.status(500).json({ error: 'Failed to check user existence', details: emailError.message });
       return;
     }
 

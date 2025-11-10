@@ -13,6 +13,10 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Petflix API is running' });
 });
 
+// Test routes (development only)
+import testRoutes from './testRoutes';
+router.use('/test', testRoutes);
+
 // API v1 routes
 import userRoutes from './userRoutes';
 import videoRoutes from './videoRoutes';
