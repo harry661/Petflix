@@ -71,7 +71,7 @@ export const followUser = async (
  */
 export const unfollowUser = async (
   req: Request<{ userId: string }>,
-  res: Response<FollowResponse | ErrorResponse>
+  res: Response
 ) => {
   try {
     if (!req.user) {
@@ -95,7 +95,7 @@ export const unfollowUser = async (
       return;
     }
 
-    res.json({ message: 'Unfollowed successfully' });
+    res.json({ followerId, followingId: userId, createdAt: new Date().toISOString() });
   } catch (error) {
     console.error('Unfollow user error:', error);
     res.status(500).json({ error: 'Internal server error' });

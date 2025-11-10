@@ -160,6 +160,7 @@ export const getPlaylistById = async (
 
     const videos = (playlistVideos || []).map((pv: any) => pv.videos).filter(Boolean);
 
+    const userData = Array.isArray(playlist.users) ? playlist.users[0] : playlist.users;
     res.json({
       id: playlist.id,
       name: playlist.name,
@@ -168,9 +169,17 @@ export const getPlaylistById = async (
       visibility: playlist.visibility as 'public' | 'private',
       createdAt: playlist.created_at,
       updatedAt: playlist.updated_at,
-      user: playlist.users,
+      user: userData ? {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        profile_picture_url: userData.profile_picture_url || null,
+        bio: (userData as any).bio || null,
+        created_at: (userData as any).created_at || playlist.created_at,
+        updated_at: (userData as any).updated_at || playlist.updated_at,
+      } : undefined,
       videos,
-    });
+    } as PlaylistDetailsResponse);
   } catch (error) {
     console.error('Get playlist error:', error);
     res.status(500).json({ error: 'Internal server error' });

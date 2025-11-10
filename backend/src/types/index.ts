@@ -71,7 +71,7 @@ export interface VideoResponse {
 }
 
 export interface VideoDetailsResponse extends VideoResponse {
-  user: UserProfileResponse;
+  user?: UserProfileResponse | null;
 }
 
 export interface VideoSearchResponse {

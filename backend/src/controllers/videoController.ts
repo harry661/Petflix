@@ -197,9 +197,8 @@ export const getVideoById = async (
         userId: '',
         createdAt: youtubeData.publishedAt,
         updatedAt: youtubeData.publishedAt,
-        user: null,
-        youtubeData,
-      });
+        user: undefined,
+      } as VideoDetailsResponse);
       return;
     }
 
@@ -230,6 +229,7 @@ export const getVideoById = async (
       return;
     }
 
+    const userData = Array.isArray(video.users) ? video.users[0] : video.users;
     res.json({
       id: video.id,
       youtubeVideoId: video.youtube_video_id,
@@ -238,8 +238,16 @@ export const getVideoById = async (
       userId: video.user_id,
       createdAt: video.created_at,
       updatedAt: video.updated_at,
-      user: video.users,
-    });
+      user: userData ? {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        profile_picture_url: userData.profile_picture_url || null,
+        bio: userData.bio || null,
+        created_at: userData.created_at || video.created_at,
+        updated_at: userData.updated_at || video.updated_at,
+      } : undefined,
+    } as VideoDetailsResponse);
   } catch (error) {
     console.error('Get video error:', error);
     res.status(500).json({ error: 'Internal server error' });
