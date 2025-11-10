@@ -243,9 +243,9 @@ export const getVideoById = async (
         username: userData.username,
         email: userData.email,
         profile_picture_url: userData.profile_picture_url || null,
-        bio: userData.bio || null,
-        created_at: userData.created_at || video.created_at,
-        updated_at: userData.updated_at || video.updated_at,
+        bio: (userData as any).bio || null,
+        created_at: (userData as any).created_at || video.created_at,
+        updated_at: (userData as any).updated_at || video.updated_at,
       } : undefined,
     } as VideoDetailsResponse);
   } catch (error) {
