@@ -64,7 +64,7 @@ export default function HomePage() {
       
       // Auto-rotate banner carousel
       useEffect(() => {
-        if (bannerItems.length > 1) {
+        if (bannerItems.length > 1 && !isSearchOpen) {
           carouselIntervalRef.current = setInterval(() => {
             setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
           }, 5000); // Change every 5 seconds
@@ -75,7 +75,7 @@ export default function HomePage() {
             }
           };
         }
-      }, [bannerItems.length]);
+      }, [bannerItems.length, isSearchOpen]);
 
 
   const loadTrendingVideos = async (filter?: string | null) => {
