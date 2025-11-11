@@ -13,6 +13,7 @@ export default function Navigation() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const logoStyle: React.CSSProperties = {
     fontSize: '28px',
@@ -47,6 +48,33 @@ export default function Navigation() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showProfileMenu]);
+
+  // Close search when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isSearchOpen &&
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        // Only close if search query is empty, otherwise keep it open to show results
+        if (!searchQuery.trim()) {
+          closeSearch();
+        }
+      }
+    };
+
+    if (isSearchOpen) {
+      // Small delay to allow the click that opened search to complete
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSearchOpen, searchQuery, closeSearch]);
 
   // Auto-search with debounce when search is open and query changes
   useEffect(() => {
@@ -237,11 +265,14 @@ export default function Navigation() {
         {/* Right Side Icons */}
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           {/* Expandable Search */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            position: 'relative'
-          }}>
+          <div 
+            ref={searchContainerRef}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              position: 'relative'
+            }}
+          >
             {!isSearchOpen ? (
               <div
                 onClick={openSearch}
