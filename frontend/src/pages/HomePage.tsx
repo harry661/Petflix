@@ -22,19 +22,19 @@ export default function HomePage() {
       id: 'pet-of-the-week',
       title: 'Pet of the Week',
       buttonText: 'See Winner',
-      backgroundImage: null // Will be provided later
+      backgroundImage: '/pet-of-the-week.png'
     },
     {
       id: 'clip-of-the-week',
       title: 'Clip of the Week',
       buttonText: 'Watch Now',
-      backgroundImage: null // Will be provided later
+      backgroundImage: '/clip-of-the-week.png'
     },
     {
       id: 'rising-star',
       title: 'Rising Star',
       buttonText: 'See Winner',
-      backgroundImage: null // Will be provided later
+      backgroundImage: '/rising-star.png'
     }
   ];
 
