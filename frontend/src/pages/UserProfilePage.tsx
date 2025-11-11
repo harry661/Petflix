@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Upload } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -341,25 +342,36 @@ export default function UserProfilePage() {
                     style={{
                       padding: '10px 30px',
                       backgroundColor: '#ADD8E6',
-                      color: '#ffffff',
+                      color: '#0F0F0F',
                       border: 'none',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
                     }}
                   >
-                    {showShareForm ? 'Cancel' : 'Share Video'}
+                    <Upload size={18} />
+                    {showShareForm ? 'Cancel' : 'Upload Video'}
                   </button>
                   <button
                     onClick={() => navigate('/settings')}
                     style={{
                       padding: '10px 30px',
-                      backgroundColor: '#f0f0f0',
+                      backgroundColor: 'transparent',
                       color: '#ffffff',
-                      border: '1px solid #ccc',
+                      border: '1px solid #ffffff',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
                     Edit Profile
