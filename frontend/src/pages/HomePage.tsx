@@ -299,8 +299,7 @@ export default function HomePage() {
           maxWidth: '1200px', 
           margin: '0 auto', 
           padding: '20px',
-          position: 'relative',
-          zIndex: 2
+          position: 'relative'
         }}>
         {/* Filter Buttons */}
         {!isSearchOpen && (
