@@ -46,9 +46,13 @@ export const searchVideos = async (
         user: null, // YouTube videos don't have a Petflix user
         source: 'youtube',
       }));
-    } catch (error) {
-      console.error('YouTube search error:', error);
-      // Continue even if YouTube search fails
+    } catch (error: any) {
+      // Silently fail - don't crash the server if YouTube API fails
+      // This is expected when quota is exceeded or API key is missing
+      if (process.env.NODE_ENV === 'development') {
+        console.log('YouTube search unavailable (quota exceeded or API key missing)');
+      }
+      // Continue with just shared videos
     }
 
     // Search shared videos in database
