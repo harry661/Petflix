@@ -118,16 +118,21 @@ export const shareVideo = async (
       return;
     }
 
-    // Get video details from YouTube to verify it exists and get metadata
-    let youtubeData;
+    // Validate video ID format (basic check)
+    if (!/^[a-zA-Z0-9_-]{11}$/.test(youtubeVideoId)) {
+      res.status(400).json({ error: 'Invalid YouTube video ID format' });
+      return;
+    }
+
+    // Try to get video metadata from YouTube API if available (optional)
+    // If API quota is exceeded or unavailable, we'll use provided title/description or defaults
+    let youtubeData = null;
     try {
       youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
     } catch (error: any) {
-      // Pass through the specific error message from YouTube API
-      const errorMessage = error.message || 'Invalid YouTube video ID or video not found';
-      console.error('YouTube API error when sharing video:', errorMessage);
-      res.status(400).json({ error: errorMessage });
-      return;
+      // Log but don't fail - we can still save the video without metadata
+      console.log('YouTube API not available for metadata (quota exceeded or API key missing). Using provided or default values.');
+      // Continue without YouTube API data - user can provide title/description manually
     }
 
     // Check if video already shared by this user
@@ -144,12 +149,16 @@ export const shareVideo = async (
     }
 
     // Create video record
+    // Use provided title/description, fallback to YouTube API data, or use defaults
+    const videoTitle = title || youtubeData?.title || `YouTube Video ${youtubeVideoId}`;
+    const videoDescription = description || youtubeData?.description || '';
+
     const { data: newVideo, error: insertError } = await supabaseAdmin!
       .from('videos')
       .insert({
         youtube_video_id: youtubeVideoId,
-        title: title || youtubeData.title,
-        description: description || youtubeData.description,
+        title: videoTitle,
+        description: videoDescription,
         user_id: req.user.userId,
       })
       .select('id, youtube_video_id, title, description, user_id, created_at, updated_at')
