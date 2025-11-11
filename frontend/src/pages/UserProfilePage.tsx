@@ -528,7 +528,9 @@ export default function UserProfilePage() {
                       boxSizing: 'border-box',
                       backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       color: '#fff',
-                      outline: 'none'
+                      outline: 'none',
+                      height: '56px',
+                      lineHeight: '24px'
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = '#ADD8E6';
@@ -557,7 +559,8 @@ export default function UserProfilePage() {
                   </label>
                   <div style={{
                     width: '100%',
-                    minHeight: '56px', // Match YouTube URL field height (16px padding top + 16px padding bottom + ~24px input height)
+                    minHeight: '56px',
+                    height: tags.length === 0 ? '56px' : 'auto', // Fixed height when empty, auto when tags are present
                     padding: '16px',
                     border: '1px solid rgba(255, 255, 255, 0.3)',
                     borderRadius: '4px',
