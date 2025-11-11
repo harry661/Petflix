@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Search, Bell, ChevronDown } from 'lucide-react';
+import PawLogo from '../assets/Paw.svg';
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -19,10 +20,6 @@ export default function Navigation() {
     display: 'flex',
     alignItems: 'center',
     gap: '8px'
-  };
-
-  const logoTextStyle: React.CSSProperties = {
-    color: '#ADD8E6'
   };
 
   const handleLogout = () => {
@@ -94,8 +91,8 @@ export default function Navigation() {
           alignItems: 'center'
         }}>
           <Link to="/" style={logoStyle}>
-            <span style={logoTextStyle}>🐾</span>
-            <span style={logoTextStyle}>Petflix</span>
+            <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
+            <span>Petflix</span>
           </Link>
           <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
             Sign In
@@ -125,8 +122,8 @@ export default function Navigation() {
       }}>
         {/* Logo */}
         <Link to="/home" style={{ ...logoStyle, marginRight: '20px' }}>
-          <span style={logoTextStyle}>🐾</span>
-          <span style={logoTextStyle}>Petflix</span>
+          <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
+          <span>Petflix</span>
         </Link>
 
         {/* Navigation Links */}
