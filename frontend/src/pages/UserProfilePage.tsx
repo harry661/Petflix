@@ -756,35 +756,45 @@ export default function UserProfilePage() {
                   </p>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px', position: 'relative' }}>
                 <button
                   type="submit"
-                  disabled={sharing || !youtubeUrl.trim()}
+                  disabled={sharing || !youtubeUrl.trim() || showSuccessAnimation}
                   style={{
                     padding: '14px 32px',
-                    backgroundColor: sharing ? '#ccc' : '#ADD8E6',
-                    color: sharing ? '#666' : '#0F0F0F',
+                    backgroundColor: showSuccessAnimation ? '#4CAF50' : (sharing ? '#ccc' : '#ADD8E6'),
+                    color: showSuccessAnimation ? '#fff' : (sharing ? '#666' : '#0F0F0F'),
                     border: 'none',
                     borderRadius: '6px',
-                    cursor: sharing ? 'not-allowed' : 'pointer',
+                    cursor: (sharing || showSuccessAnimation) ? 'not-allowed' : 'pointer',
                     fontWeight: 'bold',
                     fontSize: '16px',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
                   }}
                   onMouseEnter={(e) => {
-                    if (!sharing) {
+                    if (!sharing && !showSuccessAnimation) {
                       e.currentTarget.style.backgroundColor = '#87CEEB';
                       e.currentTarget.style.transform = 'scale(1.02)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = sharing ? '#ccc' : '#ADD8E6';
+                    e.currentTarget.style.backgroundColor = showSuccessAnimation ? '#4CAF50' : (sharing ? '#ccc' : '#ADD8E6');
                     e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
-                  {sharing ? 'Sharing...' : 'Share Video'}
+                  {showSuccessAnimation ? (
+                    <>
+                      <CheckCircle2 size={18} />
+                      <span>Shared!</span>
+                    </>
+                  ) : (
+                    sharing ? 'Sharing...' : 'Share Video'
+                  )}
                 </button>
                 <button
                   type="button"
