@@ -57,10 +57,7 @@ export default function Navigation() {
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
-        // Only close if search query is empty, otherwise keep it open to show results
-        if (!searchQuery.trim()) {
-          closeSearch();
-        }
+        closeSearch();
       }
     };
 
@@ -74,7 +71,7 @@ export default function Navigation() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isSearchOpen, searchQuery, closeSearch]);
+  }, [isSearchOpen, closeSearch]);
 
   // Auto-search with debounce when search is open and query changes
   useEffect(() => {
