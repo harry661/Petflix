@@ -173,7 +173,8 @@ export default function UserProfilePage() {
         },
         body: JSON.stringify({
           youtubeVideoId: videoId,
-          // Title and description are optional - backend will fetch from YouTube if not provided
+          title: '', // Backend will fetch from YouTube if empty
+          description: '', // Backend will fetch from YouTube if empty
         }),
       });
 

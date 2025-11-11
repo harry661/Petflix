@@ -113,12 +113,12 @@ export const shareVideo = async (
 
     const { youtubeVideoId, title, description } = req.body;
 
-    if (!youtubeVideoId || !title) {
-      res.status(400).json({ error: 'YouTube video ID and title are required' });
+    if (!youtubeVideoId) {
+      res.status(400).json({ error: 'YouTube video ID is required' });
       return;
     }
 
-    // Get video details from YouTube to verify it exists
+    // Get video details from YouTube to verify it exists and get metadata
     let youtubeData;
     try {
       youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
