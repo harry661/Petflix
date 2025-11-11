@@ -336,10 +336,9 @@ export default function HomePage() {
         paddingTop: 0
       }}>
         <div style={{ 
-          width: '90vw',
-          maxWidth: '90vw',
+          maxWidth: '100%',
           margin: '0 auto', 
-          padding: '0',
+          padding: '0 40px',
           position: 'relative'
         }}>
         {/* Filter Buttons - Positioned over banner fade */}
