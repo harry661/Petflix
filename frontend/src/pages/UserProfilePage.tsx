@@ -42,6 +42,17 @@ export default function UserProfilePage() {
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [editingVideo, setEditingVideo] = useState<any>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editTagInput, setEditTagInput] = useState('');
+  const [showEditTagSuggestions, setShowEditTagSuggestions] = useState(false);
+  const [editTagSuggestions, setEditTagSuggestions] = useState<string[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [editError, setEditError] = useState('');
   
   // Available tags for pet videos - organized by category, sorted alphabetically within each category
   const availableTags = [
