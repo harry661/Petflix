@@ -337,3 +337,6 @@ function VideoCard({ video }: VideoCardProps) {
   );
 }
 
+// Memoize component to prevent unnecessary re-renders
+export default memo(VideoCard);
+
