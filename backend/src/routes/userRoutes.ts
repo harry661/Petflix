@@ -22,14 +22,16 @@ const router = Router();
 router.post('/register', register);
 router.post('/login', login);
 router.get('/search', searchUsers);
+
+// Protected routes - must come before /:userId to avoid route conflicts
+router.get('/me', authenticate, getCurrentUser);
+router.put('/me', authenticate, updateProfile);
+
+// User-specific routes (must come after /me)
 router.get('/:userId', getUserById);
 router.get('/:userId/followers', getFollowers);
 router.get('/:userId/following', getFollowing);
 router.get('/:userId/follow-status', optionalAuthenticate, getFollowStatus);
-
-// Protected routes
-router.get('/me', authenticate, getCurrentUser);
-router.put('/me', authenticate, updateProfile);
 router.post('/:userId/follow', authenticate, followUser);
 router.delete('/:userId/unfollow', authenticate, unfollowUser);
 
