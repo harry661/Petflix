@@ -33,14 +33,36 @@ export default function HomePage() {
 
   const loadTrendingVideos = async () => {
     try {
-      // Search for trending pet videos
-      const response = await fetch(`${API_URL}/api/v1/videos/search?q=cats dogs pets&limit=12`);
-      if (response.ok) {
-        const data = await response.json();
-        setTrendingVideos(data.videos || []);
+      setLoading(true);
+      // Try to search for trending pet videos first
+      const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=cats dogs pets&limit=12`);
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        // If we got videos from search, use them
+        if (searchData.videos && searchData.videos.length > 0) {
+          setTrendingVideos(searchData.videos);
+          setLoading(false);
+          return;
+        }
       }
+      
+      // If search returned no results, try to get recent videos from feed or all videos
+      // For now, try a broader search
+      const broadSearchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=pets&limit=12`);
+      if (broadSearchResponse.ok) {
+        const broadData = await broadSearchResponse.json();
+        if (broadData.videos && broadData.videos.length > 0) {
+          setTrendingVideos(broadData.videos);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // If still no results, set empty array
+      setTrendingVideos([]);
     } catch (err) {
-      console.error('Error loading trending videos:', err);
+      // Error loading trending videos - set empty array
+      setTrendingVideos([]);
     } finally {
       setLoading(false);
     }
