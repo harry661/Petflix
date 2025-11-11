@@ -83,6 +83,27 @@ export default function Navigation() {
     // Search is handled automatically by useEffect with debounce
   };
 
+  // Focus search input when opened and handle Escape key
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSearchOpen) {
+        closeSearch();
+      }
+    };
+
+    if (isSearchOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isSearchOpen, closeSearch]);
+
   // Show minimal nav while loading
   if (loading) {
     return (
