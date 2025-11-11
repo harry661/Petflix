@@ -20,6 +20,8 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<HomePage />} />
+        <Route path="/popular" element={<HomePage />} />
+        <Route path="/favourites" element={<FeedPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/video/:id" element={<VideoDetailPage />} />
         <Route path="/user/:username" element={<UserProfilePage />} />
