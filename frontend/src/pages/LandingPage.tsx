@@ -206,7 +206,6 @@ export default function LandingPage() {
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
-      backgroundColor: '#F0F0DC', // Fallback color if image doesn't load
       display: 'flex',
       flexDirection: 'column',
       padding: '20px',
