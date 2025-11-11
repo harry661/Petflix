@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import PawLogo from '../assets/Paw.svg';
+import PetflixLogo from '../assets/PETFLIX.svg';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -222,6 +224,19 @@ export default function LandingPage() {
         zIndex: 0
       }} />
       <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {/* Petflix Logo - Top Left */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        zIndex: 2,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}>
+        <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
+        <img src={PetflixLogo} alt="Petflix" style={{ height: '20px', width: 'auto' }} />
+      </div>
 
       {/* Centered Form */}
       <div style={{
@@ -299,13 +314,16 @@ export default function LandingPage() {
           )}
           <style>{`
             input::placeholder {
-              color: rgba(255, 255, 255, 0.6) !important;
+              color: rgba(255, 255, 255, 0.5) !important;
+            }
+            input {
+              color: #fff !important;
             }
             input:-webkit-autofill,
             input:-webkit-autofill:hover,
             input:-webkit-autofill:focus {
               -webkit-text-fill-color: #fff !important;
-              -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
+              -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset !important;
               transition: background-color 5000s ease-in-out 0s;
             }
           `}</style>
