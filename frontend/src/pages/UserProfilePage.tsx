@@ -272,7 +272,7 @@ export default function UserProfilePage() {
         <div style={{
           backgroundColor: 'transparent',
           borderRadius: '12px',
-          padding: '40px',
+          padding: '40px 0',
           marginBottom: '30px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginBottom: '20px' }}>
@@ -357,7 +357,7 @@ export default function UserProfilePage() {
                     }}
                   >
                     <Upload size={18} />
-                    {showShareForm ? 'Cancel' : 'Upload Video'}
+                    {showShareForm ? 'Cancel' : 'Share Video'}
                   </button>
                   <button
                     onClick={() => navigate('/settings')}
