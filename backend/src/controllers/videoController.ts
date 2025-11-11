@@ -42,6 +42,8 @@ export const searchVideos = async (
         channelTitle: video.channelTitle,
         viewCount: video.viewCount,
         publishedAt: video.publishedAt,
+        createdAt: video.publishedAt, // Use publishedAt as createdAt for YouTube videos
+        user: null, // YouTube videos don't have a Petflix user
         source: 'youtube',
       }));
     } catch (error) {
@@ -63,24 +65,34 @@ export const searchVideos = async (
         users:user_id (
           id,
           username,
-          email
+          email,
+          profile_picture_url
         )
       `)
       .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    const sharedVideosFormatted = (sharedVideos || []).map((video: any) => ({
-      id: video.id,
-      youtubeVideoId: video.youtube_video_id,
-      title: video.title,
-      description: video.description,
-      userId: video.user_id,
-      createdAt: video.created_at,
-      updatedAt: video.updated_at,
-      user: video.users,
-      source: 'petflix',
-    }));
+    const sharedVideosFormatted = (sharedVideos || []).map((video: any) => {
+      const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      return {
+        id: video.id,
+        youtubeVideoId: video.youtube_video_id,
+        title: video.title,
+        description: video.description,
+        userId: video.user_id,
+        createdAt: video.created_at,
+        updatedAt: video.updated_at,
+        user: userData ? {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          profile_picture_url: userData.profile_picture_url,
+        } : null,
+        thumbnail: video.youtube_video_id ? `https://img.youtube.com/vi/${video.youtube_video_id}/maxresdefault.jpg` : null,
+        source: 'petflix',
+      };
+    });
 
     // Combine results (Petflix videos first, then YouTube)
     const allVideos = [...sharedVideosFormatted, ...youtubeVideos];
