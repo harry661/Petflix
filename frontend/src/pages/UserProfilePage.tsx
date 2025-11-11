@@ -265,11 +265,10 @@ export default function UserProfilePage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Profile Header */}
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: 'transparent',
           borderRadius: '12px',
           padding: '40px',
-          marginBottom: '30px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          marginBottom: '30px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginBottom: '20px' }}>
             {user.profile_picture_url ? (
@@ -374,11 +373,10 @@ export default function UserProfilePage() {
         {/* Share Video Form */}
         {isCurrentUser && showShareForm && (
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: 'transparent',
             borderRadius: '12px',
             padding: '30px',
-            marginBottom: '30px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            marginBottom: '30px'
           }}>
             <h2 style={{ color: '#ffffff', marginTop: 0, marginBottom: '20px' }}>Share a YouTube Video</h2>
             <form onSubmit={handleShareVideo}>
@@ -436,7 +434,7 @@ export default function UserProfilePage() {
           <h2 style={{ color: '#ffffff', marginBottom: '20px' }}>Shared Videos</h2>
           {videos.length === 0 ? (
             <div style={{
-              backgroundColor: 'white',
+              backgroundColor: 'transparent',
               borderRadius: '8px',
               padding: '40px',
               textAlign: 'center'
