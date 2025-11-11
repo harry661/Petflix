@@ -231,7 +231,8 @@ export default function Navigation() {
       top: 0,
       zIndex: 1000,
       backdropFilter: scrollY > 100 ? 'blur(10px)' : 'none',
-      transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease'
+      transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease',
+      marginBottom: 0
     }}>
       <div style={{
         maxWidth: '100%',

@@ -184,9 +184,10 @@ export default function HomePage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC'
+      backgroundColor: '#F0F0DC',
+      position: 'relative'
     }}>
-      {/* Hero Section - Banner Carousel (Full Width) */}
+      {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && featuredVideos.length > 0 && (
         <div style={{
           position: 'relative',
@@ -194,7 +195,9 @@ export default function HomePage() {
           height: '500px',
           overflow: 'hidden',
           marginLeft: 'calc(-50vw + 50%)',
-          marginBottom: '40px'
+          marginBottom: '40px',
+          marginTop: 0,
+          zIndex: 0
         }}>
             {featuredVideos.map((video, index) => {
               const thumbnail = getBannerThumbnail(video);
