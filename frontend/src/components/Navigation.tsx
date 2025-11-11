@@ -10,6 +10,21 @@ export default function Navigation() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
+  const logoStyle: React.CSSProperties = {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#ADD8E6',
+    textDecoration: 'none',
+    letterSpacing: '0.5px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  };
+
+  const logoTextStyle: React.CSSProperties = {
+    color: '#ADD8E6'
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -91,21 +106,6 @@ export default function Navigation() {
   }
 
   const isActive = (path: string) => location.pathname === path;
-
-  const logoStyle: React.CSSProperties = {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#ADD8E6',
-    textDecoration: 'none',
-    letterSpacing: '0.5px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  };
-
-  const logoTextStyle: React.CSSProperties = {
-    color: '#ADD8E6'
-  };
 
   return (
     <nav style={{
