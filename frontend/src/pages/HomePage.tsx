@@ -186,11 +186,9 @@ export default function HomePage() {
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && featuredVideos.length > 0 && (
         <div style={{
-          position: 'relative',
           width: '100vw',
           height: '500px',
           overflow: 'hidden',
-          zIndex: 1,
           marginLeft: 'calc(-50vw + 50%)',
           marginTop: 0,
           marginBottom: 0
