@@ -191,12 +191,12 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Hero Section - Banner Carousel (Full Width, Behind Navbar and Filter Buttons) */}
+      {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && (
         <div style={{
           position: 'relative',
           width: '100vw',
-          height: '600px', // Increased height to include filter buttons area
+          height: '600px', // Increased to accommodate filter buttons overlap
           overflow: 'hidden',
           marginLeft: 'calc(-50vw + 50%)',
           marginTop: '-70px', // Negative margin to pull banner up behind navbar
@@ -219,14 +219,28 @@ export default function HomePage() {
                   backgroundPosition: 'center'
                 }}
               >
-                {/* Dark overlay for text readability - fades at bottom for filter buttons */}
+                {/* Dark overlay for text readability */}
                 <div style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.6) 100%)'
+                  background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%)'
+                }} />
+                
+                {/* Progressive fade/blur overlay at bottom for filter buttons */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: '200px', // Height of fade area
+                  background: 'linear-gradient(to top, rgba(15, 15, 15, 1) 0%, rgba(15, 15, 15, 0.8) 30%, rgba(15, 15, 15, 0) 100%)',
+                  backdropFilter: 'blur(0px)',
+                  WebkitBackdropFilter: 'blur(0px)',
+                  maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)',
+                  WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)'
                 }} />
                 
                 {/* Title and CTA Button */}
@@ -327,11 +341,11 @@ export default function HomePage() {
           padding: '20px',
           position: 'relative'
         }}>
-        {/* Filter Buttons - Positioned over banner */}
+        {/* Filter Buttons - Positioned over banner fade */}
         {!isSearchOpen && (
           <div style={{
             marginBottom: '30px',
-            marginTop: '-100px', // Pull up to overlap with banner
+            marginTop: '-100px', // Pull up to overlap with banner fade area
             display: 'flex',
             gap: '8px',
             width: '100%',
