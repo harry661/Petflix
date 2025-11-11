@@ -219,9 +219,14 @@ export default function Navigation() {
   const isActive = (path: string) => location.pathname === path;
 
   // Calculate navbar opacity based on scroll position
-  // Transparent at top (scrollY < 100), fully opaque when scrolled (scrollY > 300)
-  const navbarOpacity = Math.min(1, Math.max(0, (scrollY - 100) / 200));
-  const navbarBackground = `rgba(0, 0, 0, ${0.3 + navbarOpacity * 0.5})`; // 0.3 to 0.8 opacity
+  // Transparent at top (scrollY < 50), fully opaque when scrolled (scrollY > 200)
+  const navbarOpacity = Math.min(1, Math.max(0, (scrollY - 50) / 150));
+  const navbarBackground = scrollY < 50 
+    ? 'transparent' 
+    : `rgba(0, 0, 0, ${0.3 + navbarOpacity * 0.5})`; // 0.3 to 0.8 opacity when scrolled
+  const navbarBoxShadow = scrollY < 50 
+    ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+    : '0 2px 8px rgba(0, 0, 0, 0.5)';
 
   return (
     <nav style={{
@@ -230,8 +235,9 @@ export default function Navigation() {
       position: 'sticky',
       top: 0,
       zIndex: 1000,
-      backdropFilter: scrollY > 100 ? 'blur(10px)' : 'none',
-      transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease',
+      backdropFilter: scrollY > 50 ? 'blur(10px)' : 'none',
+      boxShadow: navbarBoxShadow,
+      transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease',
       marginBottom: 0
     }}>
       <div style={{
