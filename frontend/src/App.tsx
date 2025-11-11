@@ -1,15 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { SearchProvider } from './context/SearchContext';
 import Navigation from './components/Navigation';
-import LandingPage from './pages/LandingPage';
-import HomePage from './pages/HomePage';
-import SearchPage from './pages/SearchPage';
-import VideoDetailPage from './pages/VideoDetailPage';
-import UserProfilePage from './pages/UserProfilePage';
-import AccountSettingsPage from './pages/AccountSettingsPage';
-import FeedPage from './pages/FeedPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+
+// Lazy load pages for better performance
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const SearchPage = lazy(() => import('./pages/SearchPage'));
+const VideoDetailPage = lazy(() => import('./pages/VideoDetailPage'));
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
+const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'));
+const FeedPage = lazy(() => import('./pages/FeedPage'));
 
 function AppContent() {
   const location = useLocation();
@@ -18,20 +19,32 @@ function AppContent() {
   return (
     <>
       {showNavigation && <Navigation />}
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/popular" element={<HomePage />} />
-        <Route path="/favourites" element={<FeedPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/video/:id" element={<VideoDetailPage />} />
-        <Route path="/user/:username" element={<UserProfilePage />} />
-        <Route path="/settings" element={<AccountSettingsPage />} />
-        <Route path="/feed" element={<FeedPage />} />
-        {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
-        <Route path="/login" element={<LandingPage />} />
-        <Route path="/register" element={<LandingPage />} />
-      </Routes>
+      <Suspense fallback={
+        <div style={{
+          minHeight: '100vh',
+          backgroundColor: '#F0F0DC',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <p style={{ color: '#666' }}>Loading...</p>
+        </div>
+      }>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/popular" element={<HomePage />} />
+          <Route path="/favourites" element={<FeedPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/video/:id" element={<VideoDetailPage />} />
+          <Route path="/user/:username" element={<UserProfilePage />} />
+          <Route path="/settings" element={<AccountSettingsPage />} />
+          <Route path="/feed" element={<FeedPage />} />
+          {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
+          <Route path="/login" element={<LandingPage />} />
+          <Route path="/register" element={<LandingPage />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }

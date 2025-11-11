@@ -111,7 +111,7 @@ export default function Navigation() {
           setSearchResults([]);
         }
       } catch (err) {
-        console.error('Search error:', err);
+        // Search error - silently fail
         setSearchResults([]);
       } finally {
         setIsLoading(false);

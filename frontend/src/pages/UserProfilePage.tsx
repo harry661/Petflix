@@ -60,7 +60,7 @@ export default function UserProfilePage() {
             setIsCurrentUser(currentUser.username === username);
           }
         } catch (err) {
-          console.error('Error fetching current user:', err);
+          // Error fetching current user - continue anyway
           // Not logged in or error - continue anyway
         }
       }
@@ -72,7 +72,7 @@ export default function UserProfilePage() {
           credentials: 'include',
         });
       } catch (err: any) {
-        console.error('Network error searching for user:', err);
+        // Network error searching for user
         setError('Could not connect to the server. Please make sure the backend is running.');
         setLoading(false);
         return;
@@ -84,7 +84,7 @@ export default function UserProfilePage() {
         const data = await response.json();
         userData = data.users?.[0];
       } else {
-        console.error('Error response:', response.status, response.statusText);
+        // Error response
         setError(`Failed to load user profile (${response.status})`);
         setLoading(false);
         return;
@@ -108,7 +108,7 @@ export default function UserProfilePage() {
           setVideos(videosData.videos || []);
         }
       } catch (err) {
-        console.error('Error loading videos:', err);
+        // Error loading videos
       }
 
       // Load followers
@@ -121,7 +121,7 @@ export default function UserProfilePage() {
           setFollowers(followersData.users || []);
         }
       } catch (err) {
-        console.error('Error loading followers:', err);
+        // Error loading followers
       }
 
       // Load following
@@ -134,7 +134,7 @@ export default function UserProfilePage() {
           setFollowing(followingData.users || []);
         }
       } catch (err) {
-        console.error('Error loading following:', err);
+        // Error loading following
       }
 
       // Check follow status
@@ -149,11 +149,11 @@ export default function UserProfilePage() {
             setIsFollowing(status.isFollowing);
           }
         } catch (err) {
-          console.error('Error checking follow status:', err);
+          // Error checking follow status
         }
       }
     } catch (err: any) {
-      console.error('Error loading user profile:', err);
+      // Error loading user profile
       setError(err.message || 'Failed to load user profile');
     } finally {
       setLoading(false);
