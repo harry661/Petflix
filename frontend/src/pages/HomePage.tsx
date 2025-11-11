@@ -181,7 +181,7 @@ export default function HomePage() {
         return (
           <div style={{
             minHeight: '100vh',
-            backgroundColor: '#1E1E1E',
+            backgroundColor: '#0F0F0F',
             padding: '40px',
             textAlign: 'center'
           }}>
@@ -302,7 +302,7 @@ export default function HomePage() {
       
       <div style={{ 
         minHeight: '100vh',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#0F0F0F',
         paddingTop: 0
       }}>
         <div style={{ 

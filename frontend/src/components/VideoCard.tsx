@@ -162,7 +162,7 @@ function VideoCard({ video }: VideoCardProps) {
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: '#1E1E1E',
+            backgroundColor: '#0F0F0F',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -283,7 +283,7 @@ function VideoCard({ video }: VideoCardProps) {
                         backgroundColor: 'transparent',
                         cursor: 'pointer',
                         fontSize: '14px',
-                        color: '#1E1E1E'
+                        color: '#0F0F0F'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -304,7 +304,7 @@ function VideoCard({ video }: VideoCardProps) {
                         backgroundColor: 'transparent',
                         cursor: 'pointer',
                         fontSize: '14px',
-                        color: '#1E1E1E'
+                        color: '#0F0F0F'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}

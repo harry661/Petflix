@@ -22,7 +22,7 @@ function AppContent() {
       <Suspense fallback={
         <div style={{
           minHeight: '100vh',
-          backgroundColor: '#1E1E1E',
+          backgroundColor: '#0F0F0F',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'

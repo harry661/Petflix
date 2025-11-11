@@ -125,7 +125,7 @@ export default function VideoDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#1E1E1E', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#0F0F0F', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#ffffff' }}>Loading video...</p>
       </div>
     );
@@ -133,7 +133,7 @@ export default function VideoDetailPage() {
 
   if (error || !video) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#1E1E1E', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#0F0F0F', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#c62828' }}>{error || 'Video not found'}</p>
       </div>
     );
@@ -145,7 +145,7 @@ export default function VideoDetailPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#1E1E1E',
+      backgroundColor: '#0F0F0F',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
