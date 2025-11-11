@@ -44,30 +44,49 @@ export default function UserProfilePage() {
 
   const loadUserProfile = async () => {
     try {
+      setError('');
+      
       // Get current user to check if viewing own profile
       const token = localStorage.getItem('auth_token');
       if (token) {
         try {
           const currentUserRes = await fetch(`${API_URL}/api/v1/users/me`, {
             headers: { 'Authorization': `Bearer ${token}` },
+            credentials: 'include',
           });
           if (currentUserRes.ok) {
             const currentUser = await currentUserRes.json();
             setIsCurrentUser(currentUser.username === username);
           }
         } catch (err) {
-          // Not logged in or error
+          console.error('Error fetching current user:', err);
+          // Not logged in or error - continue anyway
         }
       }
 
-      // Search for user by username (we'll need to implement this endpoint)
-      // For now, we'll need to get user ID first
-      const response = await fetch(`${API_URL}/api/v1/users/search?username=${username}`);
+      // Search for user by username
+      let response;
+      try {
+        response = await fetch(`${API_URL}/api/v1/users/search?username=${encodeURIComponent(username || '')}`, {
+          credentials: 'include',
+        });
+      } catch (err: any) {
+        console.error('Network error searching for user:', err);
+        setError('Could not connect to the server. Please make sure the backend is running.');
+        setLoading(false);
+        return;
+      }
+      
       let userData;
       
       if (response.ok) {
         const data = await response.json();
         userData = data.users?.[0];
+      } else {
+        console.error('Error response:', response.status, response.statusText);
+        setError(`Failed to load user profile (${response.status})`);
+        setLoading(false);
+        return;
       }
 
       if (!userData) {
@@ -79,38 +98,62 @@ export default function UserProfilePage() {
       setUser(userData);
 
       // Load user's videos
-      const videosRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}`);
-      if (videosRes.ok) {
-        const videosData = await videosRes.json();
-        setVideos(videosData.videos || []);
+      try {
+        const videosRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}`, {
+          credentials: 'include',
+        });
+        if (videosRes.ok) {
+          const videosData = await videosRes.json();
+          setVideos(videosData.videos || []);
+        }
+      } catch (err) {
+        console.error('Error loading videos:', err);
       }
 
       // Load followers
-      const followersRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/followers`);
-      if (followersRes.ok) {
-        const followersData = await followersRes.json();
-        setFollowers(followersData.users || []);
+      try {
+        const followersRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/followers`, {
+          credentials: 'include',
+        });
+        if (followersRes.ok) {
+          const followersData = await followersRes.json();
+          setFollowers(followersData.users || []);
+        }
+      } catch (err) {
+        console.error('Error loading followers:', err);
       }
 
       // Load following
-      const followingRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/following`);
-      if (followingRes.ok) {
-        const followingData = await followingRes.json();
-        setFollowing(followingData.users || []);
+      try {
+        const followingRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/following`, {
+          credentials: 'include',
+        });
+        if (followingRes.ok) {
+          const followingData = await followingRes.json();
+          setFollowing(followingData.users || []);
+        }
+      } catch (err) {
+        console.error('Error loading following:', err);
       }
 
       // Check follow status
       if (token && !isCurrentUser) {
-        const followStatusRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/follow-status`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (followStatusRes.ok) {
-          const status = await followStatusRes.json();
-          setIsFollowing(status.isFollowing);
+        try {
+          const followStatusRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/follow-status`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            credentials: 'include',
+          });
+          if (followStatusRes.ok) {
+            const status = await followStatusRes.json();
+            setIsFollowing(status.isFollowing);
+          }
+        } catch (err) {
+          console.error('Error checking follow status:', err);
         }
       }
     } catch (err: any) {
-      setError('Failed to load user profile');
+      console.error('Error loading user profile:', err);
+      setError(err.message || 'Failed to load user profile');
     } finally {
       setLoading(false);
     }
