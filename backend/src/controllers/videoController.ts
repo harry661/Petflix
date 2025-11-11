@@ -488,14 +488,14 @@ export const getVideosByUser = async (
  * GET /api/v1/videos/recent
  */
 export const getRecentVideos = async (
-  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string }>,
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string; tag?: string }>,
   res: Response
 ) => {
   try {
     const limit = parseInt(req.query.limit || '12');
+    const tagFilter = req.query.tag;
 
-    // Get all recent shared videos from database
-    const { data: videos, error: dbError } = await supabaseAdmin!
+    let query = supabaseAdmin!
       .from('videos')
       .select(`
         id,
@@ -511,7 +511,39 @@ export const getRecentVideos = async (
           email,
           profile_picture_url
         )
-      `)
+      `);
+
+    // If tag filter is provided, join with video_tags_direct and filter
+    if (tagFilter && tagFilter.trim()) {
+      // Map filter names to tag names
+      const tagMap: { [key: string]: string[] } = {
+        'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies'],
+        'cats': ['Cat', 'Cats', 'Kitten', 'Kittens'],
+        'birds': ['Bird', 'Birds', 'Parrot', 'Cockatiel', 'Canary'],
+        'small and fluffy': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Small Pets', 'Fluffy'],
+        'underwater': ['Fish', 'Aquatic', 'Underwater', 'Marine']
+      };
+
+      const filterLower = tagFilter.toLowerCase();
+      const tagNames = tagMap[filterLower] || [tagFilter]; // Use provided tag if not in map
+
+      // Get video IDs that have matching tags
+      const { data: taggedVideos, error: tagsError } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('video_id')
+        .in('tag_name', tagNames);
+
+      if (tagsError || !taggedVideos || taggedVideos.length === 0) {
+        // No videos with this tag, return empty
+        res.json({ videos: [], total: 0, page: 1, pageSize: limit });
+        return;
+      }
+
+      const videoIds = taggedVideos.map((tv: any) => tv.video_id);
+      query = query.in('id', videoIds);
+    }
+
+    const { data: videos, error: dbError } = await query
       .order('created_at', { ascending: false })
       .limit(limit);
 

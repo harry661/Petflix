@@ -81,48 +81,21 @@ export default function HomePage() {
   const loadTrendingVideos = async (filter?: string | null) => {
     try {
       setLoading(true);
-      let query = 'cats dogs pets';
       
-      // Apply filter if selected
+      // Build URL with tag filter if selected
+      let url = `${API_URL}/api/v1/videos/recent?limit=12`;
       if (filter) {
-        const filterMap: { [key: string]: string } = {
-          'cats': 'cats',
-          'dogs': 'dogs',
-          'birds': 'birds',
-          'small and fluffy': 'hamsters rabbits guinea pigs small pets',
-          'underwater': 'fish aquarium underwater marine'
-        };
-        query = filterMap[filter.toLowerCase()] || query;
+        url += `&tag=${encodeURIComponent(filter)}`;
       }
       
-      // First try to get recent videos (all shared videos, most recent first)
-      const recentResponse = await fetch(`${API_URL}/api/v1/videos/recent?limit=12`);
+      // Get recent videos (with tag filter if selected)
+      const recentResponse = await fetch(url);
       if (recentResponse.ok) {
         const recentData = await recentResponse.json();
         if (recentData.videos && recentData.videos.length > 0) {
-          // Filter videos if a filter is selected
-          let filteredVideos = recentData.videos;
-          if (filter) {
-            const filterLower = filter.toLowerCase();
-            filteredVideos = recentData.videos.filter((video: any) => {
-              const title = (video.title || '').toLowerCase();
-              const description = (video.description || '').toLowerCase();
-              const searchText = title + ' ' + description;
-              
-              if (filterLower === 'cats') return searchText.includes('cat');
-              if (filterLower === 'dogs') return searchText.includes('dog');
-              if (filterLower === 'birds') return searchText.includes('bird') || searchText.includes('parrot') || searchText.includes('cockatiel');
-              if (filterLower === 'small and fluffy') return searchText.includes('hamster') || searchText.includes('rabbit') || searchText.includes('guinea pig') || searchText.includes('small');
-              if (filterLower === 'underwater') return searchText.includes('fish') || searchText.includes('aquarium') || searchText.includes('underwater');
-              return true;
-            });
-          }
-          
-          if (filteredVideos.length > 0) {
-            setTrendingVideos(filteredVideos);
-            setLoading(false);
-            return;
-          }
+          setTrendingVideos(recentData.videos);
+          setLoading(false);
+          return;
         }
       }
       
