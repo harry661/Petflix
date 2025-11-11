@@ -191,7 +191,7 @@ export default function HomePage() {
           height: '500px',
           overflow: 'hidden',
           marginLeft: 'calc(-50vw + 50%)',
-          marginTop: 0,
+          marginTop: '-70px', // Negative margin to pull banner up behind navbar
           marginBottom: 0,
           zIndex: 0
         }}>
