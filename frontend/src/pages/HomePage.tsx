@@ -72,76 +72,11 @@ export default function HomePage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ marginBottom: '40px', textAlign: 'center' }}>
           <h1 style={{ color: '#36454F', fontSize: '36px', marginBottom: '10px' }}>
-            Welcome back, {user?.username || 'User'}! 🐾
+            Welcome back, {user?.username || 'User'}!
           </h1>
           <p style={{ color: '#666', fontSize: '18px' }}>
             Discover amazing pet videos from the community
           </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '20px',
-          marginBottom: '40px'
-        }}>
-          <div
-            onClick={() => navigate('/search')}
-            style={{
-              backgroundColor: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              cursor: 'pointer',
-              textAlign: 'center',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ fontSize: '48px', marginBottom: '15px' }}>🔍</div>
-            <h3 style={{ color: '#36454F', marginTop: 0 }}>Search Videos</h3>
-            <p style={{ color: '#666', fontSize: '14px' }}>Find pet videos by keywords</p>
-          </div>
-
-          <div
-            onClick={() => navigate('/feed')}
-            style={{
-              backgroundColor: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              cursor: 'pointer',
-              textAlign: 'center',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ fontSize: '48px', marginBottom: '15px' }}>📰</div>
-            <h3 style={{ color: '#36454F', marginTop: 0 }}>Your Feed</h3>
-            <p style={{ color: '#666', fontSize: '14px' }}>Videos from users you follow</p>
-          </div>
-
-          <div
-            onClick={() => navigate(`/user/${user?.username}`)}
-            style={{
-              backgroundColor: 'white',
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              cursor: 'pointer',
-              textAlign: 'center',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <div style={{ fontSize: '48px', marginBottom: '15px' }}>👤</div>
-            <h3 style={{ color: '#36454F', marginTop: 0 }}>Your Profile</h3>
-            <p style={{ color: '#666', fontSize: '14px' }}>View and edit your profile</p>
-          </div>
         </div>
 
         {/* Trending Videos */}
