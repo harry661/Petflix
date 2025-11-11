@@ -26,8 +26,17 @@ export default function VideoCard({ video }: VideoCardProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Generate YouTube thumbnail URL if not provided
-  const thumbnailUrl = video.thumbnail || 
-    (video.youtubeVideoId ? `https://img.youtube.com/vi/${video.youtubeVideoId}/maxresdefault.jpg` : null);
+  // Try multiple thumbnail quality options
+  const getThumbnailUrl = () => {
+    if (video.thumbnail) return video.thumbnail;
+    if (video.youtubeVideoId) {
+      // Try maxresdefault first, fallback to hqdefault, then mqdefault
+      return `https://img.youtube.com/vi/${video.youtubeVideoId}/maxresdefault.jpg`;
+    }
+    return null;
+  };
+  
+  const thumbnailUrl = getThumbnailUrl();
 
   // Format date
   const formatDate = (dateString?: string) => {
@@ -118,10 +127,23 @@ export default function VideoCard({ video }: VideoCardProps) {
               objectFit: 'cover'
             }}
             onError={(e) => {
-              // Fallback to default thumbnail if image fails to load
+              // Fallback to lower quality thumbnail if image fails to load
               const target = e.target as HTMLImageElement;
               if (video.youtubeVideoId) {
-                target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/mqdefault.jpg`;
+                // Try different quality levels
+                const currentSrc = target.src;
+                if (currentSrc.includes('maxresdefault')) {
+                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
+                } else if (currentSrc.includes('hqdefault')) {
+                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/mqdefault.jpg`;
+                } else if (currentSrc.includes('mqdefault')) {
+                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/default.jpg`;
+                } else {
+                  // Last resort - show placeholder
+                  target.style.display = 'none';
+                }
+              } else {
+                target.style.display = 'none';
               }
             }}
           />
