@@ -113,6 +113,7 @@ export default function UserProfilePage() {
           if (currentUserRes.ok) {
             const currentUser = await currentUserRes.json();
             setIsCurrentUser(currentUser.username === username);
+            setCurrentUserId(currentUser.id);
           }
         } catch (err) {
           // Error fetching current user - continue anyway
@@ -153,14 +154,29 @@ export default function UserProfilePage() {
 
       setUser(userData);
 
-      // Load user's videos
+      // Load user's videos with tags
       try {
         const videosRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}`, {
           credentials: 'include',
         });
         if (videosRes.ok) {
           const videosData = await videosRes.json();
-          setVideos(videosData.videos || []);
+          const videosWithTags = await Promise.all((videosData.videos || []).map(async (video: any) => {
+            // Fetch tags for each video
+            try {
+              const tagsRes = await fetch(`${API_URL}/api/v1/videos/${video.id}/tags`, {
+                credentials: 'include',
+              });
+              if (tagsRes.ok) {
+                const tagsData = await tagsRes.json();
+                return { ...video, tags: tagsData.tags || [] };
+              }
+            } catch (err) {
+              // Silently fail - tags are optional
+            }
+            return { ...video, tags: [] };
+          }));
+          setVideos(videosWithTags);
         }
       } catch (err) {
         // Error loading videos
