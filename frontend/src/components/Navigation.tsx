@@ -225,8 +225,8 @@ export default function Navigation() {
     ? 'transparent' 
     : `rgba(0, 0, 0, ${0.3 + navbarOpacity * 0.5})`; // 0.3 to 0.8 opacity when scrolled
   const navbarBoxShadow = scrollY < 50 
-    ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-    : '0 2px 8px rgba(0, 0, 0, 0.5)';
+    ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' 
+    : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
 
   return (
     <nav style={{
