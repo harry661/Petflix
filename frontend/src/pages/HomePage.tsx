@@ -34,25 +34,23 @@ export default function HomePage() {
   const loadTrendingVideos = async () => {
     try {
       setLoading(true);
-      // Try to search for trending pet videos first
-      const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=cats dogs pets&limit=12`);
-      if (searchResponse.ok) {
-        const searchData = await searchResponse.json();
-        // If we got videos from search, use them
-        if (searchData.videos && searchData.videos.length > 0) {
-          setTrendingVideos(searchData.videos);
+      // First try to get recent videos (all shared videos, most recent first)
+      const recentResponse = await fetch(`${API_URL}/api/v1/videos/recent?limit=12`);
+      if (recentResponse.ok) {
+        const recentData = await recentResponse.json();
+        if (recentData.videos && recentData.videos.length > 0) {
+          setTrendingVideos(recentData.videos);
           setLoading(false);
           return;
         }
       }
       
-      // If search returned no results, try to get recent videos from feed or all videos
-      // For now, try a broader search
-      const broadSearchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=pets&limit=12`);
-      if (broadSearchResponse.ok) {
-        const broadData = await broadSearchResponse.json();
-        if (broadData.videos && broadData.videos.length > 0) {
-          setTrendingVideos(broadData.videos);
+      // Fallback: try to search for trending pet videos
+      const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=cats dogs pets&limit=12`);
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        if (searchData.videos && searchData.videos.length > 0) {
+          setTrendingVideos(searchData.videos);
           setLoading(false);
           return;
         }

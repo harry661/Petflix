@@ -459,6 +459,83 @@ export const getVideosByUser = async (
 };
 
 /**
+ * Get recent/trending videos (all shared videos, most recent first)
+ * GET /api/v1/videos/recent
+ */
+export const getRecentVideos = async (
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string }>,
+  res: Response
+) => {
+  try {
+    const limit = parseInt(req.query.limit || '12');
+
+    // Get all recent shared videos from database
+    const { data: videos, error: dbError } = await supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        created_at,
+        updated_at,
+        users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (dbError) {
+      res.status(500).json({ error: 'Failed to load videos' });
+      return;
+    }
+
+    const videosFormatted = (videos || []).map((video: any) => {
+      const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      // Generate thumbnail URL directly from YouTube video ID
+      let thumbnail: string | null = null;
+      if (video.youtube_video_id) {
+        if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+          thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+        }
+      }
+      return {
+        id: video.id,
+        youtubeVideoId: video.youtube_video_id,
+        title: video.title,
+        description: video.description,
+        userId: video.user_id,
+        createdAt: video.created_at,
+        updatedAt: video.updated_at,
+        user: userData ? {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          profile_picture_url: userData.profile_picture_url,
+        } : null,
+        thumbnail: thumbnail,
+        source: 'petflix',
+      };
+    });
+
+    res.json({
+      videos: videosFormatted,
+      total: videosFormatted.length,
+      page: 1,
+      pageSize: limit,
+    });
+  } catch (error) {
+    console.error('Get recent videos error:', error);
+    res.status(500).json({ error: 'Failed to load recent videos' });
+  }
+};
+
+/**
  * Delete a shared video
  * DELETE /api/v1/videos/:id
  */

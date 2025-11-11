@@ -13,6 +13,7 @@ const router = Router();
 
 // Public routes
 router.get('/search', optionalAuthenticate, searchVideos);
+router.get('/recent', optionalAuthenticate, getRecentVideos);
 router.get('/user/:userId', optionalAuthenticate, getVideosByUser);
 router.get('/:id', optionalAuthenticate, getVideoById);
 
