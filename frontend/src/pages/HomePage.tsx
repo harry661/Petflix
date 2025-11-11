@@ -300,26 +300,27 @@ export default function HomePage() {
           <div style={{
             marginBottom: '30px',
             display: 'flex',
-            gap: '12px',
-            flexWrap: 'wrap',
-            alignItems: 'center'
+            gap: '8px',
+            width: '100%'
           }}>
             {filters.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
                 style={{
-                  padding: '10px 20px',
-                  borderRadius: '6px',
+                  flex: 1,
+                  padding: '16px 20px',
+                  borderRadius: '8px',
                   border: '1px solid',
                   borderColor: selectedFilter === filter ? '#ADD8E6' : '#36454F',
                   backgroundColor: selectedFilter === filter ? '#ADD8E6' : 'white',
                   color: selectedFilter === filter ? '#36454F' : '#36454F',
-                  fontSize: '14px',
-                  fontWeight: selectedFilter === filter ? 'bold' : 'normal',
+                  fontSize: '16px',
+                  fontWeight: selectedFilter === filter ? 'bold' : '600',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: selectedFilter === filter ? '0 2px 8px rgba(173, 216, 230, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)'
+                  boxShadow: selectedFilter === filter ? '0 2px 8px rgba(173, 216, 230, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
+                  minWidth: 0
                 }}
                 onMouseEnter={(e) => {
                   if (selectedFilter !== filter) {
