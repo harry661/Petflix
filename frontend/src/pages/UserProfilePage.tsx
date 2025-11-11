@@ -629,11 +629,15 @@ export default function UserProfilePage() {
                         const value = e.target.value;
                         setTagInput(value);
                         if (value.trim()) {
-                          // Filter suggestions based on input
-                          const filtered = availableTags.filter(tag =>
-                            tag.toLowerCase().includes(value.toLowerCase()) &&
-                            !tags.includes(tag)
-                          );
+                          // Filter suggestions based on input - match from start of tag or start of words
+                          const valueLower = value.toLowerCase().trim();
+                          const filtered = availableTags.filter(tag => {
+                            if (tags.includes(tag)) return false; // Exclude already added tags
+                            const tagLower = tag.toLowerCase();
+                            // Match if tag starts with input, or if any word in tag starts with input
+                            return tagLower.startsWith(valueLower) || 
+                                   tagLower.split(/\s+/).some(word => word.startsWith(valueLower));
+                          });
                           setTagSuggestions(filtered.slice(0, 10));
                           setShowTagSuggestions(true);
                         } else {
