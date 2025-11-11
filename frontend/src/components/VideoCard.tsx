@@ -97,10 +97,11 @@ export default function VideoCard({ video }: VideoCardProps) {
       style={{
         backgroundColor: 'white',
         borderRadius: '8px',
-        overflow: 'hidden',
+        overflow: 'visible', // Changed to visible so dropdown isn't clipped
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         cursor: 'pointer',
         transition: 'transform 0.2s, box-shadow 0.2s',
+        position: 'relative', // Ensure positioning context
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-4px)';
@@ -113,7 +114,7 @@ export default function VideoCard({ video }: VideoCardProps) {
       onClick={handleCardClick}
     >
       {/* Thumbnail with duration overlay */}
-      <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', backgroundColor: '#000' }}>
+      <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', backgroundColor: '#000', overflow: 'hidden', borderRadius: '8px 8px 0 0' }}>
         {thumbnailUrl ? (
           <img
             src={thumbnailUrl}
@@ -263,7 +264,7 @@ export default function VideoCard({ video }: VideoCardProps) {
                     borderRadius: '4px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     minWidth: '160px',
-                    zIndex: 1000,
+                    zIndex: 10000, // Higher z-index to ensure it's above everything
                     border: '1px solid #e0e0e0'
                   }}>
                     <button
