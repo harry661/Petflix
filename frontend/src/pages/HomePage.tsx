@@ -312,25 +312,27 @@ export default function HomePage() {
                   padding: '10px 20px',
                   borderRadius: '6px',
                   border: '1px solid',
-                  borderColor: selectedFilter === filter ? '#ADD8E6' : 'rgba(255, 255, 255, 0.3)',
-                  backgroundColor: selectedFilter === filter ? '#ADD8E6' : 'rgba(255, 255, 255, 0.1)',
-                  color: selectedFilter === filter ? '#36454F' : '#fff',
+                  borderColor: selectedFilter === filter ? '#ADD8E6' : '#36454F',
+                  backgroundColor: selectedFilter === filter ? '#ADD8E6' : 'white',
+                  color: selectedFilter === filter ? '#36454F' : '#36454F',
                   fontSize: '14px',
                   fontWeight: selectedFilter === filter ? 'bold' : 'normal',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  backdropFilter: 'blur(10px)'
+                  boxShadow: selectedFilter === filter ? '0 2px 8px rgba(173, 216, 230, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)'
                 }}
                 onMouseEnter={(e) => {
                   if (selectedFilter !== filter) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                    e.currentTarget.style.borderColor = '#ADD8E6';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (selectedFilter !== filter) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    e.currentTarget.style.backgroundColor = 'white';
+                    e.currentTarget.style.borderColor = '#36454F';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                   }
                 }}
               >
