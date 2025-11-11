@@ -557,21 +557,30 @@ export default function UserProfilePage() {
                   </label>
                   <div style={{
                     width: '100%',
-                    minHeight: '56px',
-                    padding: '8px',
+                    minHeight: '56px', // Match YouTube URL field height (16px padding top + 16px padding bottom + ~24px input height)
+                    padding: '16px',
                     border: '1px solid rgba(255, 255, 255, 0.3)',
                     borderRadius: '4px',
                     backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     display: 'flex',
                     flexWrap: 'wrap',
                     gap: '8px',
-                    alignItems: 'flex-start'
+                    alignItems: 'flex-start',
+                    boxSizing: 'border-box'
                   }}
-                  onFocus={() => setShowTagSuggestions(true)}
-                  onBlur={(e) => {
-                    // Delay to allow clicking on suggestions
-                    setTimeout(() => setShowTagSuggestions(false), 200);
-                  }}
+                    onFocus={(e) => {
+                      setShowTagSuggestions(true);
+                      e.currentTarget.style.borderColor = '#ADD8E6';
+                      e.currentTarget.style.borderWidth = '1px';
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      // Delay to allow clicking on suggestions
+                      setTimeout(() => setShowTagSuggestions(false), 200);
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                      e.currentTarget.style.borderWidth = '1px';
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                    }}
                   >
                     {tags.map((tag, index) => (
                       <div
