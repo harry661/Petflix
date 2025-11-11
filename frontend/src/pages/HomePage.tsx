@@ -158,12 +158,12 @@ export default function HomePage() {
       ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Videos`
       : 'Trending Pet Videos';
   
-  const filters = ['Cats', 'Dogs', 'Birds', 'Small and fluffy', 'Underwater'];
+  const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
   
   // Map filter names to image filenames
   const filterImages: { [key: string]: string } = {
-    'Cats': '/cats-filter.png',
     'Dogs': '/dogs-filter.png',
+    'Cats': '/cats-filter.png',
     'Birds': '/birds-filter.png',
     'Small and fluffy': '/smalls-filter.png',
     'Underwater': '/aquatic-filter.png'
@@ -339,7 +339,8 @@ export default function HomePage() {
                     transition: 'all 0.2s ease',
                     boxShadow: selectedFilter === filter ? '0 4px 12px rgba(173, 216, 230, 0.5)' : '0 2px 8px rgba(0,0,0,0.2)',
                     minWidth: 0,
-                    minHeight: '64px',
+                    aspectRatio: '298 / 166',
+                    width: '100%',
                     position: 'relative',
                     overflow: 'hidden'
                   }}
