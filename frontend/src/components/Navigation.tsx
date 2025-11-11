@@ -64,8 +64,8 @@ export default function Navigation() {
           alignItems: 'center'
         }}>
           <Link to="/" style={logoStyle}>
-            <span style={logoTextStyle}>🐾</span>
-            <span style={logoTextStyle}>Petflix</span>
+            <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
+            <span>Petflix</span>
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
