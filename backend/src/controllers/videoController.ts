@@ -136,7 +136,7 @@ export const shareVideo = async (
       return;
     }
 
-    const { youtubeVideoId, title, description } = req.body;
+    const { youtubeVideoId, title, description, tags } = req.body;
 
     if (!youtubeVideoId) {
       res.status(400).json({ error: 'YouTube video ID is required' });
@@ -207,6 +207,31 @@ export const shareVideo = async (
       console.error('Error creating video:', insertError);
       res.status(500).json({ error: 'Failed to share video' });
       return;
+    }
+
+    // Insert tags if provided
+    if (tags && Array.isArray(tags) && tags.length > 0) {
+      // Normalize tags: trim, remove empty, limit length
+      const normalizedTags = tags
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0 && tag.length <= 50)
+        .slice(0, 20); // Limit to 20 tags per video
+
+      if (normalizedTags.length > 0) {
+        const tagInserts = normalizedTags.map(tag => ({
+          video_id: newVideo.id,
+          tag_name: tag,
+        }));
+
+        const { error: tagsError } = await supabaseAdmin!
+          .from('video_tags_direct')
+          .insert(tagInserts);
+
+        if (tagsError) {
+          console.error('Error inserting tags:', tagsError);
+          // Don't fail the request if tags fail - video is already created
+        }
+      }
     }
 
     res.status(201).json({

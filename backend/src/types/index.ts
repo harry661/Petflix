@@ -58,6 +58,7 @@ export interface VideoCreationRequest {
   youtubeVideoId: string;
   title: string;
   description?: string;
+  tags?: string[];
 }
 
 export interface VideoResponse {
