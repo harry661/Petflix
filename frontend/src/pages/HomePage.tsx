@@ -146,7 +146,8 @@ export default function HomePage() {
     if (isAuthenticated && user && !isSearchOpen) {
       loadTrendingVideos(selectedFilter);
     }
-  }, [selectedFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilter, isAuthenticated, user, isSearchOpen]);
 
   // Determine which videos to show
   const displayVideos = isSearchOpen && searchQuery ? searchResults : trendingVideos;
