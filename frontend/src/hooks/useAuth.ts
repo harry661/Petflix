@@ -67,6 +67,7 @@ export function useAuth() {
 
     // Listen for auth changes
     const handleAuthChange = () => {
+      console.log('🔄 Auth changed event received, re-checking...');
       checkAuth();
     };
 
@@ -80,6 +81,7 @@ export function useAuth() {
       const token = localStorage.getItem('auth_token');
       const currentAuth = !!token && !!user;
       if (!!token !== currentAuth) {
+        console.log('🔄 Token state mismatch detected, re-checking...');
         checkAuth();
       }
     }, 500);
@@ -89,7 +91,7 @@ export function useAuth() {
       window.removeEventListener('storage', handleAuthChange);
       clearInterval(interval);
     };
-  }, []);
+  }, [user]);
 
   const logout = () => {
     localStorage.removeItem('auth_token');

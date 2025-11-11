@@ -77,7 +77,10 @@ export default function LandingPage() {
         }
 
         localStorage.setItem('auth_token', data.token);
-        window.location.href = '/home';
+        // Dispatch event to notify auth state change
+        window.dispatchEvent(new Event('auth-changed'));
+        // Navigate immediately - HomePage will wait for auth check
+        navigate('/home', { replace: true });
       } catch (err: any) {
         console.error('Login error:', err);
         if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {
@@ -146,8 +149,11 @@ export default function LandingPage() {
         }
 
         localStorage.setItem('auth_token', data.token);
+        // Dispatch event to notify auth state change
+        window.dispatchEvent(new Event('auth-changed'));
         alert('Welcome to Petflix! Your account has been created successfully.');
-        window.location.href = '/home';
+        // Navigate immediately - HomePage will wait for auth check
+        navigate('/home', { replace: true });
       } catch (err: any) {
         console.error('Registration error:', err);
         if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {
