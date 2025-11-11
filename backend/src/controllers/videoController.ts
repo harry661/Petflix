@@ -515,13 +515,19 @@ export const getRecentVideos = async (
 
     // If tag filter is provided, join with video_tags_direct and filter
     if (tagFilter && tagFilter.trim()) {
-      // Map filter names to tag names
+      // Map filter names to tag names - comprehensive mapping for all pet categories
       const tagMap: { [key: string]: string[] } = {
-        'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies'],
-        'cats': ['Cat', 'Cats', 'Kitten', 'Kittens'],
-        'birds': ['Bird', 'Birds', 'Parrot', 'Cockatiel', 'Canary'],
-        'small and fluffy': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Small Pets', 'Fluffy'],
-        'underwater': ['Fish', 'Aquatic', 'Underwater', 'Marine']
+        'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Canine'],
+        'cats': ['Cat', 'Cats', 'Kitten', 'Kittens', 'Feline'],
+        'birds': ['Bird', 'Birds', 'Parrot', 'Parrots', 'Cockatiel', 'Canary', 'Budgie', 'Budgies', 'Finch', 'Finches'],
+        'smalls': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas', 'Small Pets', 'Fluffy'],
+        'aquatic': ['Fish', 'Fishes', 'Aquatic', 'Underwater', 'Marine', 'Goldfish', 'Betta', 'Tropical Fish'],
+        'reptiles': ['Reptile', 'Reptiles', 'Snake', 'Snakes', 'Lizard', 'Lizards', 'Gecko', 'Geckos', 'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Iguana', 'Iguanas'],
+        'exotic': ['Hedgehog', 'Hedgehogs', 'Ferret', 'Ferrets', 'Sugar Glider', 'Sugar Gliders', 'Chinchilla', 'Chinchillas'],
+        'farm': ['Horse', 'Horses', 'Pony', 'Ponies', 'Pig', 'Pigs', 'Goat', 'Goats', 'Sheep', 'Chicken', 'Chickens', 'Duck', 'Ducks', 'Cow', 'Cows'],
+        // Legacy support for old filter names
+        'small and fluffy': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas', 'Small Pets', 'Fluffy'],
+        'underwater': ['Fish', 'Fishes', 'Aquatic', 'Underwater', 'Marine', 'Goldfish', 'Betta', 'Tropical Fish']
       };
 
       const filterLower = tagFilter.toLowerCase();

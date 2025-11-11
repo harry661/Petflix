@@ -44,14 +44,24 @@ export default function UserProfilePage() {
   
   // Available tags for pet videos
   const availableTags = [
-    'Dog', 'Dogs', 'Puppy', 'Puppies',
-    'Cat', 'Cats', 'Kitten', 'Kittens',
-    'Bird', 'Birds', 'Parrot', 'Cockatiel', 'Canary',
-    'Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs',
-    'Fish', 'Aquatic', 'Underwater', 'Marine',
-    'Small Pets', 'Fluffy', 'Cute', 'Funny',
-    'Training', 'Tricks', 'Playful', 'Adorable',
-    'Rescue', 'Adoption', 'Pet Care', 'Pet Health'
+    // Dogs
+    'Dog', 'Dogs', 'Puppy', 'Puppies', 'Puppy', 'Canine',
+    // Cats
+    'Cat', 'Cats', 'Kitten', 'Kittens', 'Feline',
+    // Birds
+    'Bird', 'Birds', 'Parrot', 'Parrots', 'Cockatiel', 'Canary', 'Budgie', 'Budgies', 'Finch', 'Finches',
+    // Small Pets / Small and Fluffy
+    'Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas',
+    // Aquatic / Underwater
+    'Fish', 'Fishes', 'Aquatic', 'Underwater', 'Marine', 'Goldfish', 'Betta', 'Tropical Fish',
+    // Reptiles
+    'Reptile', 'Reptiles', 'Snake', 'Snakes', 'Lizard', 'Lizards', 'Gecko', 'Geckos', 'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Iguana', 'Iguanas',
+    // Exotic Small Pets
+    'Hedgehog', 'Hedgehogs', 'Ferret', 'Ferrets', 'Sugar Glider', 'Sugar Gliders', 'Chinchilla', 'Chinchillas',
+    // Farm Animals
+    'Horse', 'Horses', 'Pony', 'Ponies', 'Pig', 'Pigs', 'Goat', 'Goats', 'Sheep', 'Chicken', 'Chickens', 'Duck', 'Ducks', 'Cow', 'Cows',
+    // General
+    'Small Pets', 'Fluffy', 'Cute', 'Funny', 'Training', 'Tricks', 'Playful', 'Adorable', 'Rescue', 'Adoption', 'Pet Care', 'Pet Health'
   ];
 
   useEffect(() => {
