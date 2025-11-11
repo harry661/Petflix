@@ -202,7 +202,7 @@ export default function LandingPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundImage: 'url(/landing-background.jpg)',
+      backgroundImage: 'url(/landing-background.png)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
