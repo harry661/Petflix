@@ -146,16 +146,19 @@ export default function VideoDetailPage() {
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#0F0F0F',
-      padding: '20px'
+      padding: 0
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ 
+        maxWidth: '100%',
+        margin: '0 auto',
+        padding: '0 40px'
+      }}>
         {/* Video Player */}
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: 'transparent',
           borderRadius: '8px',
-          padding: '20px',
-          marginBottom: '30px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          padding: '40px 0',
+          marginBottom: '30px'
         }}>
           <div style={{
             position: 'relative',
@@ -201,13 +204,25 @@ export default function VideoDetailPage() {
               <button
                 onClick={handleShare}
                 style={{
-                  padding: '10px 20px',
+                  padding: '14px 32px',
                   backgroundColor: '#ADD8E6',
-                  color: '#ffffff',
+                  color: '#0F0F0F',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#87CEEB';
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ADD8E6';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
                 Share This Video
@@ -218,10 +233,9 @@ export default function VideoDetailPage() {
 
         {/* Comments Section */}
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: 'transparent',
           borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          padding: '40px 0'
         }}>
           <h2 style={{ color: '#ffffff', marginTop: 0 }}>Comments</h2>
 
@@ -234,40 +248,67 @@ export default function VideoDetailPage() {
                 maxLength={1000}
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  border: '1px solid #ccc',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  minHeight: '80px',
+                  padding: '16px',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '4px',
+                  fontSize: '16px',
+                  minHeight: '120px',
                   boxSizing: 'border-box',
-                  marginBottom: '10px'
+                  marginBottom: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  color: '#fff',
+                  outline: 'none',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ADD8E6';
+                  e.target.style.borderWidth = '1px';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.borderWidth = '1px';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
                 }}
               />
               <button
                 onClick={handleComment}
                 style={{
-                  padding: '10px 20px',
+                  padding: '14px 32px',
                   backgroundColor: '#ADD8E6',
-                  color: '#ffffff',
+                  color: '#0F0F0F',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#87CEEB';
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ADD8E6';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
                 Post Comment
               </button>
             </div>
           ) : (
-            <p style={{ color: '#ffffff', marginBottom: '20px' }}>
-              <a href="/login" style={{ color: '#ADD8E6', textDecoration: 'none' }}>
+            <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '20px' }}>
+              <a href="/" style={{ color: '#ADD8E6', textDecoration: 'none' }}>
                 Log in
               </a> to comment
             </p>
           )}
 
           {comments.length === 0 ? (
-            <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
+            <p style={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center', padding: '40px' }}>
               No comments yet. Be the first to comment!
             </p>
           ) : (
@@ -276,18 +317,19 @@ export default function VideoDetailPage() {
                 <div
                   key={comment.id}
                   style={{
-                    padding: '15px',
-                    backgroundColor: '#f9f9f9',
-                    borderRadius: '6px'
+                    padding: '20px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <strong style={{ color: '#ffffff' }}>{comment.user?.username || 'Anonymous'}</strong>
-                    <span style={{ color: '#999', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
+                    <strong style={{ color: '#ffffff', fontSize: '16px' }}>{comment.user?.username || 'Anonymous'}</strong>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
                       {new Date(comment.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p style={{ color: '#ffffff', margin: 0 }}>{comment.text}</p>
+                  <p style={{ color: '#ffffff', margin: 0, lineHeight: '1.6' }}>{comment.text}</p>
                 </div>
               ))}
             </div>
