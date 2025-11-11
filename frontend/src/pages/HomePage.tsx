@@ -185,19 +185,20 @@ export default function HomePage() {
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#F0F0DC',
-      position: 'relative'
+      position: 'relative',
+      paddingTop: 0
     }}>
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && featuredVideos.length > 0 && (
         <div style={{
-          position: 'relative',
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: '100vw',
           height: '500px',
           overflow: 'hidden',
-          marginLeft: 'calc(-50vw + 50%)',
-          marginBottom: '40px',
-          marginTop: 0,
-          zIndex: 0
+          zIndex: 0,
+          marginLeft: 'calc(-50vw + 50%)'
         }}>
             {featuredVideos.map((video, index) => {
               const thumbnail = getBannerThumbnail(video);
@@ -295,7 +296,14 @@ export default function HomePage() {
           </div>
       )}
       
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+      <div style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto', 
+        padding: '20px',
+        position: 'relative',
+        zIndex: 1,
+        marginTop: !isSearchOpen && featuredVideos.length > 0 ? '500px' : '0'
+      }}>
         {/* Filter Buttons */}
         {!isSearchOpen && (
           <div style={{
