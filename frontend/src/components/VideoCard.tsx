@@ -23,8 +23,6 @@ interface VideoCardProps {
 function VideoCard({ video }: VideoCardProps) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
-  const [thumbnailError, setThumbnailError] = useState(false);
-  const [currentThumbnailUrl, setCurrentThumbnailUrl] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Generate YouTube thumbnail URL if not provided
@@ -38,14 +36,7 @@ function VideoCard({ video }: VideoCardProps) {
     return null;
   };
   
-  // Initialize thumbnail URL on mount
-  useEffect(() => {
-    const url = getThumbnailUrl();
-    setCurrentThumbnailUrl(url);
-    setThumbnailError(false);
-  }, [video.thumbnail, video.youtubeVideoId]);
-  
-  const thumbnailUrl = currentThumbnailUrl || getThumbnailUrl();
+  const thumbnailUrl = getThumbnailUrl();
 
   // Format date
   const formatDate = (dateString?: string) => {
@@ -124,9 +115,8 @@ function VideoCard({ video }: VideoCardProps) {
     >
       {/* Thumbnail with duration overlay */}
       <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', backgroundColor: '#000', overflow: 'hidden', borderRadius: '8px 8px 0 0' }}>
-        {thumbnailUrl && !thumbnailError ? (
+        {thumbnailUrl ? (
           <img
-            key={thumbnailUrl} // Force re-render when URL changes
             src={thumbnailUrl}
             alt={video.title}
             loading="lazy"
@@ -142,30 +132,20 @@ function VideoCard({ video }: VideoCardProps) {
               // Fallback to lower quality thumbnail if image fails to load
               const target = e.target as HTMLImageElement;
               if (video.youtubeVideoId) {
-                // Try different quality levels in order
+                // Try different quality levels
                 const currentSrc = target.src;
-                
                 if (currentSrc.includes('maxresdefault')) {
-                  // Try hqdefault
-                  setCurrentThumbnailUrl(`https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`);
+                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
                 } else if (currentSrc.includes('hqdefault')) {
-                  // Try mqdefault
-                  setCurrentThumbnailUrl(`https://img.youtube.com/vi/${video.youtubeVideoId}/mqdefault.jpg`);
+                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/mqdefault.jpg`;
                 } else if (currentSrc.includes('mqdefault')) {
-                  // Try default
-                  setCurrentThumbnailUrl(`https://img.youtube.com/vi/${video.youtubeVideoId}/default.jpg`);
-                } else if (currentSrc.includes('default') && !currentSrc.includes('sddefault')) {
-                  // Try sddefault
-                  setCurrentThumbnailUrl(`https://img.youtube.com/vi/${video.youtubeVideoId}/sddefault.jpg`);
+                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/default.jpg`;
                 } else {
-                  // All fallbacks failed - show placeholder
-                  setThumbnailError(true);
-                  setCurrentThumbnailUrl(null);
+                  // Last resort - show placeholder
+                  target.style.display = 'none';
                 }
               } else {
-                // No video ID - show placeholder
-                setThumbnailError(true);
-                setCurrentThumbnailUrl(null);
+                target.style.display = 'none';
               }
             }}
           />
