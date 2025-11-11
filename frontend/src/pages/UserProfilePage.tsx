@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Upload, Pencil } from 'lucide-react';
+import { Upload, Pencil, CheckCircle2 } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -269,12 +269,20 @@ export default function UserProfilePage() {
 
       const data = await response.json();
       if (response.ok) {
-        setYoutubeUrl('');
-        setShowShareForm(false);
-        setShareError('');
-        // Reload videos to show the newly shared video
-        loadUserProfile();
-        alert('Video shared successfully!');
+        // Show success animation
+        setShowSuccessAnimation(true);
+        
+        // Close modal and reset form after a brief delay
+        setTimeout(() => {
+          setYoutubeUrl('');
+          setTags([]);
+          setTagInput('');
+          setShareError('');
+          setShowShareForm(false);
+          setShowSuccessAnimation(false);
+          // Reload videos to show the newly shared video
+          loadUserProfile();
+        }, 1500); // 1.5 second animation
       } else {
         setShareError(data.error || 'Failed to share video');
       }
