@@ -5,6 +5,7 @@ import {
   getVideoById,
   getFeed,
   getVideosByUser,
+  getRecentVideos,
   deleteVideo,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
