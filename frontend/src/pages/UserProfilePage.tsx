@@ -42,17 +42,6 @@ export default function UserProfilePage() {
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [editingVideo, setEditingVideo] = useState<any>(null);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editTags, setEditTags] = useState<string[]>([]);
-  const [editTagInput, setEditTagInput] = useState('');
-  const [showEditTagSuggestions, setShowEditTagSuggestions] = useState(false);
-  const [editTagSuggestions, setEditTagSuggestions] = useState<string[]>([]);
-  const [editing, setEditing] = useState(false);
-  const [editError, setEditError] = useState('');
   
   // Available tags for pet videos - organized by category, sorted alphabetically within each category
   const availableTags = [
@@ -113,7 +102,6 @@ export default function UserProfilePage() {
           if (currentUserRes.ok) {
             const currentUser = await currentUserRes.json();
             setIsCurrentUser(currentUser.username === username);
-            setCurrentUserId(currentUser.id);
           }
         } catch (err) {
           // Error fetching current user - continue anyway
@@ -154,29 +142,14 @@ export default function UserProfilePage() {
 
       setUser(userData);
 
-      // Load user's videos with tags
+      // Load user's videos
       try {
         const videosRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}`, {
           credentials: 'include',
         });
         if (videosRes.ok) {
           const videosData = await videosRes.json();
-          const videosWithTags = await Promise.all((videosData.videos || []).map(async (video: any) => {
-            // Fetch tags for each video
-            try {
-              const tagsRes = await fetch(`${API_URL}/api/v1/videos/${video.id}/tags`, {
-                credentials: 'include',
-              });
-              if (tagsRes.ok) {
-                const tagsData = await tagsRes.json();
-                return { ...video, tags: tagsData.tags || [] };
-              }
-            } catch (err) {
-              // Silently fail - tags are optional
-            }
-            return { ...video, tags: [] };
-          }));
-          setVideos(videosWithTags);
+          setVideos(videosData.videos || []);
         }
       } catch (err) {
         // Error loading videos

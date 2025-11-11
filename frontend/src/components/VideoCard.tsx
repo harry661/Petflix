@@ -14,21 +14,16 @@ interface VideoCardProps {
       username: string;
       profile_picture_url?: string | null;
     };
-    userId?: string;
     createdAt?: string;
     viewCount?: number | string;
     duration?: string; // Format: "MM:SS" or "H:MM:SS"
-    tags?: string[];
   };
-  currentUserId?: string; // ID of the currently logged-in user
-  onEdit?: (video: VideoCardProps['video']) => void; // Callback for edit action
 }
 
-function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
+function VideoCard({ video }: VideoCardProps) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const isOwner = currentUserId && (video.userId === currentUserId || video.user?.id === currentUserId);
 
   // Generate YouTube thumbnail URL if not provided
   // Use hqdefault as default (more reliable than maxresdefault)
@@ -264,7 +259,7 @@ function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
                 <MoreVertical
                   size={20}
                   color="#ffffff"
-                  style={{ cursor: 'pointer', opacity: 0.8 }}
+                  style={{ cursor: 'pointer' }}
                 />
                 {showMenu && (
                   <div style={{
@@ -272,42 +267,18 @@ function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
                     top: '100%',
                     right: 0,
                     marginTop: '4px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                    backgroundColor: '#1a1a1a',
                     borderRadius: '4px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                    minWidth: '180px',
-                    zIndex: 10000,
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '4px 0'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    minWidth: '160px',
+                    zIndex: 10000, // Higher z-index to ensure it's above everything
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
                   }}>
-                    {isOwner && onEdit && (
-                      <button
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '10px 16px',
-                          border: 'none',
-                          backgroundColor: 'transparent',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          color: '#ffffff'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(video);
-                          setShowMenu(false);
-                        }}
-                      >
-                        Edit Video
-                      </button>
-                    )}
                     <button
                       style={{
                         width: '100%',
                         textAlign: 'left',
-                        padding: '10px 16px',
+                        padding: '8px 12px',
                         border: 'none',
                         backgroundColor: 'transparent',
                         cursor: 'pointer',
@@ -318,7 +289,7 @@ function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Implement add to playlist
+                        // TODO: Implement menu actions
                         setShowMenu(false);
                       }}
                     >
@@ -328,7 +299,7 @@ function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
                       style={{
                         width: '100%',
                         textAlign: 'left',
-                        padding: '10px 16px',
+                        padding: '8px 12px',
                         border: 'none',
                         backgroundColor: 'transparent',
                         cursor: 'pointer',
@@ -339,7 +310,7 @@ function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Implement share
+                        // TODO: Implement menu actions
                         setShowMenu(false);
                       }}
                     >
@@ -353,7 +324,7 @@ function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
             {/* Username */}
             {video.user?.username && (
               <div style={{ marginBottom: '2px' }}>
-                <span style={{ color: '#666', fontSize: '13px' }}>
+                <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '13px' }}>
                   {video.user.username}
                 </span>
               </div>
@@ -361,7 +332,7 @@ function VideoCard({ video, currentUserId, onEdit }: VideoCardProps) {
 
             {/* Views and date */}
             <div>
-              <span style={{ color: '#666', fontSize: '13px' }}>
+              <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '13px' }}>
                 {formatViews(video.viewCount)} • {formatDate(video.createdAt)}
               </span>
             </div>

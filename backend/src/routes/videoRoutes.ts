@@ -6,8 +6,6 @@ import {
   getFeed,
   getVideosByUser,
   getRecentVideos,
-  updateVideo,
-  getVideoTags,
   deleteVideo,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
@@ -23,8 +21,6 @@ router.get('/:id', optionalAuthenticate, getVideoById);
 // Protected routes
 router.post('/', authenticate, shareVideo);
 router.get('/feed', authenticate, getFeed);
-router.put('/:id', authenticate, updateVideo);
-router.get('/:id/tags', optionalAuthenticate, getVideoTags);
 router.delete('/:id', authenticate, deleteVideo);
 
 export default router;
