@@ -184,8 +184,7 @@ export default function VideoCard({ video }: VideoCardProps) {
 
       {/* Video Info */}
       <div style={{ padding: '12px' }}>
-        {/* Title row with profile picture and menu */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '0' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           {/* User profile picture */}
           {video.user?.profile_picture_url ? (
             <img
@@ -217,113 +216,119 @@ export default function VideoCard({ video }: VideoCardProps) {
             </div>
           )}
 
-          {/* Title */}
+          {/* Right side: Title, username, views/date */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{
-              color: '#36454F',
-              margin: 0,
-              fontSize: '14px',
-              fontWeight: '500',
-              lineHeight: '1.4',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}>
-              {video.title}
-            </h3>
-          </div>
-
-          {/* Action menu (3 dots) */}
-          <div
-            ref={menuRef}
-            className="video-menu"
-            style={{ position: 'relative', flexShrink: 0 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowMenu(!showMenu);
-            }}
-          >
-            <MoreVertical
-              size={20}
-              color="#666"
-              style={{ cursor: 'pointer' }}
-            />
-            {showMenu && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '4px',
-                backgroundColor: 'white',
-                borderRadius: '4px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                minWidth: '160px',
-                zIndex: 1000,
-                border: '1px solid #e0e0e0'
+            {/* Title row with menu */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
+              {/* Title */}
+              <h3 style={{
+                color: '#36454F',
+                margin: 0,
+                fontSize: '14px',
+                fontWeight: '500',
+                lineHeight: '1.4',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                flex: 1,
+                minWidth: 0
               }}>
-                <button
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '8px 12px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    color: '#36454F'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // TODO: Implement menu actions
-                    setShowMenu(false);
-                  }}
-                >
-                  Add to playlist
-                </button>
-                <button
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '8px 12px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    color: '#36454F'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // TODO: Implement menu actions
-                    setShowMenu(false);
-                  }}
-                >
-                  Share
-                </button>
+                {video.title}
+              </h3>
+
+              {/* Action menu (3 dots) */}
+              <div
+                ref={menuRef}
+                className="video-menu"
+                style={{ position: 'relative', flexShrink: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+              >
+                <MoreVertical
+                  size={20}
+                  color="#666"
+                  style={{ cursor: 'pointer' }}
+                />
+                {showMenu && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '4px',
+                    backgroundColor: 'white',
+                    borderRadius: '4px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    minWidth: '160px',
+                    zIndex: 1000,
+                    border: '1px solid #e0e0e0'
+                  }}>
+                    <button
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '8px 12px',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: '#36454F'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // TODO: Implement menu actions
+                        setShowMenu(false);
+                      }}
+                    >
+                      Add to playlist
+                    </button>
+                    <button
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '8px 12px',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: '#36454F'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // TODO: Implement menu actions
+                        setShowMenu(false);
+                      }}
+                    >
+                      Share
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Username */}
+            {video.user?.username && (
+              <div style={{ marginBottom: '2px' }}>
+                <span style={{ color: '#666', fontSize: '13px' }}>
+                  {video.user.username}
+                </span>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Username */}
-        {video.user?.username && (
-          <div style={{ marginLeft: '48px', marginTop: '4px', marginBottom: '2px' }}>
-            <span style={{ color: '#666', fontSize: '13px' }}>
-              {video.user.username}
-            </span>
+            {/* Views and date */}
+            <div>
+              <span style={{ color: '#666', fontSize: '13px' }}>
+                {formatViews(video.viewCount)} • {formatDate(video.createdAt)}
+              </span>
+            </div>
           </div>
-        )}
-
-        {/* Views and date */}
-        <div style={{ marginLeft: '48px', marginTop: '2px' }}>
-          <span style={{ color: '#666', fontSize: '13px' }}>
-            {formatViews(video.viewCount)} • {formatDate(video.createdAt)}
-          </span>
         </div>
       </div>
     </div>
