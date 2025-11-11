@@ -101,7 +101,7 @@ function VideoCard({ video }: VideoCardProps) {
   return (
     <div
       style={{
-        backgroundColor: 'white',
+        backgroundColor: '#1a1a1a',
         borderRadius: '8px',
         overflow: 'visible', // Changed to visible so dropdown isn't clipped
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -212,7 +212,7 @@ function VideoCard({ video }: VideoCardProps) {
               height: '36px',
               borderRadius: '50%',
               backgroundColor: '#ADD8E6',
-              color: '#36454F',
+              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -230,7 +230,7 @@ function VideoCard({ video }: VideoCardProps) {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '4px' }}>
               {/* Title */}
               <h3 style={{
-                color: '#36454F',
+                color: '#ffffff',
                 margin: 0,
                 fontSize: '14px',
                 fontWeight: '500',
@@ -267,7 +267,7 @@ function VideoCard({ video }: VideoCardProps) {
                     top: '100%',
                     right: 0,
                     marginTop: '4px',
-                    backgroundColor: 'white',
+                    backgroundColor: '#1a1a1a',
                     borderRadius: '4px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     minWidth: '160px',

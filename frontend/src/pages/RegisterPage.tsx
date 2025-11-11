@@ -100,7 +100,7 @@ export default function RegisterPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -114,10 +114,10 @@ export default function RegisterPage() {
         maxWidth: '500px',
         width: '100%'
       }}>
-        <h1 style={{ color: '#36454F', marginTop: 0, textAlign: 'center' }}>
+        <h1 style={{ color: '#ffffff', marginTop: 0, textAlign: 'center' }}>
           Create Account
         </h1>
-        <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
+        <p style={{ color: '#ffffff', textAlign: 'center', marginBottom: '30px' }}>
           Join Petflix to discover and share pet videos
         </p>
 
@@ -136,7 +136,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
               Username
             </label>
             <input
@@ -159,7 +159,7 @@ export default function RegisterPage() {
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
               Email
             </label>
             <input
@@ -180,7 +180,7 @@ export default function RegisterPage() {
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
               Password
             </label>
             <input
@@ -199,13 +199,13 @@ export default function RegisterPage() {
                 boxSizing: 'border-box'
               }}
             />
-            <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+            <p style={{ fontSize: '12px', color: '#ffffff', marginTop: '5px' }}>
               Must contain uppercase, lowercase, and number
             </p>
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
               Confirm Password
             </label>
             <input
@@ -232,7 +232,7 @@ export default function RegisterPage() {
               width: '100%',
               padding: '14px',
               backgroundColor: '#ADD8E6',
-              color: '#36454F',
+              color: '#ffffff',
               border: 'none',
               borderRadius: '6px',
               fontSize: '16px',
@@ -245,7 +245,7 @@ export default function RegisterPage() {
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
 
-          <p style={{ textAlign: 'center', color: '#666', fontSize: '14px' }}>
+          <p style={{ textAlign: 'center', color: '#ffffff', fontSize: '14px' }}>
             Already have an account?{' '}
             <Link to="/login" style={{ color: '#ADD8E6', textDecoration: 'none', fontWeight: 'bold' }}>
               Sign in

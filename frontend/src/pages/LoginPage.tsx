@@ -85,7 +85,7 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -99,10 +99,10 @@ export default function LoginPage() {
         maxWidth: '500px',
         width: '100%'
       }}>
-        <h1 style={{ color: '#36454F', marginTop: 0, textAlign: 'center' }}>
+        <h1 style={{ color: '#ffffff', marginTop: 0, textAlign: 'center' }}>
           Welcome Back
         </h1>
-        <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
+        <p style={{ color: '#ffffff', textAlign: 'center', marginBottom: '30px' }}>
           Sign in to your Petflix account
         </p>
 
@@ -121,7 +121,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
               Email
             </label>
             <input
@@ -142,7 +142,7 @@ export default function LoginPage() {
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
               Password
             </label>
             <input
@@ -169,7 +169,7 @@ export default function LoginPage() {
               width: '100%',
               padding: '14px',
               backgroundColor: '#ADD8E6',
-              color: '#36454F',
+              color: '#ffffff',
               border: 'none',
               borderRadius: '6px',
               fontSize: '16px',
@@ -182,7 +182,7 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
 
-          <p style={{ textAlign: 'center', color: '#666', fontSize: '14px' }}>
+          <p style={{ textAlign: 'center', color: '#ffffff', fontSize: '14px' }}>
             Don't have an account?{' '}
             <Link to="/register" style={{ color: '#ADD8E6', textDecoration: 'none', fontWeight: 'bold' }}>
               Create account

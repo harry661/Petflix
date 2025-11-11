@@ -6,8 +6,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F0F0DC;
-  color: #36454F;
+  background-color: #000000;
+  color: #ffffff;
   font-weight: 400;
   font-size: 16px;
 }
@@ -19,6 +19,7 @@ h1 {
   font-size: 3rem;
   line-height: 1.2;
   margin: 0;
+  color: #ffffff;
 }
 
 h2 {
@@ -27,6 +28,7 @@ h2 {
   font-size: 2rem;
   line-height: 1.3;
   margin: 0;
+  color: #ffffff;
 }
 
 h3 {
@@ -35,6 +37,7 @@ h3 {
   font-size: 1.5rem;
   line-height: 1.4;
   margin: 0;
+  color: #ffffff;
 }
 
 h4 {
@@ -43,6 +46,7 @@ h4 {
   font-size: 1.25rem;
   line-height: 1.4;
   margin: 0;
+  color: #ffffff;
 }
 
 h5 {
@@ -51,6 +55,7 @@ h5 {
   font-size: 1.125rem;
   line-height: 1.5;
   margin: 0;
+  color: #ffffff;
 }
 
 h6 {
@@ -59,6 +64,7 @@ h6 {
   font-size: 1rem;
   line-height: 1.5;
   margin: 0;
+  color: #ffffff;
 }
 
 /* Body text */
@@ -68,6 +74,7 @@ p {
   font-size: 1rem;
   line-height: 1.5;
   margin: 0;
+  color: #ffffff;
 }
 
 /* Ensure Petflix logo is always blue */

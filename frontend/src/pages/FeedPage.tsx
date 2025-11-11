@@ -56,11 +56,11 @@ export default function FeedPage() {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#F0F0DC',
+        backgroundColor: '#000000',
         padding: '40px',
         textAlign: 'center'
       }}>
-        <p style={{ color: '#666' }}>Loading your feed...</p>
+        <p style={{ color: '#ffffff' }}>Loading your feed...</p>
       </div>
     );
   }
@@ -69,7 +69,7 @@ export default function FeedPage() {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#F0F0DC',
+        backgroundColor: '#000000',
         padding: '40px',
         textAlign: 'center'
       }}>
@@ -81,12 +81,12 @@ export default function FeedPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <h1 style={{ color: '#36454F', marginBottom: '30px' }}>Your Feed</h1>
-        <p style={{ color: '#666', marginBottom: '30px' }}>
+        <h1 style={{ color: '#ffffff', marginBottom: '30px' }}>Your Feed</h1>
+        <p style={{ color: '#ffffff', marginBottom: '30px' }}>
           Videos from users you follow
         </p>
 
@@ -98,10 +98,10 @@ export default function FeedPage() {
             borderRadius: '8px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            <h2 style={{ color: '#36454F', fontSize: '24px', marginBottom: '15px' }}>
+            <h2 style={{ color: '#ffffff', fontSize: '24px', marginBottom: '15px' }}>
               Welcome to Petflix! 🐾
             </h2>
-            <p style={{ color: '#666', fontSize: '18px', marginBottom: '20px' }}>
+            <p style={{ color: '#ffffff', fontSize: '18px', marginBottom: '20px' }}>
               Your feed is empty
             </p>
             <p style={{ color: '#999', fontSize: '14px', marginBottom: '30px' }}>
@@ -113,7 +113,7 @@ export default function FeedPage() {
                 style={{
                   padding: '12px 24px',
                   backgroundColor: '#ADD8E6',
-                  color: '#36454F',
+                  color: '#ffffff',
                   textDecoration: 'none',
                   borderRadius: '6px',
                   fontWeight: 'bold'

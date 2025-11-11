@@ -177,18 +177,18 @@ export default function HomePage() {
     return null;
   };
 
-  if (authLoading || (displayLoading && !isSearchOpen)) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#F0F0DC',
-        padding: '40px',
-        textAlign: 'center'
-      }}>
-        <p style={{ color: '#666' }}>Loading...</p>
-      </div>
-    );
-  }
+      if (authLoading || (displayLoading && !isSearchOpen)) {
+        return (
+          <div style={{
+            minHeight: '100vh',
+            backgroundColor: '#000000',
+            padding: '40px',
+            textAlign: 'center'
+          }}>
+            <p style={{ color: '#ffffff' }}>Loading...</p>
+          </div>
+        );
+      }
 
   return (
     <>
@@ -302,7 +302,7 @@ export default function HomePage() {
       
       <div style={{ 
         minHeight: '100vh',
-        backgroundColor: '#F0F0DC',
+        backgroundColor: '#000000',
         paddingTop: 0
       }}>
         <div style={{ 
@@ -378,16 +378,16 @@ export default function HomePage() {
         
         {/* Videos Section - Adapts to search or trending */}
         <div>
-          <h2 style={{ color: '#36454F', marginBottom: '20px' }}>{displayTitle}</h2>
+          <h2 style={{ color: '#ffffff', marginBottom: '20px' }}>{displayTitle}</h2>
           
           {displayLoading && isSearchOpen && (
             <div style={{
               textAlign: 'center',
               padding: '60px',
-              backgroundColor: 'white',
+              backgroundColor: '#1a1a1a',
               borderRadius: '8px'
             }}>
-              <p style={{ color: '#666' }}>Searching...</p>
+              <p style={{ color: '#ffffff' }}>Searching...</p>
             </div>
           )}
 
@@ -395,10 +395,10 @@ export default function HomePage() {
             <div style={{
               textAlign: 'center',
               padding: '60px',
-              backgroundColor: 'white',
+              backgroundColor: '#1a1a1a',
               borderRadius: '8px'
             }}>
-              <p style={{ color: '#666' }}>
+              <p style={{ color: '#ffffff' }}>
                 {isSearchOpen && searchQuery 
                   ? `No videos found for "${searchQuery}". Try different keywords.`
                   : 'No videos found. Try searching for pet videos!'}

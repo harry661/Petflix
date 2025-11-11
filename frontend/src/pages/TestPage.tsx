@@ -116,13 +116,13 @@ export default function TestPage() {
       fontFamily: 'Arial, sans-serif', 
       maxWidth: '800px', 
       margin: '0 auto',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       minHeight: '100vh'
     }}>
-      <h1 style={{ color: '#36454F', fontSize: '32px', marginBottom: '10px' }}>
+      <h1 style={{ color: '#ffffff', fontSize: '32px', marginBottom: '10px' }}>
         🐾 Petflix API Tester
       </h1>
-      <p style={{ color: '#36454F', fontSize: '16px', marginBottom: '30px' }}>
+      <p style={{ color: '#ffffff', fontSize: '16px', marginBottom: '30px' }}>
         Test backend endpoints - Focus on functionality
       </p>
 
@@ -134,7 +134,7 @@ export default function TestPage() {
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ color: '#36454F', marginTop: 0 }}>1. Health Check</h2>
+        <h2 style={{ color: '#ffffff', marginTop: 0 }}>1. Health Check</h2>
         <button 
           onClick={testHealth} 
           disabled={loading}
@@ -142,7 +142,7 @@ export default function TestPage() {
             padding: '10px 20px', 
             fontSize: '16px',
             backgroundColor: '#ADD8E6',
-            color: '#36454F',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '5px',
             cursor: loading ? 'not-allowed' : 'pointer',
@@ -161,7 +161,7 @@ export default function TestPage() {
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ color: '#36454F', marginTop: 0 }}>2. Register User</h2>
+        <h2 style={{ color: '#ffffff', marginTop: 0 }}>2. Register User</h2>
         <div style={{ marginBottom: '15px' }}>
           <input
             type="text"
@@ -203,7 +203,7 @@ export default function TestPage() {
             }}
           />
         </div>
-        <p style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
+        <p style={{ fontSize: '12px', color: '#ffffff', marginBottom: '10px' }}>
           Password must be 8+ chars with uppercase, lowercase, and number
         </p>
         <button 
@@ -213,7 +213,7 @@ export default function TestPage() {
             padding: '10px 20px', 
             fontSize: '16px',
             backgroundColor: '#ADD8E6',
-            color: '#36454F',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '5px',
             cursor: loading ? 'not-allowed' : 'pointer',
@@ -232,7 +232,7 @@ export default function TestPage() {
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ color: '#36454F', marginTop: 0 }}>3. Login</h2>
+        <h2 style={{ color: '#ffffff', marginTop: 0 }}>3. Login</h2>
         <div style={{ marginBottom: '15px' }}>
           <input
             type="email"
@@ -268,7 +268,7 @@ export default function TestPage() {
             padding: '10px 20px', 
             fontSize: '16px',
             backgroundColor: '#ADD8E6',
-            color: '#36454F',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '5px',
             cursor: loading ? 'not-allowed' : 'pointer',
@@ -287,7 +287,7 @@ export default function TestPage() {
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ color: '#36454F', marginTop: 0 }}>4. Get Current User (Authenticated)</h2>
+        <h2 style={{ color: '#ffffff', marginTop: 0 }}>4. Get Current User (Authenticated)</h2>
         <div style={{ marginBottom: '10px' }}>
           <button 
             onClick={testGetMe} 
@@ -296,7 +296,7 @@ export default function TestPage() {
               padding: '10px 20px', 
               fontSize: '16px',
               backgroundColor: '#ADD8E6',
-              color: '#36454F',
+              color: '#ffffff',
               border: 'none',
               borderRadius: '5px',
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -312,7 +312,7 @@ export default function TestPage() {
               padding: '10px 20px', 
               fontSize: '16px',
               backgroundColor: '#f0f0f0',
-              color: '#36454F',
+              color: '#ffffff',
               border: '1px solid #ccc',
               borderRadius: '5px',
               cursor: 'pointer'
@@ -321,7 +321,7 @@ export default function TestPage() {
             Clear Token
           </button>
         </div>
-        <p style={{ fontSize: '14px', color: '#666' }}>
+        <p style={{ fontSize: '14px', color: '#ffffff' }}>
           Token Status: {localStorage.getItem('auth_token') ? '✅ Stored' : '❌ Not found'}
         </p>
       </div>

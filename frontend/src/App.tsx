@@ -22,12 +22,12 @@ function AppContent() {
       <Suspense fallback={
         <div style={{
           minHeight: '100vh',
-          backgroundColor: '#F0F0DC',
+          backgroundColor: '#000000',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <p style={{ color: '#666' }}>Loading...</p>
+          <p style={{ color: '#ffffff' }}>Loading...</p>
         </div>
       }>
         <Routes>

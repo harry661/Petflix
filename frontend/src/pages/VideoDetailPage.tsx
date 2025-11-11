@@ -125,15 +125,15 @@ export default function VideoDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: '#666' }}>Loading video...</p>
+      <div style={{ minHeight: '100vh', backgroundColor: '#000000', padding: '40px', textAlign: 'center' }}>
+        <p style={{ color: '#ffffff' }}>Loading video...</p>
       </div>
     );
   }
 
   if (error || !video) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#000000', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#c62828' }}>{error || 'Video not found'}</p>
       </div>
     );
@@ -145,7 +145,7 @@ export default function VideoDetailPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -180,18 +180,18 @@ export default function VideoDetailPage() {
             />
           </div>
 
-          <h1 style={{ color: '#36454F', marginTop: 0, marginBottom: '10px' }}>
+          <h1 style={{ color: '#ffffff', marginTop: 0, marginBottom: '10px' }}>
             {video.title}
           </h1>
 
           {video.user && (
-            <p style={{ color: '#666', marginBottom: '20px' }}>
+            <p style={{ color: '#ffffff', marginBottom: '20px' }}>
               Shared by <strong>{video.user.username}</strong>
             </p>
           )}
 
           {video.description && (
-            <p style={{ color: '#666', marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
+            <p style={{ color: '#ffffff', marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
               {video.description}
             </p>
           )}
@@ -203,7 +203,7 @@ export default function VideoDetailPage() {
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#ADD8E6',
-                  color: '#36454F',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
@@ -223,7 +223,7 @@ export default function VideoDetailPage() {
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
         }}>
-          <h2 style={{ color: '#36454F', marginTop: 0 }}>Comments</h2>
+          <h2 style={{ color: '#ffffff', marginTop: 0 }}>Comments</h2>
 
           {isAuthenticated ? (
             <div style={{ marginBottom: '30px' }}>
@@ -248,7 +248,7 @@ export default function VideoDetailPage() {
                 style={{
                   padding: '10px 20px',
                   backgroundColor: '#ADD8E6',
-                  color: '#36454F',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
@@ -259,7 +259,7 @@ export default function VideoDetailPage() {
               </button>
             </div>
           ) : (
-            <p style={{ color: '#666', marginBottom: '20px' }}>
+            <p style={{ color: '#ffffff', marginBottom: '20px' }}>
               <a href="/login" style={{ color: '#ADD8E6', textDecoration: 'none' }}>
                 Log in
               </a> to comment
@@ -282,12 +282,12 @@ export default function VideoDetailPage() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <strong style={{ color: '#36454F' }}>{comment.user?.username || 'Anonymous'}</strong>
+                    <strong style={{ color: '#ffffff' }}>{comment.user?.username || 'Anonymous'}</strong>
                     <span style={{ color: '#999', fontSize: '12px' }}>
                       {new Date(comment.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p style={{ color: '#666', margin: 0 }}>{comment.text}</p>
+                  <p style={{ color: '#ffffff', margin: 0 }}>{comment.text}</p>
                 </div>
               ))}
             </div>

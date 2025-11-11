@@ -194,12 +194,12 @@ export default function LandingPage() {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#F0F0DC',
+        backgroundColor: '#000000',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <p style={{ color: '#666' }}>Loading...</p>
+        <p style={{ color: '#ffffff' }}>Loading...</p>
       </div>
     );
   }
@@ -484,7 +484,7 @@ export default function LandingPage() {
               width: '100%',
               padding: '16px',
               backgroundColor: '#ADD8E6',
-              color: '#36454F',
+              color: '#ffffff',
               border: 'none',
               borderRadius: '4px',
               fontSize: '16px',

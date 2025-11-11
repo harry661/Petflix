@@ -242,15 +242,15 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: '#666' }}>Loading profile...</p>
+      <div style={{ minHeight: '100vh', backgroundColor: '#000000', padding: '40px', textAlign: 'center' }}>
+        <p style={{ color: '#ffffff' }}>Loading profile...</p>
       </div>
     );
   }
 
   if (error || !user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#000000', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#c62828' }}>{error || 'User not found'}</p>
       </div>
     );
@@ -259,7 +259,7 @@ export default function UserProfilePage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -293,30 +293,30 @@ export default function UserProfilePage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '48px',
-                color: '#36454F'
+                color: '#ffffff'
               }}>
                 {user.username.charAt(0).toUpperCase()}
               </div>
             )}
             <div style={{ flex: 1 }}>
-              <h1 style={{ color: '#36454F', marginTop: 0, marginBottom: '10px' }}>
+              <h1 style={{ color: '#ffffff', marginTop: 0, marginBottom: '10px' }}>
                 {user.username}
               </h1>
               {user.bio && (
-                <p style={{ color: '#666', marginBottom: '20px' }}>{user.bio}</p>
+                <p style={{ color: '#ffffff', marginBottom: '20px' }}>{user.bio}</p>
               )}
               <div style={{ display: 'flex', gap: '30px', marginBottom: '20px' }}>
                 <div>
-                  <strong style={{ color: '#36454F' }}>{followers.length}</strong>
-                  <span style={{ color: '#666', marginLeft: '5px' }}>Followers</span>
+                  <strong style={{ color: '#ffffff' }}>{followers.length}</strong>
+                  <span style={{ color: '#ffffff', marginLeft: '5px' }}>Followers</span>
                 </div>
                 <div>
-                  <strong style={{ color: '#36454F' }}>{following.length}</strong>
-                  <span style={{ color: '#666', marginLeft: '5px' }}>Following</span>
+                  <strong style={{ color: '#ffffff' }}>{following.length}</strong>
+                  <span style={{ color: '#ffffff', marginLeft: '5px' }}>Following</span>
                 </div>
                 <div>
-                  <strong style={{ color: '#36454F' }}>{videos.length}</strong>
-                  <span style={{ color: '#666', marginLeft: '5px' }}>Videos</span>
+                  <strong style={{ color: '#ffffff' }}>{videos.length}</strong>
+                  <span style={{ color: '#ffffff', marginLeft: '5px' }}>Videos</span>
                 </div>
               </div>
               {!isCurrentUser && (
@@ -325,7 +325,7 @@ export default function UserProfilePage() {
                   style={{
                     padding: '10px 30px',
                     backgroundColor: isFollowing ? '#f0f0f0' : '#ADD8E6',
-                    color: '#36454F',
+                    color: '#ffffff',
                     border: isFollowing ? '1px solid #ccc' : 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
@@ -342,7 +342,7 @@ export default function UserProfilePage() {
                     style={{
                       padding: '10px 30px',
                       backgroundColor: '#ADD8E6',
-                      color: '#36454F',
+                      color: '#ffffff',
                       border: 'none',
                       borderRadius: '6px',
                       cursor: 'pointer',
@@ -356,7 +356,7 @@ export default function UserProfilePage() {
                     style={{
                       padding: '10px 30px',
                       backgroundColor: '#f0f0f0',
-                      color: '#36454F',
+                      color: '#ffffff',
                       border: '1px solid #ccc',
                       borderRadius: '6px',
                       cursor: 'pointer',
@@ -380,10 +380,10 @@ export default function UserProfilePage() {
             marginBottom: '30px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            <h2 style={{ color: '#36454F', marginTop: 0, marginBottom: '20px' }}>Share a YouTube Video</h2>
+            <h2 style={{ color: '#ffffff', marginTop: 0, marginBottom: '20px' }}>Share a YouTube Video</h2>
             <form onSubmit={handleShareVideo}>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', color: '#36454F', marginBottom: '8px', fontWeight: 'bold' }}>
+                <label style={{ display: 'block', color: '#ffffff', marginBottom: '8px', fontWeight: 'bold' }}>
                   YouTube URL
                 </label>
                 <input
@@ -407,7 +407,7 @@ export default function UserProfilePage() {
                 {shareError && (
                   <p style={{ color: '#c62828', marginTop: '8px', fontSize: '14px' }}>{shareError}</p>
                 )}
-                <p style={{ color: '#666', marginTop: '8px', fontSize: '14px' }}>
+                <p style={{ color: '#ffffff', marginTop: '8px', fontSize: '14px' }}>
                   Paste a YouTube video URL to share it with the community
                 </p>
               </div>
@@ -417,7 +417,7 @@ export default function UserProfilePage() {
                 style={{
                   padding: '12px 30px',
                   backgroundColor: sharing ? '#ccc' : '#ADD8E6',
-                  color: '#36454F',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: sharing ? 'not-allowed' : 'pointer',
@@ -433,7 +433,7 @@ export default function UserProfilePage() {
 
         {/* User's Videos */}
         <div>
-          <h2 style={{ color: '#36454F', marginBottom: '20px' }}>Shared Videos</h2>
+          <h2 style={{ color: '#ffffff', marginBottom: '20px' }}>Shared Videos</h2>
           {videos.length === 0 ? (
             <div style={{
               backgroundColor: 'white',
@@ -441,7 +441,7 @@ export default function UserProfilePage() {
               padding: '40px',
               textAlign: 'center'
             }}>
-              <p style={{ color: '#666' }}>No videos shared yet</p>
+              <p style={{ color: '#ffffff' }}>No videos shared yet</p>
             </div>
           ) : (
             <div style={{

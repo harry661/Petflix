@@ -40,11 +40,11 @@ export default function SearchPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <h1 style={{ color: '#36454F', marginBottom: '30px' }}>Search Pet Videos</h1>
+        <h1 style={{ color: '#ffffff', marginBottom: '30px' }}>Search Pet Videos</h1>
 
         {/* Search Bar */}
         <form onSubmit={handleSearch} style={{ marginBottom: '30px' }}>
@@ -69,7 +69,7 @@ export default function SearchPage() {
               style={{
                 padding: '12px 30px',
                 backgroundColor: '#ADD8E6',
-                color: '#36454F',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '16px',
@@ -97,10 +97,10 @@ export default function SearchPage() {
         )}
 
         {/* Results */}
-        {loading && <p style={{ color: '#666' }}>Searching...</p>}
+        {loading && <p style={{ color: '#ffffff' }}>Searching...</p>}
         
         {!loading && results.length === 0 && searchQuery && (
-          <p style={{ color: '#666', textAlign: 'center', padding: '40px' }}>
+          <p style={{ color: '#ffffff', textAlign: 'center', padding: '40px' }}>
             No results found. Try different keywords.
           </p>
         )}
@@ -118,7 +118,7 @@ export default function SearchPage() {
         )}
 
         {!searchQuery && (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#666' }}>
+          <div style={{ textAlign: 'center', padding: '60px', color: '#ffffff' }}>
             <p style={{ fontSize: '18px', marginBottom: '20px' }}>
               Enter keywords to search for pet videos
             </p>

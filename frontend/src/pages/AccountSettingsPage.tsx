@@ -129,15 +129,15 @@ export default function AccountSettingsPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: '#666' }}>Loading your settings...</p>
+      <div style={{ minHeight: '100vh', backgroundColor: '#000000', padding: '40px', textAlign: 'center' }}>
+        <p style={{ color: '#ffffff' }}>Loading your settings...</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#F0F0DC', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#000000', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#c62828', marginBottom: '20px' }}>
           {error || 'Unable to load your account. Please try logging in again.'}
         </p>
@@ -146,7 +146,7 @@ export default function AccountSettingsPage() {
           style={{
             padding: '10px 20px',
             backgroundColor: '#ADD8E6',
-            color: '#36454F',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '6px',
             cursor: 'pointer',
@@ -162,11 +162,11 @@ export default function AccountSettingsPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundColor: '#000000',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <h1 style={{ color: '#36454F', marginBottom: '30px' }}>Account Settings</h1>
+        <h1 style={{ color: '#ffffff', marginBottom: '30px' }}>Account Settings</h1>
 
         <div style={{
           backgroundColor: 'white',
@@ -188,7 +188,7 @@ export default function AccountSettingsPage() {
 
           <form onSubmit={handleSave}>
             <div style={{ marginBottom: '30px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
                 Profile Picture URL
               </label>
               <input
@@ -224,7 +224,7 @@ export default function AccountSettingsPage() {
             </div>
 
             <div style={{ marginBottom: '30px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#ffffff', fontWeight: 'bold' }}>
                 Bio
               </label>
               <textarea
@@ -243,7 +243,7 @@ export default function AccountSettingsPage() {
                   fontFamily: 'inherit'
                 }}
               />
-              <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+              <p style={{ fontSize: '12px', color: '#ffffff', marginTop: '5px' }}>
                 {formData.bio.length}/255 characters
               </p>
             </div>
@@ -255,7 +255,7 @@ export default function AccountSettingsPage() {
                 style={{
                   padding: '12px 30px',
                   backgroundColor: '#ADD8E6',
-                  color: '#36454F',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '16px',
@@ -272,7 +272,7 @@ export default function AccountSettingsPage() {
                 style={{
                   padding: '12px 30px',
                   backgroundColor: '#f0f0f0',
-                  color: '#36454F',
+                  color: '#ffffff',
                   border: '1px solid #ccc',
                   borderRadius: '6px',
                   fontSize: '16px',
@@ -286,10 +286,10 @@ export default function AccountSettingsPage() {
 
           {user && (
             <div style={{ marginTop: '40px', paddingTop: '30px', borderTop: '1px solid #eee' }}>
-              <h3 style={{ color: '#36454F' }}>Account Information</h3>
-              <p style={{ color: '#666' }}><strong>Username:</strong> {user.username}</p>
-              <p style={{ color: '#666' }}><strong>Email:</strong> {user.email}</p>
-              <p style={{ color: '#666', fontSize: '12px' }}>
+              <h3 style={{ color: '#ffffff' }}>Account Information</h3>
+              <p style={{ color: '#ffffff' }}><strong>Username:</strong> {user.username}</p>
+              <p style={{ color: '#ffffff' }}><strong>Email:</strong> {user.email}</p>
+              <p style={{ color: '#ffffff', fontSize: '12px' }}>
                 Member since: {new Date(user.created_at).toLocaleDateString()}
               </p>
             </div>
