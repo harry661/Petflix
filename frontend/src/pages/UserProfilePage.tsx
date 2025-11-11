@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Upload } from 'lucide-react';
+import { Upload, Pencil } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -340,7 +340,7 @@ export default function UserProfilePage() {
                   <button
                     onClick={() => setShowShareForm(!showShareForm)}
                     style={{
-                      padding: '10px 30px',
+                      padding: '10px 16px',
                       backgroundColor: '#ADD8E6',
                       color: '#0F0F0F',
                       border: 'none',
@@ -358,14 +358,17 @@ export default function UserProfilePage() {
                   <button
                     onClick={() => navigate('/settings')}
                     style={{
-                      padding: '10px 30px',
+                      padding: '10px 16px',
                       backgroundColor: 'transparent',
                       color: '#ffffff',
                       border: '1px solid #ffffff',
                       borderRadius: '6px',
                       cursor: 'pointer',
                       fontWeight: 'bold',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
@@ -374,6 +377,7 @@ export default function UserProfilePage() {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
+                    <Pencil size={18} />
                     Edit Profile
                   </button>
                 </div>
