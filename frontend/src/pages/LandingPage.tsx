@@ -202,11 +202,26 @@ export default function LandingPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
+      backgroundImage: 'url(/landing-background.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
       display: 'flex',
       flexDirection: 'column',
-      padding: '20px'
+      padding: '20px',
+      position: 'relative'
     }}>
+      {/* Dark overlay for better text readability */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        zIndex: 0
+      }} />
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column' }}>
       {/* Petflix Logo - Top Left */}
       <div style={{
         position: 'absolute',
@@ -476,6 +491,7 @@ export default function LandingPage() {
           )}
         </form>
         </div>
+      </div>
       </div>
     </div>
   );
