@@ -52,29 +52,42 @@ export default function Navigation() {
   // Close search when clicking outside (only if search query is empty)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Get current search query value directly from the context/state
+      // Use a ref to ensure we get the latest value
+      const currentQuery = searchQuery;
+      
       if (
         isSearchOpen &&
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
         // Only close if search query is empty - if user has typed something, keep it open
-        if (!searchQuery || searchQuery.trim() === '') {
+        // Check both the current query and if it's just whitespace
+        if (!currentQuery || currentQuery.trim().length === 0) {
           closeSearch();
         }
+        // If there's text, do nothing - search stays open
       }
     };
 
+    // Only add the listener if search is open
     if (isSearchOpen) {
       // Small delay to allow the click that opened search to complete
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         document.addEventListener('mousedown', handleClickOutside);
       }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
     }
-
+    
+    // If search is not open, make sure listener is removed
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isSearchOpen, closeSearch, searchQuery]); // Added searchQuery to deps
+  }, [isSearchOpen, closeSearch, searchQuery]); // searchQuery in deps ensures handler has latest value
 
   // Auto-search with debounce when search is open and query changes
   useEffect(() => {
