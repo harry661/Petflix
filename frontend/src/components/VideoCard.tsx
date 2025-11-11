@@ -120,7 +120,7 @@ function VideoCard({ video }: VideoCardProps) {
       onClick={handleCardClick}
     >
       {/* Thumbnail with duration overlay */}
-      <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', backgroundColor: '#000', overflow: 'hidden', borderRadius: '8px 8px 0 0' }}>
+      <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', backgroundColor: '#1a1a1a', overflow: 'hidden', borderRadius: '8px 8px 0 0' }}>
         {thumbnailUrl ? (
           <img
             src={thumbnailUrl}

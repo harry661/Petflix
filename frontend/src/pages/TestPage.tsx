@@ -116,7 +116,7 @@ export default function TestPage() {
       fontFamily: 'Arial, sans-serif', 
       maxWidth: '800px', 
       margin: '0 auto',
-      backgroundColor: '#000000',
+      backgroundColor: '#36454F',
       minHeight: '100vh'
     }}>
       <h1 style={{ color: '#ffffff', fontSize: '32px', marginBottom: '10px' }}>

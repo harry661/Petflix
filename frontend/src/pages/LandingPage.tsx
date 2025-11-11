@@ -194,7 +194,7 @@ export default function LandingPage() {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#000000',
+        backgroundColor: '#36454F',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
