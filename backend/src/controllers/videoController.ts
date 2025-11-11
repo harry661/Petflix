@@ -75,6 +75,15 @@ export const searchVideos = async (
 
     const sharedVideosFormatted = (sharedVideos || []).map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      // Generate thumbnail URL - YouTube thumbnails are generally available for valid video IDs
+      // Use hqdefault as it's more reliable than maxresdefault (which may not exist for all videos)
+      let thumbnail: string | null = null;
+      if (video.youtube_video_id) {
+        // Validate video ID format before generating thumbnail URL
+        if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+          thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+        }
+      }
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
@@ -89,7 +98,7 @@ export const searchVideos = async (
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
         } : null,
-        thumbnail: video.youtube_video_id ? `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg` : null,
+        thumbnail: thumbnail,
         source: 'petflix',
       };
     });

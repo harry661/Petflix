@@ -116,39 +116,78 @@ function VideoCard({ video }: VideoCardProps) {
       {/* Thumbnail with duration overlay */}
       <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', backgroundColor: '#000', overflow: 'hidden', borderRadius: '8px 8px 0 0' }}>
         {thumbnailUrl ? (
-          <img
-            src={thumbnailUrl}
-            alt={video.title}
-            loading="lazy"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-            onError={(e) => {
-              // Fallback to lower quality thumbnail if image fails to load
-              const target = e.target as HTMLImageElement;
-              if (video.youtubeVideoId) {
-                // Try different quality levels
-                const currentSrc = target.src;
-                if (currentSrc.includes('maxresdefault')) {
-                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
-                } else if (currentSrc.includes('hqdefault')) {
-                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/mqdefault.jpg`;
-                } else if (currentSrc.includes('mqdefault')) {
-                  target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/default.jpg`;
+          <>
+            <img
+              src={thumbnailUrl}
+              alt={video.title}
+              loading="lazy"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+              onError={(e) => {
+                // Fallback to lower quality thumbnail if image fails to load
+                const target = e.target as HTMLImageElement;
+                if (video.youtubeVideoId) {
+                  // Try different quality levels
+                  const currentSrc = target.src;
+                  // Prevent infinite loop by checking if we've already tried this URL
+                  const triedUrls = target.dataset.triedUrls || '';
+                  
+                  if (currentSrc.includes('maxresdefault') && !triedUrls.includes('hqdefault')) {
+                    target.dataset.triedUrls = triedUrls + 'hqdefault,';
+                    target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
+                  } else if (currentSrc.includes('hqdefault') && !triedUrls.includes('mqdefault')) {
+                    target.dataset.triedUrls = triedUrls + 'mqdefault,';
+                    target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/mqdefault.jpg`;
+                  } else if (currentSrc.includes('mqdefault') && !triedUrls.includes('default')) {
+                    target.dataset.triedUrls = triedUrls + 'default,';
+                    target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/default.jpg`;
+                  } else if (currentSrc.includes('default') && !triedUrls.includes('sddefault')) {
+                    target.dataset.triedUrls = triedUrls + 'sddefault,';
+                    target.src = `https://img.youtube.com/vi/${video.youtubeVideoId}/sddefault.jpg`;
+                  } else {
+                    // All fallbacks failed - show placeholder
+                    target.style.display = 'none';
+                    // Show placeholder div
+                    const placeholder = target.parentElement?.querySelector('.thumbnail-placeholder') as HTMLElement;
+                    if (placeholder) {
+                      placeholder.style.display = 'flex';
+                    }
+                  }
                 } else {
-                  // Last resort - show placeholder
                   target.style.display = 'none';
+                  const placeholder = target.parentElement?.querySelector('.thumbnail-placeholder') as HTMLElement;
+                  if (placeholder) {
+                    placeholder.style.display = 'flex';
+                  }
                 }
-              } else {
-                target.style.display = 'none';
-              }
-            }}
-          />
+              }}
+            />
+            {/* Placeholder that shows when image fails to load */}
+            <div 
+              className="thumbnail-placeholder"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#36454F',
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontSize: '14px'
+              }}
+            >
+              No thumbnail
+            </div>
+          </>
         ) : (
           <div style={{
             position: 'absolute',
