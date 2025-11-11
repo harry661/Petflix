@@ -226,7 +226,8 @@ export default function LandingPage() {
       <div style={{
         position: 'absolute',
         top: '20px',
-        left: '20px'
+        left: '20px',
+        zIndex: 2
       }}>
         <h1 style={{
           fontSize: '32px',
