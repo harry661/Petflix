@@ -364,9 +364,9 @@ export default function LandingPage() {
             />
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
+          <div style={{ marginBottom: '16px', position: 'relative' }}>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -375,6 +375,7 @@ export default function LandingPage() {
               style={{
                 width: '100%',
                 padding: '16px',
+                paddingRight: '48px',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: '4px',
                 fontSize: '16px',
@@ -394,6 +395,29 @@ export default function LandingPage() {
                 e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
               }}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                color: 'rgba(255, 255, 255, 0.7)',
+                transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#ADD8E6'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
 
           {!isLogin && (
