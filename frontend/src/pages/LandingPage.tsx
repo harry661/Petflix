@@ -206,6 +206,7 @@ export default function LandingPage() {
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
+      backgroundColor: '#F0F0DC', // Fallback color if image doesn't load
       display: 'flex',
       flexDirection: 'column',
       padding: '20px',
@@ -222,22 +223,6 @@ export default function LandingPage() {
         zIndex: 0
       }} />
       <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column' }}>
-      {/* Petflix Logo - Top Left */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '20px',
-        zIndex: 2
-      }}>
-        <h1 style={{
-          fontSize: '32px',
-          fontWeight: 'bold',
-          color: '#36454F',
-          margin: 0
-        }}>
-          🐾 Petflix
-        </h1>
-      </div>
 
       {/* Centered Form */}
       <div style={{
