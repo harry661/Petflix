@@ -3,6 +3,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+// Utility function to extract YouTube video ID from URL
+const extractYouTubeVideoId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  return null;
+};
+
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
@@ -14,6 +31,10 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isCurrentUser, setIsCurrentUser] = useState(false);
+  const [showShareForm, setShowShareForm] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState('');
 
   useEffect(() => {
     if (username) {
@@ -98,7 +119,7 @@ export default function UserProfilePage() {
   const handleFollow = async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
-      navigate('/login');
+      navigate('/');
       return;
     }
 
@@ -117,6 +138,60 @@ export default function UserProfilePage() {
       }
     } catch (err) {
       alert('Failed to update follow status');
+    }
+  };
+
+  const handleShareVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setShareError('');
+    
+    if (!youtubeUrl.trim()) {
+      setShareError('Please enter a YouTube URL');
+      return;
+    }
+
+    const videoId = extractYouTubeVideoId(youtubeUrl);
+    if (!videoId) {
+      setShareError('Invalid YouTube URL. Please use a valid YouTube link.');
+      return;
+    }
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
+    setSharing(true);
+    try {
+      // The backend will fetch video details from YouTube automatically
+      const response = await fetch(`${API_URL}/api/v1/videos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          youtubeVideoId: videoId,
+          // Title and description are optional - backend will fetch from YouTube if not provided
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setYoutubeUrl('');
+        setShowShareForm(false);
+        setShareError('');
+        // Reload videos to show the newly shared video
+        loadUserProfile();
+        alert('Video shared successfully!');
+      } else {
+        setShareError(data.error || 'Failed to share video');
+      }
+    } catch (err) {
+      setShareError('Failed to share video. Please try again.');
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -216,24 +291,100 @@ export default function UserProfilePage() {
                 </button>
               )}
               {isCurrentUser && (
-                <button
-                  onClick={() => navigate('/settings')}
-                  style={{
-                    padding: '10px 30px',
-                    backgroundColor: '#ADD8E6',
-                    color: '#36454F',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  Edit Profile
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={() => setShowShareForm(!showShareForm)}
+                    style={{
+                      padding: '10px 30px',
+                      backgroundColor: '#ADD8E6',
+                      color: '#36454F',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {showShareForm ? 'Cancel' : 'Share Video'}
+                  </button>
+                  <button
+                    onClick={() => navigate('/settings')}
+                    style={{
+                      padding: '10px 30px',
+                      backgroundColor: '#f0f0f0',
+                      color: '#36454F',
+                      border: '1px solid #ccc',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Edit Profile
+                  </button>
+                </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Share Video Form */}
+        {isCurrentUser && showShareForm && (
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '30px',
+            marginBottom: '30px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ color: '#36454F', marginTop: 0, marginBottom: '20px' }}>Share a YouTube Video</h2>
+            <form onSubmit={handleShareVideo}>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', color: '#36454F', marginBottom: '8px', fontWeight: 'bold' }}>
+                  YouTube URL
+                </label>
+                <input
+                  type="text"
+                  value={youtubeUrl}
+                  onChange={(e) => {
+                    setYoutubeUrl(e.target.value);
+                    setShareError('');
+                  }}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #ccc',
+                    borderRadius: '6px',
+                    fontSize: '16px',
+                    boxSizing: 'border-box'
+                  }}
+                  disabled={sharing}
+                />
+                {shareError && (
+                  <p style={{ color: '#c62828', marginTop: '8px', fontSize: '14px' }}>{shareError}</p>
+                )}
+                <p style={{ color: '#666', marginTop: '8px', fontSize: '14px' }}>
+                  Paste a YouTube video URL to share it with the community
+                </p>
+              </div>
+              <button
+                type="submit"
+                disabled={sharing || !youtubeUrl.trim()}
+                style={{
+                  padding: '12px 30px',
+                  backgroundColor: sharing ? '#ccc' : '#ADD8E6',
+                  color: '#36454F',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: sharing ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '16px'
+                }}
+              >
+                {sharing ? 'Sharing...' : 'Share Video'}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* User's Videos */}
         <div>
