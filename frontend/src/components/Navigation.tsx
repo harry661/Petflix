@@ -72,7 +72,6 @@ export default function Navigation() {
               <Link to="/search" style={{ color: '#36454F', textDecoration: 'none' }}>
                 Search
               </Link>
-            <>
               <Link to="/home" style={{ color: '#36454F', textDecoration: 'none' }}>
                 Home
               </Link>
