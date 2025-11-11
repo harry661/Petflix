@@ -99,8 +99,9 @@ export default function HomePage() {
         }
       }
       
-      // Fallback: try to search for trending pet videos
-      const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(query)}&limit=12`);
+      // Fallback: try to search for trending pet videos (only if no filter is selected)
+      if (!filter) {
+        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent('cats dogs pets')}&limit=12`);
       if (searchResponse.ok) {
         const searchData = await searchResponse.json();
         if (searchData.videos && searchData.videos.length > 0) {
