@@ -12,10 +12,31 @@ export default function HomePage() {
   const { isSearchOpen, searchQuery, searchResults, isLoading: searchLoading, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [featuredVideos, setFeaturedVideos] = useState<any[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const carouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Banner carousel items
+  const bannerItems = [
+    {
+      id: 'pet-of-the-week',
+      title: 'Pet of the Week',
+      buttonText: 'See Winner',
+      backgroundImage: null // Will be provided later
+    },
+    {
+      id: 'clip-of-the-week',
+      title: 'Clip of the Week',
+      buttonText: 'Watch Now',
+      backgroundImage: null // Will be provided later
+    },
+    {
+      id: 'rising-star',
+      title: 'Rising Star',
+      buttonText: 'See Winner',
+      backgroundImage: null // Will be provided later
+    }
+  ];
 
   useEffect(() => {
     // Wait for auth check to complete
@@ -29,48 +50,33 @@ export default function HomePage() {
       return;
     }
     
-    // Load videos only if authenticated and not searching
-    if (isAuthenticated && user && !isSearchOpen) {
-      loadTrendingVideos();
-      loadFeaturedVideos();
-    }
-    
-    return () => {
-      if (carouselIntervalRef.current) {
-        clearInterval(carouselIntervalRef.current);
-      }
-    };
-  }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
-  
-  // Auto-rotate banner carousel
-  useEffect(() => {
-    if (featuredVideos.length > 1) {
-      carouselIntervalRef.current = setInterval(() => {
-        setCurrentBannerIndex((prev) => (prev + 1) % featuredVideos.length);
-      }, 5000); // Change every 5 seconds
+        // Load videos only if authenticated and not searching
+        if (isAuthenticated && user && !isSearchOpen) {
+          loadTrendingVideos();
+        }
+        
+        return () => {
+          if (carouselIntervalRef.current) {
+            clearInterval(carouselIntervalRef.current);
+          }
+        };
+      }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
       
-      return () => {
-        if (carouselIntervalRef.current) {
-          clearInterval(carouselIntervalRef.current);
+      // Auto-rotate banner carousel
+      useEffect(() => {
+        if (bannerItems.length > 1) {
+          carouselIntervalRef.current = setInterval(() => {
+            setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
+          }, 5000); // Change every 5 seconds
+          
+          return () => {
+            if (carouselIntervalRef.current) {
+              clearInterval(carouselIntervalRef.current);
+            }
+          };
         }
-      };
-    }
-  }, [featuredVideos.length]);
+      }, [bannerItems.length]);
 
-  const loadFeaturedVideos = async () => {
-    try {
-      // Get featured videos for banner carousel (top 5 most recent)
-      const response = await fetch(`${API_URL}/api/v1/videos/recent?limit=5`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.videos && data.videos.length > 0) {
-          setFeaturedVideos(data.videos);
-        }
-      }
-    } catch (err) {
-      // Silently fail - banner is optional
-    }
-  };
 
   const loadTrendingVideos = async (filter?: string | null) => {
     try {
@@ -169,13 +175,6 @@ export default function HomePage() {
     'Underwater': '/aquatic-filter.png'
   };
   
-  const getBannerThumbnail = (video: any) => {
-    if (video.thumbnail) return video.thumbnail;
-    if (video.youtubeVideoId) {
-      return `https://img.youtube.com/vi/${video.youtubeVideoId}/maxresdefault.jpg`;
-    }
-    return null;
-  };
 
       if (authLoading || (displayLoading && !isSearchOpen)) {
         return (
@@ -193,7 +192,7 @@ export default function HomePage() {
   return (
     <>
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
-      {!isSearchOpen && featuredVideos.length > 0 && (
+      {!isSearchOpen && (
         <div style={{
           position: 'relative',
           width: '100vw',
@@ -204,78 +203,94 @@ export default function HomePage() {
           marginBottom: 0,
           zIndex: 0
         }}>
-            {featuredVideos.map((video, index) => {
-              const thumbnail = getBannerThumbnail(video);
-              return (
-                <div
-                  key={video.id}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: index === currentBannerIndex ? 1 : 0,
-                    transition: 'opacity 1s ease-in-out',
-                    backgroundImage: thumbnail ? `url(${thumbnail})` : 'linear-gradient(135deg, #ADD8E6 0%, #87CEEB 100%)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => navigate(`/video/${video.id}`)}
-                >
-                  {/* Dark overlay for text readability */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)'
-                  }} />
-                  
-                  {/* Video title overlay */}
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '40px',
-                    left: '40px',
-                    right: '40px',
-                    zIndex: 2
+            {bannerItems.map((item, index) => (
+              <div
+                key={item.id}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: index === currentBannerIndex ? 1 : 0,
+                  transition: 'opacity 1s ease-in-out',
+                  backgroundImage: item.backgroundImage ? `url(${item.backgroundImage})` : 'linear-gradient(135deg, #1E1E1E 0%, #0F0F0F 100%)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              >
+                {/* Dark overlay for text readability */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%)'
+                }} />
+                
+                {/* Title and CTA Button */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '60px',
+                  left: '60px',
+                  zIndex: 2,
+                  maxWidth: '600px'
+                }}>
+                  <h1 style={{
+                    color: '#fff',
+                    fontSize: '64px',
+                    fontWeight: 'bold',
+                    marginBottom: '20px',
+                    textShadow: '2px 2px 8px rgba(0,0,0,0.8)',
+                    lineHeight: '1.1'
                   }}>
-                    <h2 style={{
-                      color: '#fff',
-                      fontSize: '32px',
+                    {item.title}
+                  </h1>
+                  <button
+                    onClick={() => {
+                      // TODO: Navigate to appropriate page based on item.id
+                      console.log(`Navigate to ${item.id}`);
+                    }}
+                    style={{
+                      padding: '14px 32px',
+                      backgroundColor: '#ADD8E6',
+                      color: '#0F0F0F',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '16px',
                       fontWeight: 'bold',
-                      marginBottom: '10px',
-                      textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-                    }}>
-                      {video.title || 'Featured Video'}
-                    </h2>
-                    {video.user?.username && (
-                      <p style={{
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        fontSize: '18px',
-                        textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
-                      }}>
-                        by {video.user.username}
-                      </p>
-                    )}
-                  </div>
+                      cursor: 'pointer',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#87CEEB';
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#ADD8E6';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    {item.buttonText}
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
             
             {/* Carousel indicators */}
             <div style={{
               position: 'absolute',
               bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
+              right: '40px',
               display: 'flex',
               gap: '8px',
               zIndex: 3
             }}>
-              {featuredVideos.map((_, index) => (
+              {bannerItems.map((_, index) => (
                 <button
                   key={index}
                   onClick={(e) => {
