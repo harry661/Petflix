@@ -14,6 +14,7 @@ export default function Navigation() {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchQueryRef = useRef<string>(searchQuery); // Ref to track current search query
 
   const logoStyle: React.CSSProperties = {
     fontSize: '28px',
@@ -49,20 +50,21 @@ export default function Navigation() {
     };
   }, [showProfileMenu]);
 
+  // Update ref whenever searchQuery changes
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+
   // Close search when clicking outside (only if search query is empty)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Get current search query value directly from the context/state
-      // Use a ref to ensure we get the latest value
-      const currentQuery = searchQuery;
-      
       if (
         isSearchOpen &&
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
-        // Only close if search query is empty - if user has typed something, keep it open
-        // Check both the current query and if it's just whitespace
+        // Check the ref value (always current) - only close if search query is empty
+        const currentQuery = searchQueryRef.current;
         if (!currentQuery || currentQuery.trim().length === 0) {
           closeSearch();
         }
@@ -87,7 +89,7 @@ export default function Navigation() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isSearchOpen, closeSearch, searchQuery]); // searchQuery in deps ensures handler has latest value
+  }, [isSearchOpen, closeSearch]); // Removed searchQuery from deps - using ref instead
 
   // Auto-search with debounce when search is open and query changes
   useEffect(() => {
