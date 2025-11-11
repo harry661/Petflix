@@ -306,7 +306,8 @@ export default function HomePage() {
         paddingTop: 0
       }}>
         <div style={{ 
-          maxWidth: '1200px', 
+          width: '90vw',
+          maxWidth: '90vw',
           margin: '0 auto', 
           padding: '20px',
           position: 'relative'
