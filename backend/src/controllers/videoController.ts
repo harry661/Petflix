@@ -361,8 +361,36 @@ export const getFeed = async (req: Request, res: Response) => {
       return;
     }
 
+    // Format videos with thumbnails (generate directly from video IDs)
+    const videosFormatted = (videos || []).map((video: any) => {
+      const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      // Generate thumbnail URL directly from YouTube video ID
+      let thumbnail: string | null = null;
+      if (video.youtube_video_id) {
+        if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+          thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+        }
+      }
+      return {
+        id: video.id,
+        youtubeVideoId: video.youtube_video_id,
+        title: video.title,
+        description: video.description,
+        userId: video.user_id,
+        createdAt: video.created_at,
+        updatedAt: video.updated_at,
+        thumbnail: thumbnail,
+        user: userData ? {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          profile_picture_url: userData.profile_picture_url,
+        } : null,
+      };
+    });
+
     res.json({
-      videos: videos || [],
+      videos: videosFormatted,
     });
   } catch (error) {
     console.error('Get feed error:', error);
