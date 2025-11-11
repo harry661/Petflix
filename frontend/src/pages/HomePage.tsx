@@ -327,27 +327,21 @@ export default function HomePage() {
                   onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
                   style={{
                     flex: 1,
-                    padding: '24px 20px',
+                    padding: 0,
                     borderRadius: '8px',
-                    border: selectedFilter === filter ? '2px solid #ADD8E6' : '2px solid transparent',
+                    border: selectedFilter === filter ? '3px solid #ADD8E6' : '3px solid transparent',
                     backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
-                    backgroundColor: imageUrl ? 'transparent' : (selectedFilter === filter ? '#ADD8E6' : 'white'),
+                    backgroundColor: imageUrl ? 'transparent' : (selectedFilter === filter ? '#ADD8E6' : '#f5f5f5'),
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',
-                    color: '#fff',
-                    fontSize: '18px',
-                    fontWeight: 'bold',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     boxShadow: selectedFilter === filter ? '0 4px 12px rgba(173, 216, 230, 0.5)' : '0 2px 8px rgba(0,0,0,0.2)',
                     minWidth: 0,
                     minHeight: '64px',
                     position: 'relative',
-                    overflow: 'hidden',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
+                    overflow: 'hidden'
                   }}
                   onMouseEnter={(e) => {
                     if (selectedFilter !== filter) {
@@ -362,22 +356,18 @@ export default function HomePage() {
                     }
                   }}
                 >
-                  {/* Dark overlay for better text readability */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: selectedFilter === filter 
-                      ? 'rgba(173, 216, 230, 0.2)' 
-                      : 'rgba(0, 0, 0, 0.3)',
-                    transition: 'background-color 0.2s ease',
-                    pointerEvents: 'none'
-                  }} />
-                  <span style={{ position: 'relative', zIndex: 1 }}>
-                    {filter}
-                  </span>
+                  {/* Subtle overlay when selected */}
+                  {selectedFilter === filter && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(173, 216, 230, 0.15)',
+                      pointerEvents: 'none'
+                    }} />
+                  )}
                 </button>
               );
             })}
