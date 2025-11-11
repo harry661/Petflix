@@ -297,6 +297,18 @@ export default function LandingPage() {
               />
             </div>
           )}
+          <style>{`
+            input::placeholder {
+              color: rgba(255, 255, 255, 0.6) !important;
+            }
+            input:-webkit-autofill,
+            input:-webkit-autofill:hover,
+            input:-webkit-autofill:focus {
+              -webkit-text-fill-color: #fff !important;
+              -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
+              transition: background-color 5000s ease-in-out 0s;
+            }
+          `}</style>
 
           <div style={{ marginBottom: '16px' }}>
             <input
@@ -444,7 +456,7 @@ export default function LandingPage() {
 
               <div style={{
                 textAlign: 'center',
-                color: '#666',
+                color: 'rgba(255, 255, 255, 0.8)',
                 fontSize: '14px'
               }}>
                 Don't have an account?{' '}
@@ -464,6 +476,8 @@ export default function LandingPage() {
                     fontSize: '14px',
                     padding: 0
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
                   Sign up now
                 </button>
