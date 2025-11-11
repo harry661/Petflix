@@ -185,8 +185,7 @@ export default function HomePage() {
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#F0F0DC',
-      paddingTop: 0,
-      position: 'relative'
+      paddingTop: 0
     }}>
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && featuredVideos.length > 0 && (
@@ -195,7 +194,7 @@ export default function HomePage() {
           width: '100vw',
           height: '500px',
           overflow: 'hidden',
-          zIndex: 1,
+          zIndex: 0,
           marginLeft: 'calc(-50vw + 50%)',
           marginTop: 0,
           marginBottom: 0
