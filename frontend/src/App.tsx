@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import LandingPage from './pages/LandingPage';
 import HomePage from './pages/HomePage';
@@ -10,10 +10,13 @@ import FeedPage from './pages/FeedPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const showNavigation = location.pathname !== '/' && location.pathname !== '/login' && location.pathname !== '/register';
+
   return (
-    <Router>
-      <Navigation />
+    <>
+      {showNavigation && <Navigation />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<HomePage />} />
@@ -26,6 +29,14 @@ function App() {
         <Route path="/login" element={<LandingPage />} />
         <Route path="/register" element={<LandingPage />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

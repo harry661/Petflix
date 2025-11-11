@@ -179,28 +179,50 @@ export default function LandingPage() {
       minHeight: '100vh',
       backgroundColor: '#F0F0DC',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: 'column',
       padding: '20px'
     }}>
+      {/* Petflix Logo - Top Left */}
       <div style={{
-        backgroundColor: 'white',
-        padding: '48px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        maxWidth: '450px',
-        width: '100%'
+        position: 'absolute',
+        top: '20px',
+        left: '20px'
       }}>
-        {/* Title */}
         <h1 style={{
           fontSize: '32px',
+          fontWeight: 'bold',
           color: '#36454F',
-          marginTop: 0,
-          marginBottom: '32px',
-          fontWeight: 'bold'
+          margin: 0
         }}>
-          {isLogin ? 'Sign In' : 'Sign Up'}
+          🐾 Petflix
         </h1>
+      </div>
+
+      {/* Centered Form */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          padding: '48px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          maxWidth: '450px',
+          width: '100%'
+        }}>
+          {/* Title */}
+          <h1 style={{
+            fontSize: '32px',
+            color: '#36454F',
+            marginTop: 0,
+            marginBottom: '32px',
+            fontWeight: 'bold'
+          }}>
+            {isLogin ? 'Sign In' : 'Sign Up'}
+          </h1>
 
         {error && (
           <div style={{
