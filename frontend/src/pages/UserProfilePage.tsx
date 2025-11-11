@@ -261,9 +261,13 @@ export default function UserProfilePage() {
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#0F0F0F',
-      padding: '20px'
+      padding: 0
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ 
+        maxWidth: '100%',
+        margin: '0 auto',
+        padding: '0 40px'
+      }}>
         {/* Profile Header */}
         <div style={{
           backgroundColor: 'transparent',
