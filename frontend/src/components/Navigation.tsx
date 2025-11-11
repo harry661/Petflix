@@ -266,15 +266,9 @@ export default function Navigation() {
                       outline: 'none',
                       padding: '4px 0'
                     }}
-                    onBlur={(e) => {
-                      // Don't close if clicking on search results or input
-                      if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
-                        // Small delay to allow click events
-                        setTimeout(() => {
-                          if (!searchQuery.trim()) {
-                            closeSearch();
-                          }
-                        }, 200);
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        closeSearch();
                       }
                     }}
                   />
