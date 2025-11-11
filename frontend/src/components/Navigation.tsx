@@ -451,7 +451,7 @@ export default function Navigation() {
                   height: '32px',
                   borderRadius: '4px',
                   backgroundColor: '#ADD8E6',
-                  color: '#36454F',
+                  color: '#1E1E1E',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

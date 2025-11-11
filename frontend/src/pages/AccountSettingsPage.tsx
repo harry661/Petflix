@@ -129,7 +129,7 @@ export default function AccountSettingsPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#36454F', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#1E1E1E', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#ffffff' }}>Loading your settings...</p>
       </div>
     );
@@ -137,7 +137,7 @@ export default function AccountSettingsPage() {
 
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#36454F', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#1E1E1E', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#c62828', marginBottom: '20px' }}>
           {error || 'Unable to load your account. Please try logging in again.'}
         </p>
@@ -162,7 +162,7 @@ export default function AccountSettingsPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#36454F',
+      backgroundColor: '#1E1E1E',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>

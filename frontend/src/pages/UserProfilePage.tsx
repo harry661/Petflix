@@ -242,7 +242,7 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#36454F', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#1E1E1E', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#ffffff' }}>Loading profile...</p>
       </div>
     );
@@ -250,7 +250,7 @@ export default function UserProfilePage() {
 
   if (error || !user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#36454F', padding: '40px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#1E1E1E', padding: '40px', textAlign: 'center' }}>
         <p style={{ color: '#c62828' }}>{error || 'User not found'}</p>
       </div>
     );
@@ -259,7 +259,7 @@ export default function UserProfilePage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#36454F',
+      backgroundColor: '#1E1E1E',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>

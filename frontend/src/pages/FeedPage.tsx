@@ -56,7 +56,7 @@ export default function FeedPage() {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#36454F',
+        backgroundColor: '#1E1E1E',
         padding: '40px',
         textAlign: 'center'
       }}>
@@ -69,7 +69,7 @@ export default function FeedPage() {
     return (
       <div style={{
         minHeight: '100vh',
-        backgroundColor: '#36454F',
+        backgroundColor: '#1E1E1E',
         padding: '40px',
         textAlign: 'center'
       }}>
@@ -81,7 +81,7 @@ export default function FeedPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#36454F',
+      backgroundColor: '#1E1E1E',
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
