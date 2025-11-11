@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { Search, Bell, ChevronDown } from 'lucide-react';
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -119,11 +120,12 @@ export default function Navigation() {
         <Link to="/home" style={{
           fontSize: '28px',
           fontWeight: 'bold',
-          color: '#ADD8E6',
+          color: '#3B82F6',
           textDecoration: 'none',
-          marginRight: '20px'
+          marginRight: '20px',
+          letterSpacing: '0.5px'
         }}>
-          🐾 Petflix
+          Petflix
         </Link>
 
         {/* Navigation Links */}
@@ -183,7 +185,6 @@ export default function Navigation() {
             style={{
               color: '#fff',
               textDecoration: 'none',
-              fontSize: '20px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -195,14 +196,13 @@ export default function Navigation() {
             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
-            🔍
+            <Search size={20} />
           </Link>
 
           {/* Notification Bell Icon */}
           <div
             style={{
               color: '#fff',
-              fontSize: '20px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -219,14 +219,14 @@ export default function Navigation() {
               alert('Notifications coming soon!');
             }}
           >
-            🔔
+            <Bell size={20} />
             {/* Notification badge - can be added when notifications are implemented */}
             {/* <span style={{
               position: 'absolute',
               top: '4px',
               right: '4px',
-              backgroundColor: '#ADD8E6',
-              color: '#36454F',
+              backgroundColor: '#3B82F6',
+              color: '#fff',
               borderRadius: '50%',
               width: '8px',
               height: '8px',
@@ -274,7 +274,7 @@ export default function Navigation() {
                   {user.username.charAt(0).toUpperCase()}
                 </div>
               )}
-              <span style={{ color: '#fff', fontSize: '12px' }}>▼</span>
+              <ChevronDown size={16} color="#fff" />
             </div>
 
             {/* Dropdown Menu */}
