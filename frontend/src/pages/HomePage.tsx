@@ -14,27 +14,20 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🏠 HomePage useEffect - authLoading:', authLoading, 'isAuthenticated:', isAuthenticated, 'user:', user);
-    
     // Wait for auth check to complete
     if (authLoading) {
-      console.log('⏳ Still loading auth...');
       return;
     }
     
     // If not authenticated, redirect to landing page
     if (!isAuthenticated) {
-      console.log('❌ Not authenticated, redirecting to landing page');
       navigate('/', { replace: true });
       return;
     }
     
     // Load videos only if authenticated and not searching
     if (isAuthenticated && user && !isSearchOpen) {
-      console.log('✅ Authenticated, loading videos for user:', user.username);
       loadTrendingVideos();
-    } else if (isAuthenticated && !user) {
-      console.log('⚠️ Authenticated but no user data');
     }
   }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
 

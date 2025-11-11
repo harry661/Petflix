@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreVertical } from 'lucide-react';
 
@@ -20,7 +20,7 @@ interface VideoCardProps {
   };
 }
 
-export default function VideoCard({ video }: VideoCardProps) {
+function VideoCard({ video }: VideoCardProps) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -119,6 +119,7 @@ export default function VideoCard({ video }: VideoCardProps) {
           <img
             src={thumbnailUrl}
             alt={video.title}
+            loading="lazy"
             style={{
               position: 'absolute',
               top: 0,
