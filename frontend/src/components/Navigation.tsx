@@ -51,18 +51,9 @@ export default function Navigation() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <Link to="/" style={{
-            fontSize: '28px',
-            fontWeight: 'bold',
-            color: '#ADD8E6',
-            textDecoration: 'none',
-            letterSpacing: '0.5px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{ color: '#ADD8E6' }}>🐾</span>
-            <span style={{ color: '#ADD8E6' }}>Petflix</span>
+          <Link to="/" style={logoStyle}>
+            <span style={logoTextStyle}>🐾</span>
+            <span style={logoTextStyle}>Petflix</span>
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
@@ -87,18 +78,9 @@ export default function Navigation() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <Link to="/" style={{
-            fontSize: '28px',
-            fontWeight: 'bold',
-            color: '#ADD8E6',
-            textDecoration: 'none',
-            letterSpacing: '0.5px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{ color: '#ADD8E6' }}>🐾</span>
-            <span style={{ color: '#ADD8E6' }}>Petflix</span>
+          <Link to="/" style={logoStyle}>
+            <span style={logoTextStyle}>🐾</span>
+            <span style={logoTextStyle}>Petflix</span>
           </Link>
           <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
             Sign In
@@ -109,6 +91,21 @@ export default function Navigation() {
   }
 
   const isActive = (path: string) => location.pathname === path;
+
+  const logoStyle: React.CSSProperties = {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#ADD8E6',
+    textDecoration: 'none',
+    letterSpacing: '0.5px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  };
+
+  const logoTextStyle: React.CSSProperties = {
+    color: '#ADD8E6'
+  };
 
   return (
     <nav style={{
@@ -127,19 +124,9 @@ export default function Navigation() {
         gap: '40px'
       }}>
         {/* Logo */}
-        <Link to="/home" style={{
-          fontSize: '28px',
-          fontWeight: 'bold',
-          color: '#ADD8E6',
-          textDecoration: 'none',
-          marginRight: '20px',
-          letterSpacing: '0.5px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span style={{ color: '#ADD8E6' }}>🐾</span>
-          <span style={{ color: '#ADD8E6' }}>Petflix</span>
+        <Link to="/home" style={{ ...logoStyle, marginRight: '20px' }}>
+          <span style={logoTextStyle}>🐾</span>
+          <span style={logoTextStyle}>Petflix</span>
         </Link>
 
         {/* Navigation Links */}
