@@ -479,7 +479,7 @@ export default function Navigation() {
                 position: 'absolute',
                 top: '100%',
                 right: 0,
-                marginTop: '4px', // Small gap, but menu has hover handlers to keep it open
+                marginTop: '0px', // No gap - menu connects directly to prevent closing
                 backgroundColor: 'rgba(0, 0, 0, 0.95)',
                 borderRadius: '4px',
                 minWidth: '200px',
