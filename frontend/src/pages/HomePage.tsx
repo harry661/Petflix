@@ -192,7 +192,8 @@ export default function HomePage() {
           overflow: 'hidden',
           marginLeft: 'calc(-50vw + 50%)',
           marginTop: 0,
-          marginBottom: 0
+          marginBottom: 0,
+          zIndex: 0
         }}>
             {featuredVideos.map((video, index) => {
               const thumbnail = getBannerThumbnail(video);
