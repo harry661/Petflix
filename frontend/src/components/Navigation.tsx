@@ -477,8 +477,9 @@ export default function Navigation() {
                 onMouseLeave={() => setShowProfileMenu(false)}
                 style={{
                 position: 'absolute',
-                top: 'calc(100% + 8px)', // Position with gap but make it part of hover area
+                top: '100%',
                 right: 0,
+                marginTop: '4px', // Small gap, but menu has hover handlers to keep it open
                 backgroundColor: 'rgba(0, 0, 0, 0.95)',
                 borderRadius: '4px',
                 minWidth: '200px',
