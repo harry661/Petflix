@@ -185,7 +185,7 @@ export default function VideoCard({ video }: VideoCardProps) {
       {/* Video Info */}
       <div style={{ padding: '12px' }}>
         {/* Title row with profile picture and menu */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '2px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '0' }}>
           {/* User profile picture */}
           {video.user?.profile_picture_url ? (
             <img
@@ -312,7 +312,7 @@ export default function VideoCard({ video }: VideoCardProps) {
 
         {/* Username */}
         {video.user?.username && (
-          <div style={{ marginLeft: '48px', marginTop: '2px', marginBottom: '2px' }}>
+          <div style={{ marginLeft: '48px', marginTop: '4px', marginBottom: '2px' }}>
             <span style={{ color: '#666', fontSize: '13px' }}>
               {video.user.username}
             </span>
