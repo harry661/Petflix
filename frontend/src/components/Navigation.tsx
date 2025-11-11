@@ -54,11 +54,15 @@ export default function Navigation() {
           <Link to="/" style={{
             fontSize: '28px',
             fontWeight: 'bold',
-            color: '#3B82F6',
+            color: '#ADD8E6',
             textDecoration: 'none',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}>
-            Petflix
+            <span>🐾</span>
+            <span>Petflix</span>
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
