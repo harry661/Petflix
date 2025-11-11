@@ -61,8 +61,8 @@ export default function Navigation() {
             alignItems: 'center',
             gap: '8px'
           }}>
-            <span>🐾</span>
-            <span>Petflix</span>
+            <span style={{ color: '#ADD8E6' }}>🐾</span>
+            <span style={{ color: '#ADD8E6' }}>Petflix</span>
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
@@ -97,8 +97,8 @@ export default function Navigation() {
             alignItems: 'center',
             gap: '8px'
           }}>
-            <span>🐾</span>
-            <span>Petflix</span>
+            <span style={{ color: '#ADD8E6' }}>🐾</span>
+            <span style={{ color: '#ADD8E6' }}>Petflix</span>
           </Link>
           <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
             Sign In
@@ -138,8 +138,8 @@ export default function Navigation() {
           alignItems: 'center',
           gap: '8px'
         }}>
-          <span>🐾</span>
-          <span>Petflix</span>
+          <span style={{ color: '#ADD8E6' }}>🐾</span>
+          <span style={{ color: '#ADD8E6' }}>Petflix</span>
         </Link>
 
         {/* Navigation Links */}
