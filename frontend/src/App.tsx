@@ -22,8 +22,9 @@ function App() {
         <Route path="/user/:username" element={<UserProfilePage />} />
         <Route path="/settings" element={<AccountSettingsPage />} />
         <Route path="/feed" element={<FeedPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
+        <Route path="/login" element={<LandingPage />} />
+        <Route path="/register" element={<LandingPage />} />
       </Routes>
     </Router>
   );

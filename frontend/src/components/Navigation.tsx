@@ -67,11 +67,11 @@ export default function Navigation() {
         </Link>
 
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <Link to="/search" style={{ color: '#36454F', textDecoration: 'none' }}>
-            Search
-          </Link>
-          
           {isAuthenticated && user ? (
+            <>
+              <Link to="/search" style={{ color: '#36454F', textDecoration: 'none' }}>
+                Search
+              </Link>
             <>
               <Link to="/home" style={{ color: '#36454F', textDecoration: 'none' }}>
                 Home
@@ -100,21 +100,9 @@ export default function Navigation() {
               </button>
             </>
           ) : (
-            <>
-              <Link to="/login" style={{ color: '#36454F', textDecoration: 'none' }}>
-                Login
-              </Link>
-              <Link to="/register" style={{
-                padding: '8px 16px',
-                backgroundColor: '#ADD8E6',
-                color: '#36454F',
-                textDecoration: 'none',
-                borderRadius: '6px',
-                fontWeight: 'bold'
-              }}>
-                Sign Up
-              </Link>
-            </>
+            <Link to="/" style={{ color: '#36454F', textDecoration: 'none' }}>
+              Sign In
+            </Link>
           )}
         </div>
       </div>
