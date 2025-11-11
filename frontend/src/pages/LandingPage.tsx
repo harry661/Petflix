@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -16,6 +16,7 @@ export default function LandingPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     // If user is already logged in, redirect to home
@@ -184,76 +185,22 @@ export default function LandingPage() {
     }}>
       <div style={{
         backgroundColor: 'white',
-        padding: '40px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-        maxWidth: '500px',
+        padding: '48px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        maxWidth: '450px',
         width: '100%'
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{
-            fontSize: '36px',
-            color: '#36454F',
-            marginTop: 0,
-            marginBottom: '10px'
-          }}>
-            🐾 Petflix
-          </h1>
-          <p style={{ color: '#666', fontSize: '16px' }}>
-            Discover, share, and engage with pet videos
-          </p>
-        </div>
-
-        {/* Toggle between Login and Sign Up */}
-        <div style={{
-          display: 'flex',
-          gap: '10px',
-          marginBottom: '30px',
-          borderBottom: '2px solid #eee'
+        {/* Title */}
+        <h1 style={{
+          fontSize: '32px',
+          color: '#36454F',
+          marginTop: 0,
+          marginBottom: '32px',
+          fontWeight: 'bold'
         }}>
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(true);
-              setError('');
-              setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-            }}
-            style={{
-              flex: 1,
-              padding: '12px',
-              backgroundColor: isLogin ? '#ADD8E6' : 'transparent',
-              color: isLogin ? '#36454F' : '#666',
-              border: 'none',
-              borderBottom: isLogin ? '3px solid #ADD8E6' : '3px solid transparent',
-              cursor: 'pointer',
-              fontWeight: isLogin ? 'bold' : 'normal',
-              fontSize: '16px'
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(false);
-              setError('');
-              setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-            }}
-            style={{
-              flex: 1,
-              padding: '12px',
-              backgroundColor: !isLogin ? '#ADD8E6' : 'transparent',
-              color: !isLogin ? '#36454F' : '#666',
-              border: 'none',
-              borderBottom: !isLogin ? '3px solid #ADD8E6' : '3px solid transparent',
-              cursor: 'pointer',
-              fontWeight: !isLogin ? 'bold' : 'normal',
-              fontSize: '16px'
-            }}
-          >
-            Sign Up
-          </button>
-        </div>
+          {isLogin ? 'Sign In' : 'Sign Up'}
+        </h1>
 
         {error && (
           <div style={{
@@ -270,96 +217,83 @@ export default function LandingPage() {
 
         <form onSubmit={handleSubmit}>
           {!isLogin && (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
-                Username
-              </label>
+            <div style={{ marginBottom: '16px' }}>
               <input
                 type="text"
-                placeholder="Choose a username (3-20 characters)"
+                placeholder="Username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required={!isLogin}
+                required
                 minLength={3}
                 maxLength={20}
                 style={{
                   width: '100%',
-                  padding: '12px',
+                  padding: '16px',
                   border: '1px solid #ccc',
-                  borderRadius: '6px',
+                  borderRadius: '4px',
                   fontSize: '16px',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  backgroundColor: '#fff'
                 }}
               />
             </div>
           )}
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
-              Email
-            </label>
+          <div style={{ marginBottom: '16px' }}>
             <input
               type="email"
-              placeholder="your@email.com"
+              placeholder="Email address"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
               style={{
                 width: '100%',
-                padding: '12px',
+                padding: '16px',
                 border: '1px solid #ccc',
-                borderRadius: '6px',
+                borderRadius: '4px',
                 fontSize: '16px',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                backgroundColor: '#fff'
               }}
             />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
-              Password
-            </label>
+          <div style={{ marginBottom: '16px' }}>
             <input
               type="password"
-              placeholder={isLogin ? "Enter your password" : "At least 8 characters"}
+              placeholder="Password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
               minLength={8}
               style={{
                 width: '100%',
-                padding: '12px',
+                padding: '16px',
                 border: '1px solid #ccc',
-                borderRadius: '6px',
+                borderRadius: '4px',
                 fontSize: '16px',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                backgroundColor: '#fff'
               }}
             />
-            {!isLogin && (
-              <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-                Must contain uppercase, lowercase, and number
-              </p>
-            )}
           </div>
 
           {!isLogin && (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#36454F', fontWeight: 'bold' }}>
-                Confirm Password
-              </label>
+            <div style={{ marginBottom: '16px' }}>
               <input
                 type="password"
-                placeholder="Confirm your password"
+                placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                required={!isLogin}
+                required
                 style={{
                   width: '100%',
-                  padding: '12px',
+                  padding: '16px',
                   border: '1px solid #ccc',
-                  borderRadius: '6px',
+                  borderRadius: '4px',
                   fontSize: '16px',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  backgroundColor: '#fff'
                 }}
               />
             </div>
@@ -370,24 +304,127 @@ export default function LandingPage() {
             disabled={loading}
             style={{
               width: '100%',
-              padding: '14px',
+              padding: '16px',
               backgroundColor: '#ADD8E6',
               color: '#36454F',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '4px',
               fontSize: '16px',
               fontWeight: 'bold',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
-              marginBottom: '20px'
+              marginBottom: '16px'
             }}
           >
-            {loading ? (isLogin ? 'Signing in...' : 'Creating Account...') : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? (isLogin ? 'Signing in...' : 'Creating Account...') : (isLogin ? 'Sign In' : 'Sign Up')}
           </button>
 
+          {isLogin && (
+            <>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '24px',
+                fontSize: '14px'
+              }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#666',
+                  cursor: 'pointer'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    style={{ marginRight: '8px' }}
+                  />
+                  Remember me
+                </label>
+                <Link
+                  to="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // TODO: Implement forgot password
+                    alert('Forgot password feature coming soon');
+                  }}
+                  style={{
+                    color: '#ADD8E6',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <div style={{
+                textAlign: 'center',
+                color: '#666',
+                fontSize: '14px'
+              }}>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(false);
+                    setError('');
+                    setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#ADD8E6',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    fontSize: '14px',
+                    padding: 0
+                  }}
+                >
+                  Sign up now
+                </button>
+              </div>
+            </>
+          )}
+
           {!isLogin && (
-            <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '20px' }}>
-              By creating an account, you agree to our Terms of Service and Privacy Policy
+            <div style={{
+              textAlign: 'center',
+              color: '#666',
+              fontSize: '14px',
+              marginTop: '16px'
+            }}>
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(true);
+                  setError('');
+                  setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#ADD8E6',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontSize: '14px',
+                  padding: 0
+                }}
+              >
+                Sign in
+              </button>
+            </div>
+          )}
+
+          {!isLogin && (
+            <p style={{
+              textAlign: 'center',
+              fontSize: '12px',
+              color: '#999',
+              marginTop: '24px'
+            }}>
+              By signing up, you agree to our Terms of Service and Privacy Policy
             </p>
           )}
         </form>
