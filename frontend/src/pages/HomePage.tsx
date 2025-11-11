@@ -191,14 +191,13 @@ export default function HomePage() {
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && featuredVideos.length > 0 && (
         <div style={{
-          position: 'absolute',
+          position: 'fixed',
           top: 0,
           left: 0,
           width: '100vw',
           height: '500px',
           overflow: 'hidden',
-          zIndex: 0,
-          marginLeft: 'calc(-50vw + 50%)'
+          zIndex: 0
         }}>
             {featuredVideos.map((video, index) => {
               const thumbnail = getBannerThumbnail(video);
