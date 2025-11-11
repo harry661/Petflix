@@ -139,18 +139,15 @@ export default function HomePage() {
       ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Videos`
       : 'Trending Pet Videos';
   
-  const filters = ['Dogs', 'Cats', 'Birds', 'Smalls', 'Aquatic', 'Reptiles', 'Exotic', 'Farm'];
+  const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
   
   // Map filter names to image filenames
   const filterImages: { [key: string]: string } = {
     'Dogs': '/dogs-filter.png',
     'Cats': '/cats-filter.png',
     'Birds': '/birds-filter.png',
-    'Smalls': '/smalls-filter.png',
-    'Aquatic': '/aquatic-filter.png',
-    'Reptiles': '/aquatic-filter.png', // Placeholder - will need new image
-    'Exotic': '/smalls-filter.png', // Placeholder - will need new image
-    'Farm': '/aquatic-filter.png' // Placeholder - will need new image
+    'Small and fluffy': '/smalls-filter.png',
+    'Underwater': '/aquatic-filter.png'
   };
   
 

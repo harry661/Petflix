@@ -42,26 +42,41 @@ export default function UserProfilePage() {
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   
-  // Available tags for pet videos
+  // Available tags for pet videos - organized by category
   const availableTags = [
     // Dogs
-    'Dog', 'Dogs', 'Puppy', 'Puppies', 'Puppy', 'Canine',
+    'Dog', 'Dogs', 'Puppy', 'Puppies', 'Pup', 'Pups', 'Canine', 'Puppy', 'Doggy', 'Doggo',
+    'Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Beagle', 'Poodle', 'Rottweiler',
+    'Yorkshire Terrier', 'Dachshund', 'Siberian Husky', 'Great Dane', 'Boxer', 'Shih Tzu',
+    'Border Collie', 'Australian Shepherd', 'Corgi', 'Chihuahua', 'Pomeranian', 'French Bulldog',
+    
     // Cats
-    'Cat', 'Cats', 'Kitten', 'Kittens', 'Feline',
+    'Cat', 'Cats', 'Kitten', 'Kittens', 'Kitty', 'Kitties', 'Feline', 'Meow', 'Purr',
+    'Persian', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Siamese', 'Bengal', 'Sphynx',
+    'Scottish Fold', 'American Shorthair', 'Russian Blue', 'Abyssinian', 'Turkish Angora',
+    
     // Birds
-    'Bird', 'Birds', 'Parrot', 'Parrots', 'Cockatiel', 'Canary', 'Budgie', 'Budgies', 'Finch', 'Finches',
-    // Small Pets / Small and Fluffy
-    'Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas',
-    // Aquatic / Underwater
-    'Fish', 'Fishes', 'Aquatic', 'Underwater', 'Marine', 'Goldfish', 'Betta', 'Tropical Fish',
-    // Reptiles
-    'Reptile', 'Reptiles', 'Snake', 'Snakes', 'Lizard', 'Lizards', 'Gecko', 'Geckos', 'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Iguana', 'Iguanas',
-    // Exotic Small Pets
-    'Hedgehog', 'Hedgehogs', 'Ferret', 'Ferrets', 'Sugar Glider', 'Sugar Gliders', 'Chinchilla', 'Chinchillas',
-    // Farm Animals
-    'Horse', 'Horses', 'Pony', 'Ponies', 'Pig', 'Pigs', 'Goat', 'Goats', 'Sheep', 'Chicken', 'Chickens', 'Duck', 'Ducks', 'Cow', 'Cows',
-    // General
-    'Small Pets', 'Fluffy', 'Cute', 'Funny', 'Training', 'Tricks', 'Playful', 'Adorable', 'Rescue', 'Adoption', 'Pet Care', 'Pet Health'
+    'Bird', 'Birds', 'Parrot', 'Parrots', 'Cockatiel', 'Cockatiels', 'Canary', 'Canaries',
+    'Finch', 'Finches', 'Budgie', 'Budgies', 'Lovebird', 'Lovebirds', 'Macaw', 'Macaws',
+    'Cockatoo', 'Cockatoos', 'African Grey', 'Conure', 'Conures', 'Quaker Parrot', 'Zebra Finch',
+    'Chicken', 'Chickens', 'Rooster', 'Duck', 'Ducks', 'Goose', 'Geese', 'Pigeon', 'Pigeons',
+    
+    // Small and Fluffy
+    'Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Bunny', 'Bunnies', 'Guinea Pig', 'Guinea Pigs',
+    'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas',
+    'Ferret', 'Ferrets', 'Hedgehog', 'Hedgehogs', 'Sugar Glider', 'Sugar Gliders',
+    'Small Pets', 'Fluffy', 'Tiny', 'Small Animal', 'Rodent', 'Rodents',
+    
+    // Underwater/Aquatic
+    'Fish', 'Fishes', 'Goldfish', 'Betta', 'Bettas', 'Guppy', 'Guppies', 'Angelfish',
+    'Tetra', 'Tetras', 'Cichlid', 'Cichlids', 'Discus', 'Oscar', 'Oscars', 'Koi',
+    'Aquarium', 'Aquatic', 'Underwater', 'Marine', 'Tropical Fish', 'Saltwater', 'Freshwater',
+    'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Sea Turtle', 'Terrapin', 'Terrapins',
+    'Frog', 'Frogs', 'Toad', 'Toads', 'Axolotl', 'Axolotls', 'Newt', 'Newts',
+    
+    // General/Behavioral
+    'Cute', 'Funny', 'Adorable', 'Playful', 'Training', 'Tricks', 'Rescue', 'Adoption',
+    'Pet Care', 'Pet Health', 'Veterinary', 'Vet', 'Grooming', 'Pet Food', 'Pet Toys'
   ];
 
   useEffect(() => {

@@ -515,19 +515,38 @@ export const getRecentVideos = async (
 
     // If tag filter is provided, join with video_tags_direct and filter
     if (tagFilter && tagFilter.trim()) {
-      // Map filter names to tag names - comprehensive mapping for all pet categories
+      // Map filter names to tag names - comprehensive mapping
       const tagMap: { [key: string]: string[] } = {
-        'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Canine'],
-        'cats': ['Cat', 'Cats', 'Kitten', 'Kittens', 'Feline'],
-        'birds': ['Bird', 'Birds', 'Parrot', 'Parrots', 'Cockatiel', 'Canary', 'Budgie', 'Budgies', 'Finch', 'Finches'],
-        'smalls': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas', 'Small Pets', 'Fluffy'],
-        'aquatic': ['Fish', 'Fishes', 'Aquatic', 'Underwater', 'Marine', 'Goldfish', 'Betta', 'Tropical Fish'],
-        'reptiles': ['Reptile', 'Reptiles', 'Snake', 'Snakes', 'Lizard', 'Lizards', 'Gecko', 'Geckos', 'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Iguana', 'Iguanas'],
-        'exotic': ['Hedgehog', 'Hedgehogs', 'Ferret', 'Ferrets', 'Sugar Glider', 'Sugar Gliders', 'Chinchilla', 'Chinchillas'],
-        'farm': ['Horse', 'Horses', 'Pony', 'Ponies', 'Pig', 'Pigs', 'Goat', 'Goats', 'Sheep', 'Chicken', 'Chickens', 'Duck', 'Ducks', 'Cow', 'Cows'],
-        // Legacy support for old filter names
-        'small and fluffy': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs', 'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas', 'Small Pets', 'Fluffy'],
-        'underwater': ['Fish', 'Fishes', 'Aquatic', 'Underwater', 'Marine', 'Goldfish', 'Betta', 'Tropical Fish']
+        'dogs': [
+          'Dog', 'Dogs', 'Puppy', 'Puppies', 'Pup', 'Pups', 'Canine', 'Doggy', 'Doggo',
+          'Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Beagle', 'Poodle', 'Rottweiler',
+          'Yorkshire Terrier', 'Dachshund', 'Siberian Husky', 'Great Dane', 'Boxer', 'Shih Tzu',
+          'Border Collie', 'Australian Shepherd', 'Corgi', 'Chihuahua', 'Pomeranian', 'French Bulldog'
+        ],
+        'cats': [
+          'Cat', 'Cats', 'Kitten', 'Kittens', 'Kitty', 'Kitties', 'Feline', 'Meow', 'Purr',
+          'Persian', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Siamese', 'Bengal', 'Sphynx',
+          'Scottish Fold', 'American Shorthair', 'Russian Blue', 'Abyssinian', 'Turkish Angora'
+        ],
+        'birds': [
+          'Bird', 'Birds', 'Parrot', 'Parrots', 'Cockatiel', 'Cockatiels', 'Canary', 'Canaries',
+          'Finch', 'Finches', 'Budgie', 'Budgies', 'Lovebird', 'Lovebirds', 'Macaw', 'Macaws',
+          'Cockatoo', 'Cockatoos', 'African Grey', 'Conure', 'Conures', 'Quaker Parrot', 'Zebra Finch',
+          'Chicken', 'Chickens', 'Rooster', 'Duck', 'Ducks', 'Goose', 'Geese', 'Pigeon', 'Pigeons'
+        ],
+        'small and fluffy': [
+          'Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Bunny', 'Bunnies', 'Guinea Pig', 'Guinea Pigs',
+          'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas',
+          'Ferret', 'Ferrets', 'Hedgehog', 'Hedgehogs', 'Sugar Glider', 'Sugar Gliders',
+          'Small Pets', 'Fluffy', 'Tiny', 'Small Animal', 'Rodent', 'Rodents'
+        ],
+        'underwater': [
+          'Fish', 'Fishes', 'Goldfish', 'Betta', 'Bettas', 'Guppy', 'Guppies', 'Angelfish',
+          'Tetra', 'Tetras', 'Cichlid', 'Cichlids', 'Discus', 'Oscar', 'Oscars', 'Koi',
+          'Aquarium', 'Aquatic', 'Underwater', 'Marine', 'Tropical Fish', 'Saltwater', 'Freshwater',
+          'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Sea Turtle', 'Terrapin', 'Terrapins',
+          'Frog', 'Frogs', 'Toad', 'Toads', 'Axolotl', 'Axolotls', 'Newt', 'Newts'
+        ]
       };
 
       const filterLower = tagFilter.toLowerCase();
