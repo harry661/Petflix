@@ -191,12 +191,12 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
+      {/* Hero Section - Banner Carousel (Full Width, Behind Navbar and Filter Buttons) */}
       {!isSearchOpen && (
         <div style={{
           position: 'relative',
           width: '100vw',
-          height: '500px',
+          height: '600px', // Increased height to include filter buttons area
           overflow: 'hidden',
           marginLeft: 'calc(-50vw + 50%)',
           marginTop: '-70px', // Negative margin to pull banner up behind navbar
@@ -219,14 +219,14 @@ export default function HomePage() {
                   backgroundPosition: 'center'
                 }}
               >
-                {/* Dark overlay for text readability */}
+                {/* Dark overlay for text readability - fades at bottom for filter buttons */}
                 <div style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%)'
+                  background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.6) 100%)'
                 }} />
                 
                 {/* Title and CTA Button */}
@@ -327,13 +327,16 @@ export default function HomePage() {
           padding: '20px',
           position: 'relative'
         }}>
-        {/* Filter Buttons */}
+        {/* Filter Buttons - Positioned over banner */}
         {!isSearchOpen && (
           <div style={{
             marginBottom: '30px',
+            marginTop: '-100px', // Pull up to overlap with banner
             display: 'flex',
             gap: '8px',
-            width: '100%'
+            width: '100%',
+            position: 'relative',
+            zIndex: 2 // Above banner
           }}>
             {filters.map((filter) => {
               const imageUrl = filterImages[filter];
