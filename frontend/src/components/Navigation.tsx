@@ -12,6 +12,7 @@ export default function Navigation() {
   const { isAuthenticated, user, logout, loading } = useAuth();
   const { isSearchOpen, searchQuery, openSearch, closeSearch, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +56,16 @@ export default function Navigation() {
   useEffect(() => {
     searchQueryRef.current = searchQuery;
   }, [searchQuery]);
+
+  // Track scroll position for navbar fade effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close search when clicking outside (only if search query is empty)
   useEffect(() => {
@@ -207,14 +218,20 @@ export default function Navigation() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Calculate navbar opacity based on scroll position
+  // Transparent at top (scrollY < 100), fully opaque when scrolled (scrollY > 300)
+  const navbarOpacity = Math.min(1, Math.max(0, (scrollY - 100) / 200));
+  const navbarBackground = `rgba(0, 0, 0, ${0.3 + navbarOpacity * 0.5})`; // 0.3 to 0.8 opacity
+
   return (
     <nav style={{
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      backgroundColor: navbarBackground,
       padding: '15px 40px',
       position: 'sticky',
       top: 0,
       zIndex: 1000,
-      backdropFilter: 'blur(10px)'
+      backdropFilter: scrollY > 100 ? 'blur(10px)' : 'none',
+      transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease'
     }}>
       <div style={{
         maxWidth: '100%',

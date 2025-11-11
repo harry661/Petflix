@@ -184,21 +184,18 @@ export default function HomePage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
-      padding: '20px'
+      backgroundColor: '#F0F0DC'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Hero Section - Banner Carousel */}
-        {!isSearchOpen && featuredVideos.length > 0 && (
-          <div style={{
-            marginBottom: '40px',
-            position: 'relative',
-            width: '100%',
-            height: '400px',
-            borderRadius: '12px',
-            overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-          }}>
+      {/* Hero Section - Banner Carousel (Full Width) */}
+      {!isSearchOpen && featuredVideos.length > 0 && (
+        <div style={{
+          position: 'relative',
+          width: '100vw',
+          height: '500px',
+          overflow: 'hidden',
+          marginLeft: 'calc(-50vw + 50%)',
+          marginBottom: '40px'
+        }}>
             {featuredVideos.map((video, index) => {
               const thumbnail = getBannerThumbnail(video);
               return (
@@ -293,8 +290,9 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-        )}
-        
+      )}
+      
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
         {/* Filter Buttons */}
         {!isSearchOpen && (
           <div style={{
