@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
 import { Search, Bell, ChevronDown, X } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
+import PetflixLogo from '../assets/PETFLIX.svg';
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -167,7 +168,7 @@ export default function Navigation() {
         }}>
           <Link to="/" style={logoStyle}>
             <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-            <span>Petflix</span>
+            <img src={PetflixLogo} alt="Petflix" style={{ height: '28px', width: 'auto' }} />
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
@@ -194,7 +195,7 @@ export default function Navigation() {
         }}>
           <Link to="/" style={logoStyle}>
             <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-            <span>Petflix</span>
+            <img src={PetflixLogo} alt="Petflix" style={{ height: '28px', width: 'auto' }} />
           </Link>
           <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
             Sign In
@@ -225,7 +226,7 @@ export default function Navigation() {
         {/* Logo */}
         <Link to="/home" style={{ ...logoStyle, marginRight: '20px' }}>
           <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-          <span>Petflix</span>
+          <img src={PetflixLogo} alt="Petflix" style={{ height: '28px', width: 'auto' }} />
         </Link>
 
         {/* Navigation Links */}
