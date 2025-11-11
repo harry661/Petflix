@@ -11,23 +11,29 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🏠 HomePage useEffect - authLoading:', authLoading, 'isAuthenticated:', isAuthenticated, 'user:', user);
+    
     // Wait for auth check to complete
     if (authLoading) {
+      console.log('⏳ Still loading auth...');
       return;
     }
     
     // If not authenticated, redirect to landing page
     if (!isAuthenticated) {
-      console.log('Not authenticated, redirecting to landing page');
-      navigate('/');
+      console.log('❌ Not authenticated, redirecting to landing page');
+      navigate('/', { replace: true });
       return;
     }
     
     // Load videos only if authenticated
     if (isAuthenticated && user) {
+      console.log('✅ Authenticated, loading videos for user:', user.username);
       loadTrendingVideos();
+    } else if (isAuthenticated && !user) {
+      console.log('⚠️ Authenticated but no user data');
     }
-  }, [isAuthenticated, authLoading, user]);
+  }, [isAuthenticated, authLoading, user, navigate]);
 
   const loadTrendingVideos = async () => {
     try {
@@ -64,9 +70,32 @@ export default function HomePage() {
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* User Account Details Section */}
+        {user && (
+          <div style={{
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '12px',
+            marginBottom: '30px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <h2 style={{ color: '#36454F', marginTop: 0, marginBottom: '15px' }}>Your Account</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+              <div>
+                <p style={{ color: '#666', fontSize: '14px', margin: '5px 0' }}><strong>Username:</strong> {user.username}</p>
+                <p style={{ color: '#666', fontSize: '14px', margin: '5px 0' }}><strong>Email:</strong> {user.email}</p>
+                <p style={{ color: '#666', fontSize: '14px', margin: '5px 0' }}><strong>User ID:</strong> {user.id}</p>
+                {user.bio && (
+                  <p style={{ color: '#666', fontSize: '14px', margin: '5px 0' }}><strong>Bio:</strong> {user.bio}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div style={{ marginBottom: '40px', textAlign: 'center' }}>
           <h1 style={{ color: '#36454F', fontSize: '36px', marginBottom: '10px' }}>
-            Welcome back, {user?.username}! 🐾
+            Welcome back, {user?.username || 'User'}! 🐾
           </h1>
           <p style={{ color: '#666', fontSize: '18px' }}>
             Discover amazing pet videos from the community

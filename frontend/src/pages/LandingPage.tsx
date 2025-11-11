@@ -76,11 +76,20 @@ export default function LandingPage() {
           return;
         }
 
+        console.log('✅ Login successful, token received:', data.token.substring(0, 20) + '...');
+        console.log('👤 User data:', data.user);
         localStorage.setItem('auth_token', data.token);
+        console.log('💾 Token stored in localStorage');
+        
         // Dispatch event to notify auth state change
         window.dispatchEvent(new Event('auth-changed'));
-        // Navigate immediately - HomePage will wait for auth check
-        navigate('/home', { replace: true });
+        console.log('📢 Auth-changed event dispatched');
+        
+        // Give auth hook a moment to update, then navigate
+        setTimeout(() => {
+          console.log('🚀 Navigating to /home');
+          navigate('/home', { replace: true });
+        }, 200);
       } catch (err: any) {
         console.error('Login error:', err);
         if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.name === 'TypeError') {
