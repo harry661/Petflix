@@ -86,10 +86,11 @@ export default function Navigation() {
           <Link to="/" style={{
             fontSize: '28px',
             fontWeight: 'bold',
-            color: '#ADD8E6',
-            textDecoration: 'none'
+            color: '#3B82F6',
+            textDecoration: 'none',
+            letterSpacing: '0.5px'
           }}>
-            🐾 Petflix
+            Petflix
           </Link>
           <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
             Sign In
