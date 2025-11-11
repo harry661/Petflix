@@ -552,6 +552,26 @@ export const getRecentVideos = async (
       return;
     }
 
+    // Get tags for all videos in one query
+    const videoIds = (videos || []).map((v: any) => v.id);
+    let videoTagsMap: { [key: string]: string[] } = {};
+    
+    if (videoIds.length > 0) {
+      const { data: allTags } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('video_id, tag_name')
+        .in('video_id', videoIds);
+      
+      if (allTags) {
+        allTags.forEach((tagRow: any) => {
+          if (!videoTagsMap[tagRow.video_id]) {
+            videoTagsMap[tagRow.video_id] = [];
+          }
+          videoTagsMap[tagRow.video_id].push(tagRow.tag_name);
+        });
+      }
+    }
+
     const videosFormatted = (videos || []).map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
       // Generate thumbnail URL directly from YouTube video ID
@@ -569,6 +589,7 @@ export const getRecentVideos = async (
         userId: video.user_id,
         createdAt: video.created_at,
         updatedAt: video.updated_at,
+        tags: videoTagsMap[video.id] || [],
         user: userData ? {
           id: userData.id,
           username: userData.username,
