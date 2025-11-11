@@ -49,7 +49,7 @@ export default function Navigation() {
     };
   }, [showProfileMenu]);
 
-  // Close search when clicking outside
+  // Close search when clicking outside (only if search query is empty)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -57,7 +57,10 @@ export default function Navigation() {
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
-        closeSearch();
+        // Only close if search query is empty - if user has typed something, keep it open
+        if (!searchQuery || searchQuery.trim() === '') {
+          closeSearch();
+        }
       }
     };
 
@@ -71,7 +74,7 @@ export default function Navigation() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isSearchOpen, closeSearch]);
+  }, [isSearchOpen, closeSearch, searchQuery]); // Added searchQuery to deps
 
   // Auto-search with debounce when search is open and query changes
   useEffect(() => {
