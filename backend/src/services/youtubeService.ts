@@ -124,7 +124,20 @@ export const getYouTubeVideoDetails = async (videoId: string): Promise<YouTubeVi
     };
   } catch (error: any) {
     console.error('YouTube API error:', error.response?.data || error.message);
-    throw new Error('Failed to get video details');
+    
+    // Provide more specific error messages
+    if (error.response?.data?.error) {
+      const apiError = error.response.data.error;
+      if (apiError.code === 403 && apiError.errors?.[0]?.reason === 'quotaExceeded') {
+        throw new Error('YouTube API quota exceeded. Please try again later.');
+      }
+      if (apiError.code === 404 || (apiError.errors?.[0]?.reason === 'videoNotFound')) {
+        throw new Error('Video not found on YouTube');
+      }
+      throw new Error(apiError.message || 'YouTube API error');
+    }
+    
+    throw new Error(error.message || 'Failed to get video details');
   }
 };
 

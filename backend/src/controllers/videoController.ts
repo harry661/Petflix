@@ -122,8 +122,11 @@ export const shareVideo = async (
     let youtubeData;
     try {
       youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid YouTube video ID or video not found' });
+    } catch (error: any) {
+      // Pass through the specific error message from YouTube API
+      const errorMessage = error.message || 'Invalid YouTube video ID or video not found';
+      console.error('YouTube API error when sharing video:', errorMessage);
+      res.status(400).json({ error: errorMessage });
       return;
     }
 
