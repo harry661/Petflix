@@ -472,7 +472,10 @@ export default function Navigation() {
 
             {/* Dropdown Menu */}
             {showProfileMenu && (
-              <div style={{
+              <div 
+                onMouseEnter={() => setShowProfileMenu(true)}
+                onMouseLeave={() => setShowProfileMenu(false)}
+                style={{
                 position: 'absolute',
                 top: '100%',
                 right: 0,
