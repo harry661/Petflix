@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, user: authUser } = useAuth();
+  const { isAuthenticated, user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -18,7 +18,7 @@ export default function AccountSettingsPage() {
 
   useEffect(() => {
     // Wait for auth to finish loading
-    if (isAuthenticated === undefined) {
+    if (authLoading) {
       return;
     }
     
@@ -27,7 +27,7 @@ export default function AccountSettingsPage() {
       return;
     }
     loadUser();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   const loadUser = async () => {
     const token = localStorage.getItem('auth_token');
