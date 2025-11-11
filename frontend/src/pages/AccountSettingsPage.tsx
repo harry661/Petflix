@@ -17,17 +17,22 @@ export default function AccountSettingsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (isAuthenticated === undefined) {
+      return;
+    }
+    
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/', { replace: true });
       return;
     }
     loadUser();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate]);
 
   const loadUser = async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
-      navigate('/login');
+      navigate('/', { replace: true });
       return;
     }
     
@@ -62,7 +67,7 @@ export default function AccountSettingsPage() {
           // Token invalid or expired
           localStorage.removeItem('auth_token');
           window.dispatchEvent(new Event('auth-changed'));
-          navigate('/login');
+          navigate('/', { replace: true });
           return;
         } else if (response.status === 404) {
           // User not found - token might be valid but user deleted
@@ -137,7 +142,7 @@ export default function AccountSettingsPage() {
           {error || 'Unable to load your account. Please try logging in again.'}
         </p>
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/', { replace: true })}
           style={{
             padding: '10px 20px',
             backgroundColor: '#ADD8E6',
