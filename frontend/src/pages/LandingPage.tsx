@@ -340,11 +340,23 @@ export default function LandingPage() {
               style={{
                 width: '100%',
                 padding: '16px',
-                border: '1px solid #ccc',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: '4px',
                 fontSize: '16px',
                 boxSizing: 'border-box',
-                backgroundColor: '#fff'
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#fff',
+                outline: 'none'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#ADD8E6';
+                e.target.style.borderWidth = '1px';
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                e.target.style.borderWidth = '1px';
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
               }}
             />
           </div>
@@ -360,11 +372,23 @@ export default function LandingPage() {
               style={{
                 width: '100%',
                 padding: '16px',
-                border: '1px solid #ccc',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: '4px',
                 fontSize: '16px',
                 boxSizing: 'border-box',
-                backgroundColor: '#fff'
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#fff',
+                outline: 'none'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#ADD8E6';
+                e.target.style.borderWidth = '1px';
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                e.target.style.borderWidth = '1px';
+                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
               }}
             />
           </div>
