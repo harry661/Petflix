@@ -231,17 +231,18 @@ export default function LandingPage() {
         justifyContent: 'center'
       }}>
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
           padding: '48px',
           borderRadius: '8px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
           maxWidth: '450px',
-          width: '100%'
+          width: '100%',
+          backdropFilter: 'blur(10px)'
         }}>
           {/* Title */}
           <h1 style={{
             fontSize: '32px',
-            color: '#36454F',
+            color: '#fff',
             marginTop: 0,
             marginBottom: '32px',
             fontWeight: 'bold'
@@ -251,12 +252,13 @@ export default function LandingPage() {
 
         {error && (
           <div style={{
-            backgroundColor: '#ffebee',
-            color: '#c62828',
+            backgroundColor: 'rgba(198, 40, 40, 0.2)',
+            color: '#ff6b6b',
             padding: '12px',
             borderRadius: '6px',
             marginBottom: '20px',
-            fontSize: '14px'
+            fontSize: '14px',
+            border: '1px solid rgba(198, 40, 40, 0.4)'
           }}>
             {error}
           </div>
@@ -276,11 +278,21 @@ export default function LandingPage() {
                 style={{
                   width: '100%',
                   padding: '16px',
-                  border: '1px solid #ccc',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '4px',
                   fontSize: '16px',
                   boxSizing: 'border-box',
-                  backgroundColor: '#fff'
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ADD8E6';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               />
             </div>
@@ -336,11 +348,21 @@ export default function LandingPage() {
                 style={{
                   width: '100%',
                   padding: '16px',
-                  border: '1px solid #ccc',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '4px',
                   fontSize: '16px',
                   boxSizing: 'border-box',
-                  backgroundColor: '#fff'
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ADD8E6';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               />
             </div>
@@ -360,7 +382,18 @@ export default function LandingPage() {
               fontWeight: 'bold',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
-              marginBottom: '16px'
+              marginBottom: '16px',
+              transition: 'opacity 0.2s, transform 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.opacity = '0.9';
+                e.currentTarget.style.transform = 'scale(1.01)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = loading ? 0.6 : 1;
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             {loading ? (isLogin ? 'Signing in...' : 'Creating Account...') : (isLogin ? 'Sign In' : 'Sign Up')}
@@ -378,14 +411,15 @@ export default function LandingPage() {
                 <label style={{
                   display: 'flex',
                   alignItems: 'center',
-                  color: '#666',
-                  cursor: 'pointer'
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  cursor: 'pointer',
+                  fontSize: '14px'
                 }}>
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    style={{ marginRight: '8px' }}
+                    style={{ marginRight: '8px', cursor: 'pointer' }}
                   />
                   Remember me
                 </label>
@@ -398,8 +432,11 @@ export default function LandingPage() {
                   }}
                   style={{
                     color: '#ADD8E6',
-                    textDecoration: 'none'
+                    textDecoration: 'none',
+                    fontSize: '14px'
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                  onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                 >
                   Forgot password?
                 </Link>
