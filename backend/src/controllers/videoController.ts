@@ -400,22 +400,30 @@ export const getVideosByUser = async (
       return;
     }
 
-    // Get YouTube thumbnails for videos
-    const videosWithThumbnails = await Promise.all(
-      (videos || []).map(async (video) => {
-        try {
-          const youtubeData = await getYouTubeVideoDetails(video.youtube_video_id);
-          return {
-            ...video,
-            thumbnail: youtubeData.thumbnail,
-          };
-        } catch (err) {
-          return video;
+    // Format videos with thumbnails (generate directly from video IDs, don't use API)
+    const videosFormatted = (videos || []).map((video: any) => {
+      // Generate thumbnail URL directly from YouTube video ID
+      // This is more reliable than using the API which may hit quota limits
+      let thumbnail: string | null = null;
+      if (video.youtube_video_id) {
+        // Validate video ID format before generating thumbnail URL
+        if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+          thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
-      })
-    );
+      }
+      return {
+        id: video.id,
+        youtubeVideoId: video.youtube_video_id,
+        title: video.title,
+        description: video.description,
+        userId: video.user_id,
+        createdAt: video.created_at,
+        updatedAt: video.updated_at,
+        thumbnail: thumbnail,
+      };
+    });
 
-    res.json({ videos: videosWithThumbnails });
+    res.json({ videos: videosFormatted });
   } catch (error) {
     console.error('Get videos by user error:', error);
     res.status(500).json({ error: 'Internal server error' });
