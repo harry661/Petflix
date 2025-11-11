@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -7,6 +8,7 @@ export default function VideoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [video, setVideo] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
+  const [recommendedVideos, setRecommendedVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newComment, setNewComment] = useState('');
@@ -16,9 +18,25 @@ export default function VideoDetailPage() {
     if (id) {
       loadVideo();
       loadComments();
+      loadRecommendedVideos();
       setIsAuthenticated(!!localStorage.getItem('auth_token'));
     }
   }, [id]);
+
+  const loadRecommendedVideos = async () => {
+    try {
+      // Get recent videos as recommendations (excluding current video)
+      const response = await fetch(`${API_URL}/api/v1/videos/recent?limit=10`);
+      if (response.ok) {
+        const data = await response.json();
+        // Filter out the current video
+        const filtered = (data.videos || []).filter((v: any) => v.id !== id);
+        setRecommendedVideos(filtered.slice(0, 8)); // Show up to 8 recommendations
+      }
+    } catch (err) {
+      // Silently fail - recommendations are optional
+    }
+  };
 
   const loadVideo = async () => {
     try {
@@ -334,6 +352,25 @@ export default function VideoDetailPage() {
               ))}
             </div>
           )}
+        </div>
+        </div>
+
+        {/* Right Column - Recommended Videos */}
+        <div style={{ flex: '0 0 400px', minWidth: 0 }}>
+          <h3 style={{ color: '#ffffff', marginTop: 0, marginBottom: '20px', fontSize: '16px', fontWeight: '500' }}>
+            Recommended
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recommendedVideos.length > 0 ? (
+              recommendedVideos.map((recVideo) => (
+                <VideoCard key={recVideo.id} video={recVideo} />
+              ))
+            ) : (
+              <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>
+                Loading recommendations...
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
