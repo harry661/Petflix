@@ -48,6 +48,41 @@ export default function Navigation() {
     };
   }, [showProfileMenu]);
 
+  // Auto-search with debounce when search is open and query changes
+  useEffect(() => {
+    if (!isSearchOpen || !searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const searchTimer = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(searchQuery)}&limit=20`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          setSearchResults(data.videos || []);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(searchTimer);
+  }, [searchQuery, isSearchOpen, setSearchResults, setIsLoading]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Search is handled automatically by useEffect with debounce
+  };
+
   // Show minimal nav while loading
   if (loading) {
     return (
