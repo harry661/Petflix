@@ -450,6 +450,7 @@ export default function LandingPage() {
             </p>
           )}
         </form>
+        </div>
       </div>
     </div>
   );
