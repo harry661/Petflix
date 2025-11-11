@@ -423,7 +423,12 @@ export default function Navigation() {
           </div>
 
           {/* Profile Picture with Dropdown */}
-          <div ref={profileMenuRef} style={{ position: 'relative' }}>
+          <div 
+            ref={profileMenuRef} 
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setShowProfileMenu(true)}
+            onMouseLeave={() => setShowProfileMenu(false)}
+          >
             <div
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               style={{
