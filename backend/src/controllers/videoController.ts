@@ -9,7 +9,7 @@ import {
   ErrorResponse,
 } from '../types';
 // YouTube URL validation is handled in youtubeService
-import { searchYouTubeVideos, getYouTubeVideoDetails } from '../services/youtubeService';
+import { searchYouTubeVideos, getYouTubeVideoDetails, getYouTubeVideoMetadata } from '../services/youtubeService';
 
 /**
  * Search for videos (YouTube + Petflix shared videos)
@@ -124,15 +124,29 @@ export const shareVideo = async (
       return;
     }
 
-    // Try to get video metadata from YouTube API if available (optional)
-    // If API quota is exceeded or unavailable, we'll use provided title/description or defaults
-    let youtubeData = null;
-    try {
-      youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
-    } catch (error: any) {
-      // Log but don't fail - we can still save the video without metadata
-      console.log('YouTube API not available for metadata (quota exceeded or API key missing). Using provided or default values.');
-      // Continue without YouTube API data - user can provide title/description manually
+    // Try to get video metadata (prefer oEmbed - free, no quota)
+    // Fallback to Data API if available, then use provided/default values
+    let videoTitle = title;
+    let videoDescription = description;
+    let videoThumbnail: string | undefined;
+
+    // First try oEmbed API (free, no quota)
+    const oembedData = await getYouTubeVideoMetadata(youtubeVideoId);
+    if (oembedData) {
+      videoTitle = videoTitle || oembedData.title;
+      videoDescription = videoDescription || oembedData.description;
+      videoThumbnail = oembedData.thumbnail;
+    } else {
+      // Fallback to Data API if available (optional - may hit quota)
+      try {
+        const youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
+        videoTitle = videoTitle || youtubeData.title;
+        videoDescription = videoDescription || youtubeData.description;
+        videoThumbnail = videoThumbnail || youtubeData.thumbnail;
+      } catch (error: any) {
+        // Log but don't fail - we can still save the video without metadata
+        console.log('YouTube Data API not available (quota exceeded or API key missing). Using provided or default values.');
+      }
     }
 
     // Check if video already shared by this user
@@ -149,16 +163,16 @@ export const shareVideo = async (
     }
 
     // Create video record
-    // Use provided title/description, fallback to YouTube API data, or use defaults
-    const videoTitle = title || youtubeData?.title || `YouTube Video ${youtubeVideoId}`;
-    const videoDescription = description || youtubeData?.description || '';
+    // Use metadata from oEmbed/API, provided values, or defaults
+    const finalTitle = videoTitle || `YouTube Video ${youtubeVideoId}`;
+    const finalDescription = videoDescription || '';
 
     const { data: newVideo, error: insertError } = await supabaseAdmin!
       .from('videos')
       .insert({
         youtube_video_id: youtubeVideoId,
-        title: videoTitle,
-        description: videoDescription,
+        title: finalTitle,
+        description: finalDescription,
         user_id: req.user.userId,
       })
       .select('id, youtube_video_id, title, description, user_id, created_at, updated_at')

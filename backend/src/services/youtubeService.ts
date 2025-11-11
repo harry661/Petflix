@@ -90,7 +90,31 @@ export const searchYouTubeVideos = async (
 };
 
 /**
- * Get YouTube video details by ID
+ * Get YouTube video metadata using oEmbed API (free, no quota)
+ * Falls back to Data API if oEmbed fails
+ */
+export const getYouTubeVideoMetadata = async (videoId: string): Promise<{ title: string; description: string; thumbnail?: string } | null> => {
+  try {
+    // Use oEmbed API (free, no quota limits)
+    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+    const response = await axios.get(oembedUrl, { timeout: 5000 });
+    
+    if (response.data) {
+      return {
+        title: response.data.title || `YouTube Video ${videoId}`,
+        description: response.data.author_name ? `By ${response.data.author_name}` : '',
+        thumbnail: response.data.thumbnail_url,
+      };
+    }
+  } catch (error) {
+    console.log('oEmbed API failed, will try Data API if available');
+  }
+  
+  return null;
+};
+
+/**
+ * Get YouTube video details by ID (uses Data API - requires quota)
  */
 export const getYouTubeVideoDetails = async (videoId: string): Promise<YouTubeVideoData> => {
   if (!YOUTUBE_API_KEY) {
