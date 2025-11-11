@@ -79,17 +79,6 @@ export default function HomePage() {
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {!isSearchOpen && (
-          <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-            <h1 style={{ color: '#36454F', fontSize: '36px', marginBottom: '10px' }}>
-              Welcome back, {user?.username || 'User'}!
-            </h1>
-            <p style={{ color: '#666', fontSize: '18px' }}>
-              Discover amazing pet videos from the community
-            </p>
-          </div>
-        )}
-
         {/* Videos Section - Adapts to search or trending */}
         <div>
           <h2 style={{ color: '#36454F', marginBottom: '20px' }}>{displayTitle}</h2>
