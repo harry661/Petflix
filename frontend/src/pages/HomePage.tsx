@@ -300,7 +300,7 @@ export default function HomePage() {
         margin: '0 auto', 
         padding: '20px',
         position: 'relative',
-        zIndex: 1
+        zIndex: 0
       }}>
         {/* Filter Buttons */}
         {!isSearchOpen && (
