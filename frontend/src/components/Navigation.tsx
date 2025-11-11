@@ -217,12 +217,14 @@ export default function Navigation() {
   }
 
   const isActive = (path: string) => location.pathname === path;
+  const isHomePage = location.pathname === '/home' || location.pathname === '/popular';
 
   // Calculate navbar background based on scroll position
-  // Transparent at top (scrollY < 50), fully opaque when scrolled
-  const navbarBackground = scrollY < 50 
+  // Only fade on home page - transparent at top (scrollY < 50), fully opaque when scrolled
+  // On other pages, always opaque
+  const navbarBackground = isHomePage && scrollY < 50 
     ? 'transparent' 
-    : 'rgba(0, 0, 0, 1)'; // Fully opaque black when scrolled
+    : 'rgba(0, 0, 0, 1)'; // Fully opaque black when scrolled or on other pages
 
   return (
     <nav style={{
@@ -231,7 +233,7 @@ export default function Navigation() {
       position: 'sticky',
       top: 0,
       zIndex: 1000,
-      backdropFilter: scrollY > 50 ? 'blur(10px)' : 'none',
+      backdropFilter: (isHomePage && scrollY > 50) || !isHomePage ? 'blur(10px)' : 'none',
       transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease',
       marginBottom: 0
     }}>
