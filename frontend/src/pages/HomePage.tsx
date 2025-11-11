@@ -182,11 +182,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#F0F0DC',
-      paddingTop: 0
-    }}>
+    <>
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && featuredVideos.length > 0 && (
         <div style={{
@@ -194,7 +190,7 @@ export default function HomePage() {
           width: '100vw',
           height: '500px',
           overflow: 'hidden',
-          zIndex: 0,
+          zIndex: 1,
           marginLeft: 'calc(-50vw + 50%)',
           marginTop: 0,
           marginBottom: 0
@@ -296,12 +292,17 @@ export default function HomePage() {
       )}
       
       <div style={{ 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: '20px',
-        position: 'relative',
-        zIndex: 0
+        minHeight: '100vh',
+        backgroundColor: '#F0F0DC',
+        paddingTop: 0
       }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          padding: '20px',
+          position: 'relative',
+          zIndex: 2
+        }}>
         {/* Filter Buttons */}
         {!isSearchOpen && (
           <div style={{

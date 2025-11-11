@@ -30,8 +30,7 @@ function AppContent() {
           <p style={{ color: '#666' }}>Loading...</p>
         </div>
       }>
-        <div style={{ position: 'relative', zIndex: 0 }}>
-          <Routes>
+        <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/popular" element={<HomePage />} />
@@ -44,8 +43,7 @@ function AppContent() {
           {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
           <Route path="/login" element={<LandingPage />} />
           <Route path="/register" element={<LandingPage />} />
-          </Routes>
-        </div>
+        </Routes>
       </Suspense>
     </>
   );
