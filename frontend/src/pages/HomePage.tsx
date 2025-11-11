@@ -298,11 +298,12 @@ export default function HomePage() {
             {/* Carousel indicators */}
             <div style={{
               position: 'absolute',
-              bottom: '120px', // Positioned above the fade area
+              bottom: '200px', // Aligned with button level
               right: '40px',
               display: 'flex',
               gap: '8px',
-              zIndex: 3
+              zIndex: 3,
+              alignItems: 'center'
             }}>
               {bannerItems.map((_, index) => (
                 <button
