@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Eye, EyeOff } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
 import PetflixLogo from '../assets/PETFLIX.svg';
 
@@ -394,9 +395,9 @@ export default function LandingPage() {
           </div>
 
           {!isLogin && (
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '16px', position: 'relative' }}>
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
@@ -404,6 +405,7 @@ export default function LandingPage() {
                 style={{
                   width: '100%',
                   padding: '16px',
+                  paddingRight: '48px',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '4px',
                   fontSize: '16px',
@@ -423,6 +425,29 @@ export default function LandingPage() {
                   e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
                 }}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4px',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  transition: 'color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#ADD8E6'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
           )}
 
