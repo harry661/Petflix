@@ -86,11 +86,15 @@ export default function Navigation() {
           <Link to="/" style={{
             fontSize: '28px',
             fontWeight: 'bold',
-            color: '#3B82F6',
+            color: '#ADD8E6',
             textDecoration: 'none',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}>
-            Petflix
+            <span>🐾</span>
+            <span>Petflix</span>
           </Link>
           <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
             Sign In
@@ -122,12 +126,16 @@ export default function Navigation() {
         <Link to="/home" style={{
           fontSize: '28px',
           fontWeight: 'bold',
-          color: '#3B82F6',
+          color: '#ADD8E6',
           textDecoration: 'none',
           marginRight: '20px',
-          letterSpacing: '0.5px'
+          letterSpacing: '0.5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
         }}>
-          Petflix
+          <span>🐾</span>
+          <span>Petflix</span>
         </Link>
 
         {/* Navigation Links */}
