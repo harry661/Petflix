@@ -301,8 +301,7 @@ export default function HomePage() {
         margin: '0 auto', 
         padding: '20px',
         position: 'relative',
-        zIndex: 1,
-        marginTop: !isSearchOpen && featuredVideos.length > 0 ? '500px' : '0'
+        zIndex: 1
       }}>
         {/* Filter Buttons */}
         {!isSearchOpen && (
