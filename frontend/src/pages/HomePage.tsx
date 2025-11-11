@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
+import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -112,39 +113,11 @@ export default function HomePage() {
           {!displayLoading && displayVideos.length > 0 && (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
               gap: '20px'
             }}>
               {displayVideos.map((video) => (
-                <div
-                  key={video.id}
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => navigate(`/video/${video.id}`)}
-                >
-                  {video.thumbnail && (
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      style={{ width: '100%', height: '200px', objectFit: 'cover' }}
-                    />
-                  )}
-                  <div style={{ padding: '15px' }}>
-                    <h3 style={{ color: '#36454F', marginTop: 0, fontSize: '16px' }}>
-                      {video.title}
-                    </h3>
-                    {video.description && (
-                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>
-                        {video.description.substring(0, 100)}...
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <VideoCard key={video.id} video={video} />
               ))}
             </div>
           )}
