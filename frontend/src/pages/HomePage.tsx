@@ -309,7 +309,7 @@ export default function HomePage() {
                 onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
                 style={{
                   flex: 1,
-                  padding: '16px 20px',
+                  padding: '24px 20px',
                   borderRadius: '8px',
                   border: '1px solid',
                   borderColor: selectedFilter === filter ? '#ADD8E6' : '#36454F',
@@ -320,7 +320,8 @@ export default function HomePage() {
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   boxShadow: selectedFilter === filter ? '0 2px 8px rgba(173, 216, 230, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
-                  minWidth: 0
+                  minWidth: 0,
+                  minHeight: '64px'
                 }}
                 onMouseEnter={(e) => {
                   if (selectedFilter !== filter) {
