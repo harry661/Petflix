@@ -76,22 +76,25 @@ export function useAuth() {
     // Listen for storage changes (cross-tab)
     window.addEventListener('storage', handleAuthChange);
     
-    // Poll for changes (fallback)
+    // Poll for token changes (only check if token was added/removed, not user state)
+    let lastToken = localStorage.getItem('auth_token');
     const interval = setInterval(() => {
-      const token = localStorage.getItem('auth_token');
-      const currentAuth = !!token && !!user;
-      if (!!token !== currentAuth) {
-        console.log('🔄 Token state mismatch detected, re-checking...');
+      const currentToken = localStorage.getItem('auth_token');
+      // Only re-check if token was added or removed
+      if (!!currentToken !== !!lastToken) {
+        console.log('🔄 Token presence changed, re-checking...');
+        lastToken = currentToken;
         checkAuth();
       }
-    }, 500);
+    }, 2000); // Reduced frequency to 2 seconds
 
     return () => {
       window.removeEventListener('auth-changed', handleAuthChange);
       window.removeEventListener('storage', handleAuthChange);
       clearInterval(interval);
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run once on mount
 
   const logout = () => {
     localStorage.removeItem('auth_token');
