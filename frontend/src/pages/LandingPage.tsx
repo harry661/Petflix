@@ -488,7 +488,7 @@ export default function LandingPage() {
           {!isLogin && (
             <div style={{
               textAlign: 'center',
-              color: '#666',
+              color: 'rgba(255, 255, 255, 0.8)',
               fontSize: '14px',
               marginTop: '16px'
             }}>
@@ -509,6 +509,8 @@ export default function LandingPage() {
                   fontSize: '14px',
                   padding: 0
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Sign in
               </button>
@@ -519,7 +521,7 @@ export default function LandingPage() {
             <p style={{
               textAlign: 'center',
               fontSize: '12px',
-              color: '#999',
+              color: 'rgba(255, 255, 255, 0.6)',
               marginTop: '24px'
             }}>
               By signing up, you agree to our Terms of Service and Privacy Policy
