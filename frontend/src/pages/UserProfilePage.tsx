@@ -42,41 +42,42 @@ export default function UserProfilePage() {
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   
-  // Available tags for pet videos - organized by category
+  // Available tags for pet videos - organized by category, sorted alphabetically within each category
   const availableTags = [
-    // Dogs
-    'Dog', 'Dogs', 'Puppy', 'Puppies', 'Pup', 'Pups', 'Canine', 'Doggy', 'Doggo',
-    'Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Beagle', 'Poodle', 'Rottweiler',
-    'Yorkshire Terrier', 'Dachshund', 'Siberian Husky', 'Great Dane', 'Boxer', 'Shih Tzu',
-    'Border Collie', 'Australian Shepherd', 'Corgi', 'Chihuahua', 'Pomeranian', 'French Bulldog',
+    // Dogs - sorted alphabetically
+    'Beagle', 'Border Collie', 'Boxer', 'Bulldog', 'Canine', 'Chihuahua', 'Corgi', 'Dachshund',
+    'Dog', 'Dogs', 'Doggo', 'Doggy', 'French Bulldog', 'German Shepherd', 'Golden Retriever',
+    'Great Dane', 'Labrador', 'Pomeranian', 'Poodle', 'Pup', 'Puppies', 'Puppy', 'Pups',
+    'Rottweiler', 'Shih Tzu', 'Siberian Husky', 'Yorkshire Terrier',
     
-    // Cats
-    'Cat', 'Cats', 'Kitten', 'Kittens', 'Kitty', 'Kitties', 'Feline', 'Meow', 'Purr',
-    'Persian', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Siamese', 'Bengal', 'Sphynx',
-    'Scottish Fold', 'American Shorthair', 'Russian Blue', 'Abyssinian', 'Turkish Angora',
+    // Cats - sorted alphabetically
+    'Abyssinian', 'American Shorthair', 'Bengal', 'British Shorthair', 'Cat', 'Cats',
+    'Feline', 'Kitten', 'Kittens', 'Kitty', 'Kitties', 'Maine Coon', 'Meow', 'Persian',
+    'Purr', 'Ragdoll', 'Russian Blue', 'Scottish Fold', 'Siamese', 'Sphynx', 'Turkish Angora',
     
-    // Birds
-    'Bird', 'Birds', 'Parrot', 'Parrots', 'Cockatiel', 'Cockatiels', 'Canary', 'Canaries',
-    'Finch', 'Finches', 'Budgie', 'Budgies', 'Lovebird', 'Lovebirds', 'Macaw', 'Macaws',
-    'Cockatoo', 'Cockatoos', 'African Grey', 'Conure', 'Conures', 'Quaker Parrot', 'Zebra Finch',
-    'Chicken', 'Chickens', 'Rooster', 'Duck', 'Ducks', 'Goose', 'Geese', 'Pigeon', 'Pigeons',
+    // Birds - sorted alphabetically
+    'African Grey', 'Bird', 'Birds', 'Budgie', 'Budgies', 'Canary', 'Canaries', 'Chicken',
+    'Chickens', 'Cockatiel', 'Cockatiels', 'Cockatoo', 'Cockatoos', 'Conure', 'Conures',
+    'Duck', 'Ducks', 'Finch', 'Finches', 'Goose', 'Geese', 'Lovebird', 'Lovebirds',
+    'Macaw', 'Macaws', 'Parrot', 'Parrots', 'Pigeon', 'Pigeons', 'Quaker Parrot', 'Rooster',
+    'Zebra Finch',
     
-    // Small and Fluffy
-    'Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Bunny', 'Bunnies', 'Guinea Pig', 'Guinea Pigs',
-    'Mouse', 'Mice', 'Rat', 'Rats', 'Gerbil', 'Gerbils', 'Chinchilla', 'Chinchillas',
-    'Ferret', 'Ferrets', 'Hedgehog', 'Hedgehogs', 'Sugar Glider', 'Sugar Gliders',
-    'Small Pets', 'Fluffy', 'Tiny', 'Small Animal', 'Rodent', 'Rodents',
+    // Small and Fluffy - sorted alphabetically
+    'Bunny', 'Bunnies', 'Chinchilla', 'Chinchillas', 'Ferret', 'Ferrets', 'Fluffy',
+    'Gerbil', 'Gerbils', 'Guinea Pig', 'Guinea Pigs', 'Hamster', 'Hamsters', 'Hedgehog',
+    'Hedgehogs', 'Mouse', 'Mice', 'Rabbit', 'Rabbits', 'Rat', 'Rats', 'Rodent', 'Rodents',
+    'Small Animal', 'Small Pets', 'Sugar Glider', 'Sugar Gliders', 'Tiny',
     
-    // Underwater/Aquatic
-    'Fish', 'Fishes', 'Goldfish', 'Betta', 'Bettas', 'Guppy', 'Guppies', 'Angelfish',
-    'Tetra', 'Tetras', 'Cichlid', 'Cichlids', 'Discus', 'Oscar', 'Oscars', 'Koi',
-    'Aquarium', 'Aquatic', 'Underwater', 'Marine', 'Tropical Fish', 'Saltwater', 'Freshwater',
-    'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Sea Turtle', 'Terrapin', 'Terrapins',
-    'Frog', 'Frogs', 'Toad', 'Toads', 'Axolotl', 'Axolotls', 'Newt', 'Newts',
+    // Underwater/Aquatic - sorted alphabetically
+    'Angelfish', 'Aquarium', 'Aquatic', 'Axolotl', 'Axolotls', 'Betta', 'Bettas', 'Cichlid',
+    'Cichlids', 'Discus', 'Fish', 'Fishes', 'Freshwater', 'Frog', 'Frogs', 'Goldfish',
+    'Guppy', 'Guppies', 'Koi', 'Marine', 'Newt', 'Newts', 'Oscar', 'Oscars', 'Saltwater',
+    'Sea Turtle', 'Terrapin', 'Terrapins', 'Tetra', 'Tetras', 'Toad', 'Toads', 'Tortoise',
+    'Tortoises', 'Tropical Fish', 'Turtle', 'Turtles', 'Underwater',
     
-    // General/Behavioral
-    'Cute', 'Funny', 'Adorable', 'Playful', 'Training', 'Tricks', 'Rescue', 'Adoption',
-    'Pet Care', 'Pet Health', 'Veterinary', 'Vet', 'Grooming', 'Pet Food', 'Pet Toys'
+    // General/Behavioral - sorted alphabetically
+    'Adorable', 'Adoption', 'Cute', 'Funny', 'Grooming', 'Pet Care', 'Pet Food', 'Pet Health',
+    'Pet Toys', 'Playful', 'Rescue', 'Training', 'Tricks', 'Vet', 'Veterinary'
   ];
 
   useEffect(() => {
@@ -629,16 +630,39 @@ export default function UserProfilePage() {
                         const value = e.target.value;
                         setTagInput(value);
                         if (value.trim()) {
-                          // Filter suggestions based on input - match from start of tag or start of words
                           const valueLower = value.toLowerCase().trim();
-                          const filtered = availableTags.filter(tag => {
-                            if (tags.includes(tag)) return false; // Exclude already added tags
-                            const tagLower = tag.toLowerCase();
-                            // Match if tag starts with input, or if any word in tag starts with input
-                            return tagLower.startsWith(valueLower) || 
-                                   tagLower.split(/\s+/).some(word => word.startsWith(valueLower));
-                          });
-                          setTagSuggestions(filtered.slice(0, 10));
+                          
+                          // Filter and score tags for relevance
+                          const scoredTags = availableTags
+                            .filter(tag => !tags.includes(tag)) // Exclude already added tags
+                            .map(tag => {
+                              const tagLower = tag.toLowerCase();
+                              let score = 0;
+                              
+                              // Exact prefix match (highest priority)
+                              if (tagLower.startsWith(valueLower)) {
+                                score = 1000 - tagLower.length; // Shorter tags first for exact matches
+                              }
+                              // Word prefix match (medium priority)
+                              else {
+                                const words = tagLower.split(/\s+/);
+                                const matchingWordIndex = words.findIndex(word => word.startsWith(valueLower));
+                                if (matchingWordIndex !== -1) {
+                                  // Prioritize matches in first word, then by position
+                                  score = 500 - (matchingWordIndex * 10) - tagLower.length;
+                                } else {
+                                  return null; // No match
+                                }
+                              }
+                              
+                              return { tag, score };
+                            })
+                            .filter(item => item !== null) // Remove non-matches
+                            .sort((a, b) => b!.score - a!.score) // Sort by score descending
+                            .map(item => item!.tag)
+                            .slice(0, 10); // Limit to 10 results
+                          
+                          setTagSuggestions(scoredTags);
                           setShowTagSuggestions(true);
                         } else {
                           setTagSuggestions([]);
