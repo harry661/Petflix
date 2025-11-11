@@ -339,7 +339,7 @@ export default function HomePage() {
           width: '90vw',
           maxWidth: '90vw',
           margin: '0 auto', 
-          padding: '20px',
+          padding: '0',
           position: 'relative'
         }}>
         {/* Filter Buttons - Positioned over banner fade */}
