@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useSearch } from '../context/SearchContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
+  const { isSearchOpen, searchQuery, searchResults, isLoading: searchLoading, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,14 +28,14 @@ export default function HomePage() {
       return;
     }
     
-    // Load videos only if authenticated
-    if (isAuthenticated && user) {
+    // Load videos only if authenticated and not searching
+    if (isAuthenticated && user && !isSearchOpen) {
       console.log('✅ Authenticated, loading videos for user:', user.username);
       loadTrendingVideos();
     } else if (isAuthenticated && !user) {
       console.log('⚠️ Authenticated but no user data');
     }
-  }, [isAuthenticated, authLoading, user, navigate]);
+  }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
 
   const loadTrendingVideos = async () => {
     try {
@@ -50,7 +52,14 @@ export default function HomePage() {
     }
   };
 
-  if (authLoading || loading) {
+  // Determine which videos to show
+  const displayVideos = isSearchOpen && searchQuery ? searchResults : trendingVideos;
+  const displayLoading = isSearchOpen ? searchLoading : loading;
+  const displayTitle = isSearchOpen && searchQuery 
+    ? `Search results for "${searchQuery}"` 
+    : 'Trending Pet Videos';
+
+  if (authLoading || (displayLoading && !isSearchOpen)) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -70,34 +79,54 @@ export default function HomePage() {
       padding: '20px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-          <h1 style={{ color: '#36454F', fontSize: '36px', marginBottom: '10px' }}>
-            Welcome back, {user?.username || 'User'}!
-          </h1>
-          <p style={{ color: '#666', fontSize: '18px' }}>
-            Discover amazing pet videos from the community
-          </p>
-        </div>
+        {!isSearchOpen && (
+          <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+            <h1 style={{ color: '#36454F', fontSize: '36px', marginBottom: '10px' }}>
+              Welcome back, {user?.username || 'User'}!
+            </h1>
+            <p style={{ color: '#666', fontSize: '18px' }}>
+              Discover amazing pet videos from the community
+            </p>
+          </div>
+        )}
 
-        {/* Trending Videos */}
+        {/* Videos Section - Adapts to search or trending */}
         <div>
-          <h2 style={{ color: '#36454F', marginBottom: '20px' }}>Trending Pet Videos</h2>
-          {trendingVideos.length === 0 ? (
+          <h2 style={{ color: '#36454F', marginBottom: '20px' }}>{displayTitle}</h2>
+          
+          {displayLoading && isSearchOpen && (
             <div style={{
               textAlign: 'center',
               padding: '60px',
               backgroundColor: 'white',
               borderRadius: '8px'
             }}>
-              <p style={{ color: '#666' }}>No videos found. Try searching for pet videos!</p>
+              <p style={{ color: '#666' }}>Searching...</p>
             </div>
-          ) : (
+          )}
+
+          {!displayLoading && displayVideos.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '60px',
+              backgroundColor: 'white',
+              borderRadius: '8px'
+            }}>
+              <p style={{ color: '#666' }}>
+                {isSearchOpen && searchQuery 
+                  ? `No videos found for "${searchQuery}". Try different keywords.`
+                  : 'No videos found. Try searching for pet videos!'}
+              </p>
+            </div>
+          )}
+
+          {!displayLoading && displayVideos.length > 0 && (
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
               gap: '20px'
             }}>
-              {trendingVideos.map((video) => (
+              {displayVideos.map((video) => (
                 <div
                   key={video.id}
                   style={{

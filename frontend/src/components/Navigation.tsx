@@ -1,15 +1,18 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Search, Bell, ChevronDown } from 'lucide-react';
+import { useSearch } from '../context/SearchContext';
+import { Search, Bell, ChevronDown, X } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
 
 export default function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, user, logout, loading } = useAuth();
+  const { isSearchOpen, searchQuery, openSearch, closeSearch, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const logoStyle: React.CSSProperties = {
     fontSize: '28px',
@@ -177,25 +180,94 @@ export default function Navigation() {
 
         {/* Right Side Icons */}
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          {/* Search Icon */}
-          <Link
-            to="/search"
-            style={{
-              color: '#fff',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <Search size={20} />
-          </Link>
+          {/* Expandable Search */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            position: 'relative'
+          }}>
+            {!isSearchOpen ? (
+              <div
+                onClick={openSearch}
+                style={{
+                  color: '#fff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  transition: 'transform 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <Search size={20} />
+              </div>
+            ) : (
+              <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  minWidth: '300px',
+                  transition: 'all 0.3s ease'
+                }}>
+                  <Search size={18} color="#fff" style={{ marginRight: '8px', flexShrink: 0 }} />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Titles, people, genres"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      flex: 1,
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      color: '#fff',
+                      fontSize: '14px',
+                      outline: 'none',
+                      padding: '4px 0'
+                    }}
+                    onBlur={(e) => {
+                      // Don't close if clicking on search results or input
+                      if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget as Node)) {
+                        // Small delay to allow click events
+                        setTimeout(() => {
+                          if (!searchQuery.trim()) {
+                            closeSearch();
+                          }
+                        }, 200);
+                      }
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSearchResults([]);
+                        searchInputRef.current?.focus();
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              </form>
+            )}
+          </div>
 
           {/* Notification Bell Icon */}
           <div

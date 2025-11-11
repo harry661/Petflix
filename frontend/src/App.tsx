@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { SearchProvider } from './context/SearchContext';
 import Navigation from './components/Navigation';
 import LandingPage from './pages/LandingPage';
 import HomePage from './pages/HomePage';
@@ -37,9 +38,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <SearchProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </SearchProvider>
   );
 }
 
