@@ -568,7 +568,7 @@ export default function UserProfilePage() {
                     display: 'flex',
                     flexWrap: 'wrap',
                     gap: '8px',
-                    alignItems: 'flex-start',
+                    alignItems: tags.length === 0 ? 'center' : 'flex-start', // Center when empty, flex-start when tags present
                     boxSizing: 'border-box'
                   }}
                     onFocus={(e) => {
@@ -663,7 +663,9 @@ export default function UserProfilePage() {
                         backgroundColor: 'transparent',
                         color: '#fff',
                         fontSize: '16px',
-                        padding: '4px'
+                        padding: '0',
+                        lineHeight: '24px',
+                        height: '24px'
                       }}
                     />
                   </div>
