@@ -381,26 +381,26 @@ export default function UserProfilePage() {
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
               )}
-              {isCurrentUser && (
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    onClick={() => setShowShareForm(!showShareForm)}
-                    style={{
-                      padding: '10px 16px',
-                      backgroundColor: '#ADD8E6',
-                      color: '#0F0F0F',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    <Upload size={18} />
-                    {showShareForm ? 'Cancel' : 'Share Video'}
-                  </button>
+                  {isCurrentUser && (
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button
+                        onClick={() => setShowShareForm(true)}
+                        style={{
+                          padding: '10px 16px',
+                          backgroundColor: '#ADD8E6',
+                          color: '#0F0F0F',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <Upload size={18} />
+                        Share Video
+                      </button>
                   <button
                     onClick={() => navigate('/settings')}
                     style={{
@@ -432,15 +432,78 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        {/* Share Video Form */}
+        {/* Share Video Modal Overlay */}
         {isCurrentUser && showShareForm && (
-          <div style={{
-            backgroundColor: 'transparent',
-            borderRadius: '12px',
-            padding: '30px 0',
-            marginBottom: '30px'
-          }}>
-            <h2 style={{ color: '#ffffff', marginTop: 0, marginBottom: '20px' }}>Share a YouTube Video</h2>
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              padding: '20px'
+            }}
+            onClick={(e) => {
+              // Close modal when clicking on the overlay background
+              if (e.target === e.currentTarget) {
+                setShowShareForm(false);
+                setYoutubeUrl('');
+                setTags([]);
+                setTagInput('');
+                setShareError('');
+              }
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: '#1a1a1a',
+                borderRadius: '12px',
+                padding: '40px',
+                maxWidth: '800px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <h2 style={{ color: '#ffffff', margin: 0 }}>Share a YouTube Video</h2>
+                <button
+                  onClick={() => {
+                    setShowShareForm(false);
+                    setYoutubeUrl('');
+                    setTags([]);
+                    setTagInput('');
+                    setShareError('');
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#ffffff',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    padding: '0',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '4px',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  ×
+                </button>
+              </div>
             <form onSubmit={handleShareVideo}>
               <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
                 {/* YouTube URL Field */}
