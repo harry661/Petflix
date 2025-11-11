@@ -9,3 +9,9 @@ body {
   background-color: #F0F0DC;
   color: #36454F;
 }
+
+/* Ensure Petflix logo is always blue */
+a[href*="/home"] span,
+a[href="/"] span {
+  color: #ADD8E6 !important;
+}
