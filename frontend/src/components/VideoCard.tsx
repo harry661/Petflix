@@ -28,10 +28,16 @@ function VideoCard({ video }: VideoCardProps) {
   // Generate YouTube thumbnail URL if not provided
   // Use hqdefault as default (more reliable than maxresdefault)
   const getThumbnailUrl = () => {
-    if (video.thumbnail) return video.thumbnail;
-    if (video.youtubeVideoId) {
-      // Start with hqdefault (more reliable), will fallback if needed
-      return `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
+    // If thumbnail is explicitly provided and not null/empty, use it
+    if (video.thumbnail && video.thumbnail.trim() !== '') {
+      return video.thumbnail;
+    }
+    // Otherwise, try to generate from youtubeVideoId
+    if (video.youtubeVideoId && video.youtubeVideoId.trim() !== '') {
+      // Validate it's a proper YouTube video ID format (11 characters)
+      if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtubeVideoId)) {
+        return `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
+      }
     }
     return null;
   };
