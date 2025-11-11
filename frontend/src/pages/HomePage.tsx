@@ -247,7 +247,7 @@ export default function HomePage() {
                 <div style={{
                   position: 'absolute',
                   bottom: '200px', // Positioned above the fade area
-                  left: '60px',
+                  left: '40px', // Match navbar padding
                   zIndex: 2,
                   maxWidth: '600px'
                 }}>
