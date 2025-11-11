@@ -168,7 +168,7 @@ export default function Navigation() {
         }}>
           <Link to="/" style={logoStyle}>
             <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-            <img src={PetflixLogo} alt="Petflix" style={{ height: '28px', width: 'auto' }} />
+            <img src={PetflixLogo} alt="Petflix" style={{ height: '20px', width: 'auto' }} />
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
@@ -195,7 +195,7 @@ export default function Navigation() {
         }}>
           <Link to="/" style={logoStyle}>
             <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-            <img src={PetflixLogo} alt="Petflix" style={{ height: '28px', width: 'auto' }} />
+            <img src={PetflixLogo} alt="Petflix" style={{ height: '20px', width: 'auto' }} />
           </Link>
           <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
             Sign In
@@ -226,7 +226,7 @@ export default function Navigation() {
         {/* Logo */}
         <Link to="/home" style={{ ...logoStyle, marginRight: '20px' }}>
           <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-          <img src={PetflixLogo} alt="Petflix" style={{ height: '28px', width: 'auto' }} />
+          <img src={PetflixLogo} alt="Petflix" style={{ height: '20px', width: 'auto' }} />
         </Link>
 
         {/* Navigation Links */}
