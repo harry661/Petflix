@@ -41,6 +41,7 @@ export default function UserProfilePage() {
   const [tagInput, setTagInput] = useState('');
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   
   // Available tags for pet videos - organized by category, sorted alphabetically within each category
   const availableTags = [
@@ -807,12 +808,82 @@ export default function UserProfilePage() {
                     e.currentTarget.style.backgroundColor = 'transparent';
                     e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                   }}
-                  disabled={sharing}
+                  disabled={sharing || showSuccessAnimation}
                 >
                   Cancel
                 </button>
               </div>
+              {/* Success animation overlay */}
+              {showSuccessAnimation && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '12px',
+                  zIndex: 1,
+                  animation: 'fadeIn 0.3s ease'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '12px',
+                    animation: 'scaleIn 0.4s ease'
+                  }}>
+                    <CheckCircle2 size={48} color="#4CAF50" style={{ animation: 'checkmark 0.5s ease' }} />
+                    <p style={{ color: '#fff', fontSize: '18px', fontWeight: '500', margin: 0 }}>
+                      Video shared successfully!
+                    </p>
+                  </div>
+                </div>
+              )}
             </form>
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes scaleIn {
+                from { 
+                  opacity: 0;
+                  transform: scale(0.8);
+                }
+                to { 
+                  opacity: 1;
+                  transform: scale(1);
+                }
+              }
+              @keyframes checkmark {
+                0% {
+                  opacity: 0;
+                  transform: scale(0) rotate(-45deg);
+                }
+                50% {
+                  opacity: 1;
+                  transform: scale(1.2) rotate(-45deg);
+                }
+                100% {
+                  opacity: 1;
+                  transform: scale(1) rotate(0deg);
+                }
+              }
+              @keyframes fadeInScale {
+                from {
+                  opacity: 0;
+                  transform: scale(0);
+                }
+                to {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+              }
+            `}</style>
             </div>
           </div>
         )}
