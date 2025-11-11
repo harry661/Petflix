@@ -705,36 +705,73 @@ export default function UserProfilePage() {
                   </p>
                 </div>
               </div>
-              <button
-                type="submit"
-                disabled={sharing || !youtubeUrl.trim()}
-                style={{
-                  padding: '14px 32px',
-                  backgroundColor: sharing ? '#ccc' : '#ADD8E6',
-                  color: sharing ? '#666' : '#0F0F0F',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: sharing ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '16px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  if (!sharing) {
-                    e.currentTarget.style.backgroundColor = '#87CEEB';
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = sharing ? '#ccc' : '#ADD8E6';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-              >
-                {sharing ? 'Sharing...' : 'Share Video'}
-              </button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                <button
+                  type="submit"
+                  disabled={sharing || !youtubeUrl.trim()}
+                  style={{
+                    padding: '14px 32px',
+                    backgroundColor: sharing ? '#ccc' : '#ADD8E6',
+                    color: sharing ? '#666' : '#0F0F0F',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: sharing ? 'not-allowed' : 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '16px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!sharing) {
+                      e.currentTarget.style.backgroundColor = '#87CEEB';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = sharing ? '#ccc' : '#ADD8E6';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  {sharing ? 'Sharing...' : 'Share Video'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowShareForm(false);
+                    setYoutubeUrl('');
+                    setTags([]);
+                    setTagInput('');
+                    setShareError('');
+                  }}
+                  style={{
+                    padding: '14px 32px',
+                    backgroundColor: 'transparent',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '16px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  }}
+                  disabled={sharing}
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
+            </div>
           </div>
         )}
 
