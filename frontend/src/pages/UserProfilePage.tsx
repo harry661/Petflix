@@ -37,6 +37,22 @@ export default function UserProfilePage() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [sharing, setSharing] = useState(false);
   const [shareError, setShareError] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
+  
+  // Available tags for pet videos
+  const availableTags = [
+    'Dog', 'Dogs', 'Puppy', 'Puppies',
+    'Cat', 'Cats', 'Kitten', 'Kittens',
+    'Bird', 'Birds', 'Parrot', 'Cockatiel', 'Canary',
+    'Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Guinea Pig', 'Guinea Pigs',
+    'Fish', 'Aquatic', 'Underwater', 'Marine',
+    'Small Pets', 'Fluffy', 'Cute', 'Funny',
+    'Training', 'Tricks', 'Playful', 'Adorable',
+    'Rescue', 'Adoption', 'Pet Care', 'Pet Health'
+  ];
 
   useEffect(() => {
     if (username) {
@@ -220,6 +236,7 @@ export default function UserProfilePage() {
           youtubeVideoId: videoId,
           title: '', // Backend will fetch from YouTube if empty
           description: '', // Backend will fetch from YouTube if empty
+          tags: tags, // Include tags
         }),
       });
 
@@ -395,52 +412,236 @@ export default function UserProfilePage() {
           <div style={{
             backgroundColor: 'transparent',
             borderRadius: '12px',
-            padding: '30px',
+            padding: '30px 0',
             marginBottom: '30px'
           }}>
             <h2 style={{ color: '#ffffff', marginTop: 0, marginBottom: '20px' }}>Share a YouTube Video</h2>
             <form onSubmit={handleShareVideo}>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', color: '#ffffff', marginBottom: '8px', fontWeight: 'bold' }}>
-                  YouTube URL
-                </label>
-                <input
-                  type="text"
-                  value={youtubeUrl}
-                  onChange={(e) => {
-                    setYoutubeUrl(e.target.value);
-                    setShareError('');
-                  }}
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  style={{
+              <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
+                {/* YouTube URL Field */}
+                <div style={{ flex: 1, marginBottom: '15px' }}>
+                  <label style={{ display: 'block', color: '#ffffff', marginBottom: '8px', fontWeight: 'bold' }}>
+                    YouTube URL
+                  </label>
+                  <input
+                    type="text"
+                    value={youtubeUrl}
+                    onChange={(e) => {
+                      setYoutubeUrl(e.target.value);
+                      setShareError('');
+                    }}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '4px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#fff',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#ADD8E6';
+                      e.target.style.borderWidth = '1px';
+                      e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                      e.target.style.borderWidth = '1px';
+                      e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                    disabled={sharing}
+                  />
+                  {shareError && (
+                    <p style={{ color: '#ff6b6b', marginTop: '8px', fontSize: '14px' }}>{shareError}</p>
+                  )}
+                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginTop: '8px', fontSize: '14px' }}>
+                    Paste a YouTube video URL to share it with the community
+                  </p>
+                </div>
+
+                {/* Tags Input Field */}
+                <div style={{ flex: 1, marginBottom: '15px', position: 'relative' }}>
+                  <label style={{ display: 'block', color: '#ffffff', marginBottom: '8px', fontWeight: 'bold' }}>
+                    Tags
+                  </label>
+                  <div style={{
                     width: '100%',
-                    padding: '12px',
-                    border: '1px solid #ccc',
-                    borderRadius: '6px',
-                    fontSize: '16px',
-                    boxSizing: 'border-box'
+                    minHeight: '56px',
+                    padding: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    alignItems: 'flex-start'
                   }}
-                  disabled={sharing}
-                />
-                {shareError && (
-                  <p style={{ color: '#c62828', marginTop: '8px', fontSize: '14px' }}>{shareError}</p>
-                )}
-                <p style={{ color: '#ffffff', marginTop: '8px', fontSize: '14px' }}>
-                  Paste a YouTube video URL to share it with the community
-                </p>
+                  onFocus={() => setShowTagSuggestions(true)}
+                  onBlur={(e) => {
+                    // Delay to allow clicking on suggestions
+                    setTimeout(() => setShowTagSuggestions(false), 200);
+                  }}
+                  >
+                    {tags.map((tag, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 12px',
+                          backgroundColor: '#ADD8E6',
+                          color: '#0F0F0F',
+                          borderRadius: '20px',
+                          fontSize: '14px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        <span>{tag}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTags(tags.filter((_, i) => i !== index));
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#0F0F0F',
+                            cursor: 'pointer',
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '16px',
+                            lineHeight: 1
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setTagInput(value);
+                        if (value.trim()) {
+                          // Filter suggestions based on input
+                          const filtered = availableTags.filter(tag =>
+                            tag.toLowerCase().includes(value.toLowerCase()) &&
+                            !tags.includes(tag)
+                          );
+                          setTagSuggestions(filtered.slice(0, 10));
+                          setShowTagSuggestions(true);
+                        } else {
+                          setTagSuggestions([]);
+                          setShowTagSuggestions(false);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && tagInput.trim()) {
+                          e.preventDefault();
+                          const newTag = tagInput.trim();
+                          if (!tags.includes(newTag)) {
+                            setTags([...tags, newTag]);
+                            setTagInput('');
+                            setShowTagSuggestions(false);
+                          }
+                        } else if (e.key === 'Backspace' && tagInput === '' && tags.length > 0) {
+                          setTags(tags.slice(0, -1));
+                        }
+                      }}
+                      placeholder={tags.length === 0 ? "Type to add tags..." : ""}
+                      style={{
+                        flex: 1,
+                        minWidth: '120px',
+                        border: 'none',
+                        outline: 'none',
+                        backgroundColor: 'transparent',
+                        color: '#fff',
+                        fontSize: '16px',
+                        padding: '4px'
+                      }}
+                    />
+                  </div>
+                  {showTagSuggestions && tagSuggestions.length > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '4px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '4px',
+                      maxHeight: '200px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
+                    }}>
+                      {tagSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => {
+                            if (!tags.includes(suggestion)) {
+                              setTags([...tags, suggestion]);
+                              setTagInput('');
+                              setShowTagSuggestions(false);
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 16px',
+                            border: 'none',
+                            backgroundColor: 'transparent',
+                            color: '#fff',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginTop: '8px', fontSize: '14px' }}>
+                    Add tags to help others find your video
+                  </p>
+                </div>
               </div>
               <button
                 type="submit"
                 disabled={sharing || !youtubeUrl.trim()}
                 style={{
-                  padding: '12px 30px',
+                  padding: '14px 32px',
                   backgroundColor: sharing ? '#ccc' : '#ADD8E6',
-                  color: '#ffffff',
+                  color: sharing ? '#666' : '#0F0F0F',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: sharing ? 'not-allowed' : 'pointer',
                   fontWeight: 'bold',
-                  fontSize: '16px'
+                  fontSize: '16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!sharing) {
+                    e.currentTarget.style.backgroundColor = '#87CEEB';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = sharing ? '#ccc' : '#ADD8E6';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
                 {sharing ? 'Sharing...' : 'Share Video'}
