@@ -26,12 +26,12 @@ export default function VideoCard({ video }: VideoCardProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Generate YouTube thumbnail URL if not provided
-  // Try multiple thumbnail quality options
+  // Use hqdefault as default (more reliable than maxresdefault)
   const getThumbnailUrl = () => {
     if (video.thumbnail) return video.thumbnail;
     if (video.youtubeVideoId) {
-      // Try maxresdefault first, fallback to hqdefault, then mqdefault
-      return `https://img.youtube.com/vi/${video.youtubeVideoId}/maxresdefault.jpg`;
+      // Start with hqdefault (more reliable), will fallback if needed
+      return `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`;
     }
     return null;
   };

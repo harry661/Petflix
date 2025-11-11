@@ -89,7 +89,7 @@ export const searchVideos = async (
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
         } : null,
-        thumbnail: video.youtube_video_id ? `https://img.youtube.com/vi/${video.youtube_video_id}/maxresdefault.jpg` : null,
+        thumbnail: video.youtube_video_id ? `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg` : null,
         source: 'petflix',
       };
     });
