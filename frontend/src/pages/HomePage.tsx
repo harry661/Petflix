@@ -246,7 +246,7 @@ export default function HomePage() {
                 {/* Title and CTA Button */}
                 <div style={{
                   position: 'absolute',
-                  bottom: '60px',
+                  bottom: '200px', // Positioned above the fade area
                   left: '60px',
                   zIndex: 2,
                   maxWidth: '600px'
@@ -298,7 +298,7 @@ export default function HomePage() {
             {/* Carousel indicators */}
             <div style={{
               position: 'absolute',
-              bottom: '20px',
+              bottom: '120px', // Positioned above the fade area
               right: '40px',
               display: 'flex',
               gap: '8px',
