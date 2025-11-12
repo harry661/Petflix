@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase';
+import { notifyUserOfNewFollower } from '../services/notificationService';
 import { FollowResponse, ErrorResponse } from '../types';
 
 /**
@@ -55,11 +56,9 @@ export const followUser = async (
     }
 
     // Notify the user that they have a new follower (async, don't wait)
-    import('../services/notificationService').then(({ notifyUserOfNewFollower }) => {
-      notifyUserOfNewFollower(userId, followerId).catch(err => {
-        console.error('Error notifying user of new follower:', err);
-        // Non-critical error, don't affect response
-      });
+    notifyUserOfNewFollower(userId, followerId).catch(err => {
+      console.error('Error notifying user of new follower:', err);
+      // Non-critical error, don't affect response
     });
 
     res.status(201).json({
