@@ -12,8 +12,12 @@ export default function Navigation() {
   const { isAuthenticated, user, logout, loading } = useAuth();
   const { isSearchOpen, searchQuery, openSearch, closeSearch, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotificationsMenu, setShowNotificationsMenu] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [scrollY, setScrollY] = useState(0);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchQueryRef = useRef<string>(searchQuery); // Ref to track current search query
@@ -40,22 +44,57 @@ export default function Navigation() {
     setShowProfileMenu(false);
   };
 
+  // Load notifications
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadNotifications();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(loadNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
+
+  const loadNotifications = async () => {
+    if (!isAuthenticated) return;
+    
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/v1/notifications?limit=10`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch (err) {
+      // Error loading notifications - silently fail
+    }
+  };
+
   // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
+      if (notificationsMenuRef.current && !notificationsMenuRef.current.contains(event.target as Node)) {
+        setShowNotificationsMenu(false);
+      }
     };
 
-    if (showProfileMenu) {
+    if (showProfileMenu || showNotificationsMenu) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showProfileMenu]);
+  }, [showProfileMenu, showNotificationsMenu]);
 
   // Update ref whenever searchQuery changes
   useEffect(() => {
@@ -392,39 +431,225 @@ export default function Navigation() {
             )}
           </div>
 
-          {/* Notification Bell Icon */}
+          {/* Notification Bell Icon with Dropdown */}
           <div
-            style={{
-              color: '#fff',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              position: 'relative',
-              transition: 'transform 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            onClick={() => {
-              // TODO: Implement notifications
-              alert('Notifications coming soon!');
-            }}
+            ref={notificationsMenuRef}
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setShowNotificationsMenu(true)}
+            onMouseLeave={() => setShowNotificationsMenu(false)}
           >
-            <Bell size={20} />
-            {/* Notification badge - can be added when notifications are implemented */}
-            {/* <span style={{
-              position: 'absolute',
-              top: '4px',
-              right: '4px',
-              backgroundColor: '#3B82F6',
-              color: '#fff',
-              borderRadius: '50%',
-              width: '8px',
-              height: '8px',
-              fontSize: '0'
-            }} /> */}
+            <div
+              style={{
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                position: 'relative',
+                transition: 'transform 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <Bell size={20} />
+              {/* Status dot for unread notifications */}
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  backgroundColor: '#3B82F6',
+                  borderRadius: '50%',
+                  width: '8px',
+                  height: '8px',
+                  border: '2px solid rgba(0, 0, 0, 0.95)'
+                }} />
+              )}
+            </div>
+
+            {/* Notifications Dropdown */}
+            {showNotificationsMenu && (
+              <div
+                onMouseEnter={() => setShowNotificationsMenu(true)}
+                onMouseLeave={() => setShowNotificationsMenu(false)}
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '8px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  borderRadius: '8px',
+                  minWidth: '320px',
+                  maxWidth: '400px',
+                  maxHeight: '500px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  overflow: 'hidden',
+                  zIndex: 1001,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                {/* Header */}
+                <div style={{
+                  padding: '16px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <h3 style={{ color: '#fff', margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                    Notifications
+                  </h3>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={async () => {
+                        const token = localStorage.getItem('auth_token');
+                        if (token) {
+                          try {
+                            await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/v1/notifications/read-all`, {
+                              method: 'PUT',
+                              headers: { 'Authorization': `Bearer ${token}` },
+                            });
+                            loadNotifications();
+                          } catch (err) {
+                            // Error
+                          }
+                        }
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ADD8E6',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        padding: '4px 8px'
+                      }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                {/* Notifications List */}
+                <div style={{
+                  overflowY: 'auto',
+                  maxHeight: '400px'
+                }}>
+                  {notifications.length === 0 ? (
+                    <div style={{
+                      padding: '40px 20px',
+                      textAlign: 'center',
+                      color: 'rgba(255, 255, 255, 0.6)'
+                    }}>
+                      <p style={{ margin: 0 }}>No notifications yet</p>
+                      <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
+                        You'll see notifications here when users you follow share videos
+                      </p>
+                    </div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        onClick={async () => {
+                          if (notification.related_video_id) {
+                            navigate(`/video/${notification.related_video_id}`);
+                          } else if (notification.related_user_id) {
+                            navigate(`/user/${notification.related_user?.username}`);
+                          }
+                          // Mark as read
+                          if (!notification.read) {
+                            const token = localStorage.getItem('auth_token');
+                            if (token) {
+                              try {
+                                await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/v1/notifications/${notification.id}/read`, {
+                                  method: 'PUT',
+                                  headers: { 'Authorization': `Bearer ${token}` },
+                                });
+                                loadNotifications();
+                              } catch (err) {
+                                // Error
+                              }
+                            }
+                          }
+                        }}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                          cursor: 'pointer',
+                          backgroundColor: notification.read ? 'transparent' : 'rgba(173, 216, 230, 0.1)',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = notification.read ? 'transparent' : 'rgba(173, 216, 230, 0.1)'}
+                      >
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                          {notification.related_user?.profile_picture_url ? (
+                            <img
+                              src={notification.related_user.profile_picture_url}
+                              alt={notification.related_user.username}
+                              style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                flexShrink: 0
+                              }}
+                            />
+                          ) : (
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              backgroundColor: '#ADD8E6',
+                              color: '#0F0F0F',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 'bold',
+                              fontSize: '16px',
+                              flexShrink: 0
+                            }}>
+                              {notification.related_user?.username?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                          )}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{
+                              color: '#fff',
+                              margin: 0,
+                              fontSize: '14px',
+                              fontWeight: notification.read ? '400' : '600',
+                              marginBottom: '4px'
+                            }}>
+                              {notification.title}
+                            </p>
+                            <p style={{
+                              color: 'rgba(255, 255, 255, 0.7)',
+                              margin: 0,
+                              fontSize: '12px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {notification.message}
+                            </p>
+                            <p style={{
+                              color: 'rgba(255, 255, 255, 0.5)',
+                              margin: '4px 0 0 0',
+                              fontSize: '11px'
+                            }}>
+                              {new Date(notification.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Profile Picture with Dropdown */}

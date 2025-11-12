@@ -14,6 +14,10 @@ import {
   getFollowing,
   getFollowStatus,
 } from '../controllers/followController';
+import {
+  toggleUserNotificationPreference,
+  getUserNotificationPreference,
+} from '../controllers/notificationController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 
 const router = Router();
@@ -34,6 +38,8 @@ router.get('/:userId/following', getFollowing);
 router.get('/:userId/follow-status', optionalAuthenticate, getFollowStatus);
 router.post('/:userId/follow', authenticate, followUser);
 router.delete('/:userId/unfollow', authenticate, unfollowUser);
+router.get('/:userId/notification-preference', authenticate, getUserNotificationPreference);
+router.put('/:userId/notification-preference', authenticate, toggleUserNotificationPreference);
 
 export default router;
 

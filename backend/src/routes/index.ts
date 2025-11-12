@@ -27,6 +27,8 @@ import commentRoutes from './commentRoutes';
 router.use('/api/v1/comments', commentRoutes);
 import playlistRoutes from './playlistRoutes';
 router.use('/api/v1/playlists', playlistRoutes);
+import notificationRoutes from './notificationRoutes';
+router.use('/api/v1/notifications', notificationRoutes);
 // router.use('/api/v1/push_notifications', pushNotificationRoutes);
 
 // 404 handler for API routes

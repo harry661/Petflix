@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Upload, Pencil, CheckCircle2 } from 'lucide-react';
+import { Upload, Pencil, CheckCircle2, Bell, BellOff } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -30,6 +30,7 @@ export default function UserProfilePage() {
   const [followers, setFollowers] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isCurrentUser, setIsCurrentUser] = useState(false);
@@ -194,6 +195,23 @@ export default function UserProfilePage() {
           if (followStatusRes.ok) {
             const status = await followStatusRes.json();
             setIsFollowing(status.isFollowing);
+            
+            // If following, check notification preference
+            if (status.isFollowing) {
+              try {
+                const notifPrefRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/notification-preference`, {
+                  headers: { 'Authorization': `Bearer ${token}` },
+                  credentials: 'include',
+                });
+                if (notifPrefRes.ok) {
+                  const notifPref = await notifPrefRes.json();
+                  setNotificationsEnabled(notifPref.notificationsEnabled);
+                }
+              } catch (err) {
+                // Error checking notification preference - default to enabled
+                setNotificationsEnabled(true);
+              }
+            }
           }
         } catch (err) {
           // Error checking follow status
@@ -228,10 +246,57 @@ export default function UserProfilePage() {
 
       if (response.ok) {
         setIsFollowing(!isFollowing);
+        // If unfollowing, reset notification preference
+        if (isFollowing) {
+          setNotificationsEnabled(true);
+        } else {
+          // If following, set default notification preference to enabled
+          try {
+            await fetch(`${API_URL}/api/v1/users/${user?.id}/notification-preference`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ enabled: true }),
+            });
+            setNotificationsEnabled(true);
+          } catch (err) {
+            // Error setting notification preference - continue anyway
+          }
+        }
         loadUserProfile(); // Reload to update counts
       }
     } catch (err) {
       alert('Failed to update follow status');
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    if (!isFollowing) return; // Can only toggle if following
+    
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
+    try {
+      const newState = !notificationsEnabled;
+      const response = await fetch(`${API_URL}/api/v1/users/${user?.id}/notification-preference`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ enabled: newState }),
+      });
+
+      if (response.ok) {
+        setNotificationsEnabled(newState);
+      }
+    } catch (err) {
+      alert('Failed to update notification preference');
     }
   };
 
@@ -402,34 +467,64 @@ export default function UserProfilePage() {
                 </div>
               </div>
               {!isCurrentUser && (
-                <button
-                  onClick={handleFollow}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: isFollowing ? 'transparent' : '#ADD8E6',
-                    color: isFollowing ? '#ffffff' : '#0F0F0F',
-                    border: isFollowing ? '1px solid #ffffff' : 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isFollowing) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                    } else {
-                      e.currentTarget.style.backgroundColor = '#87CEEB';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = isFollowing ? 'transparent' : '#ADD8E6';
-                  }}
-                >
-                  {isFollowing ? 'Following' : 'Follow'}
-                </button>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button
+                    onClick={handleFollow}
+                    style={{
+                      padding: '10px 16px',
+                      backgroundColor: isFollowing ? 'transparent' : '#ADD8E6',
+                      color: isFollowing ? '#ffffff' : '#0F0F0F',
+                      border: isFollowing ? '1px solid #ffffff' : 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (isFollowing) {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      } else {
+                        e.currentTarget.style.backgroundColor = '#87CEEB';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = isFollowing ? 'transparent' : '#ADD8E6';
+                    }}
+                  >
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                  {isFollowing && (
+                    <button
+                      onClick={handleToggleNotifications}
+                      style={{
+                        padding: '10px',
+                        backgroundColor: 'transparent',
+                        color: notificationsEnabled ? '#ADD8E6' : 'rgba(255, 255, 255, 0.5)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.borderColor = '#ADD8E6';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                      }}
+                      title={notificationsEnabled ? 'Notifications enabled' : 'Notifications disabled'}
+                    >
+                      {notificationsEnabled ? <Bell size={20} /> : <BellOff size={20} />}
+                    </button>
+                  )}
+                </div>
               )}
                   {isCurrentUser && (
                     <div style={{ display: 'flex', gap: '10px' }}>
