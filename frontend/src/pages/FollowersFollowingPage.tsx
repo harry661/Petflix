@@ -1,15 +1,23 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserPlus, UserMinus } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function FollowersFollowingPage() {
-  const { username, type } = useParams<{ username: string; type: 'followers' | 'following' }>();
+  const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user: currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'followers' | 'following'>(type || 'followers');
+  
+  // Determine active tab from URL path
+  const getActiveTabFromPath = (): 'followers' | 'following' => {
+    if (location.pathname.includes('/following')) return 'following';
+    return 'followers';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'followers' | 'following'>(getActiveTabFromPath());
   const [users, setUsers] = useState<any[]>([]);
   const [profileUser, setProfileUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -18,10 +26,11 @@ export default function FollowersFollowingPage() {
   const [isCurrentUserProfile, setIsCurrentUserProfile] = useState(false);
 
   useEffect(() => {
-    if (type && (type === 'followers' || type === 'following')) {
-      setActiveTab(type);
+    const newTab = getActiveTabFromPath();
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
     }
-  }, [type]);
+  }, [location.pathname, activeTab]);
 
   useEffect(() => {
     if (username) {
