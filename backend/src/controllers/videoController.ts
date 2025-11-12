@@ -470,7 +470,20 @@ export const getVideoById = async (
       .eq('id', id)
       .single();
 
-    if (error || !video) {
+    if (error) {
+      console.error('Error fetching video:', error);
+      // Check if it's a "not found" error (PGRST116) or something else
+      if (error.code === 'PGRST116') {
+        res.status(404).json({ error: 'Video not found' });
+      } else {
+        console.error('Database error fetching video:', error);
+        res.status(500).json({ error: 'Failed to load video' });
+      }
+      return;
+    }
+
+    if (!video) {
+      console.log(`Video with ID ${id} not found in database`);
       res.status(404).json({ error: 'Video not found' });
       return;
     }
