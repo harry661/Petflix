@@ -7,6 +7,7 @@ import Navigation from './components/Navigation';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const SearchPage = lazy(() => import('./pages/SearchPage'));
+const TrendingPage = lazy(() => import('./pages/TrendingPage'));
 const VideoDetailPage = lazy(() => import('./pages/VideoDetailPage'));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'));
@@ -30,20 +31,21 @@ function AppContent() {
           <p style={{ color: '#ffffff' }}>Loading...</p>
         </div>
       }>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/popular" element={<HomePage />} />
-          <Route path="/favourites" element={<FeedPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/video/:id" element={<VideoDetailPage />} />
-          <Route path="/user/:username" element={<UserProfilePage />} />
-          <Route path="/settings" element={<AccountSettingsPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
-          <Route path="/login" element={<LandingPage />} />
-          <Route path="/register" element={<LandingPage />} />
-        </Routes>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/popular" element={<HomePage />} />
+              <Route path="/trending" element={<TrendingPage />} />
+              <Route path="/favourites" element={<FeedPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/video/:id" element={<VideoDetailPage />} />
+              <Route path="/user/:username" element={<UserProfilePage />} />
+              <Route path="/settings" element={<AccountSettingsPage />} />
+              <Route path="/feed" element={<FeedPage />} />
+              {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
+              <Route path="/login" element={<LandingPage />} />
+              <Route path="/register" element={<LandingPage />} />
+            </Routes>
       </Suspense>
     </>
   );
