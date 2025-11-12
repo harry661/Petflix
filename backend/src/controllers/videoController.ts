@@ -516,6 +516,70 @@ export const getVideoById = async (
 };
 
 /**
+ * Get user's search history
+ * GET /api/v1/videos/search-history
+ */
+export const getSearchHistory = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const limit = parseInt((req.query.limit as string) || '20');
+
+    const { data: history, error } = await supabaseAdmin!
+      .from('search_history')
+      .select('id, query, created_at')
+      .eq('user_id', req.user.userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching search history:', error);
+      res.status(500).json({ error: 'Failed to load search history' });
+      return;
+    }
+
+    res.json({
+      history: history || [],
+    });
+  } catch (error) {
+    console.error('Get search history error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Clear user's search history
+ * DELETE /api/v1/videos/search-history
+ */
+export const clearSearchHistory = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { error } = await supabaseAdmin!
+      .from('search_history')
+      .delete()
+      .eq('user_id', req.user.userId);
+
+    if (error) {
+      console.error('Error clearing search history:', error);
+      res.status(500).json({ error: 'Failed to clear search history' });
+      return;
+    }
+
+    res.json({ message: 'Search history cleared' });
+  } catch (error) {
+    console.error('Clear search history error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Get user's feed (videos from followed users)
  * GET /api/v1/videos/feed
  */
