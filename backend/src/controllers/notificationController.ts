@@ -38,8 +38,7 @@ export const getNotifications = async (
         related_video:related_video_id (
           id,
           youtube_video_id,
-          title,
-          thumbnail
+          title
         )
       `)
       .eq('user_id', userId)
