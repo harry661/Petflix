@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { MoreVertical } from 'lucide-react';
 
 interface VideoCardProps {
@@ -193,35 +193,84 @@ function VideoCard({ video }: VideoCardProps) {
       {/* Video Info */}
       <div style={{ padding: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-          {/* User profile picture */}
-          {video.user?.profile_picture_url ? (
-            <img
-              src={video.user.profile_picture_url}
-              alt={video.user.username}
+          {/* User profile picture - clickable link */}
+          {video.user?.username ? (
+            <Link
+              to={`/user/${video.user.username}`}
+              onClick={(e) => e.stopPropagation()}
               style={{
+                textDecoration: 'none',
+                flexShrink: 0
+              }}
+            >
+              {video.user?.profile_picture_url ? (
+                <img
+                  src={video.user.profile_picture_url}
+                  alt={video.user.username}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                />
+              ) : (
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ADD8E6',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  {video.user?.username?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
+            </Link>
+          ) : (
+            // Fallback if no user
+            video.user?.profile_picture_url ? (
+              <img
+                src={video.user.profile_picture_url}
+                alt={video.user.username || 'User'}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flexShrink: 0
+                }}
+              />
+            ) : (
+              <div style={{
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                objectFit: 'cover',
+                backgroundColor: '#ADD8E6',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '14px',
                 flexShrink: 0
-              }}
-            />
-          ) : (
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#ADD8E6',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              flexShrink: 0
-            }}>
-              {video.user?.username?.charAt(0).toUpperCase() || 'U'}
-            </div>
+              }}>
+                {video.user?.username?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            )
           )}
 
           {/* Right side: Title, username, views/date */}
@@ -321,12 +370,24 @@ function VideoCard({ video }: VideoCardProps) {
               </div>
             </div>
 
-            {/* Username */}
+            {/* Username - clickable link */}
             {video.user?.username && (
               <div style={{ marginBottom: '2px' }}>
-                <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '13px' }}>
+                <Link
+                  to={`/user/${video.user.username}`}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: '13px',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#ADD8E6'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                >
                   {video.user.username}
-                </span>
+                </Link>
               </div>
             )}
 

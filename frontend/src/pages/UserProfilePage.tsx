@@ -93,6 +93,7 @@ export default function UserProfilePage() {
       
       // Get current user to check if viewing own profile
       const token = localStorage.getItem('auth_token');
+      let currentUser = null;
       if (token) {
         try {
           const currentUserRes = await fetch(`${API_URL}/api/v1/users/me`, {
@@ -100,12 +101,10 @@ export default function UserProfilePage() {
             credentials: 'include',
           });
           if (currentUserRes.ok) {
-            const currentUser = await currentUserRes.json();
-            setIsCurrentUser(currentUser.username === username);
+            currentUser = await currentUserRes.json();
           }
         } catch (err) {
           // Error fetching current user - continue anyway
-          // Not logged in or error - continue anyway
         }
       }
 
@@ -139,6 +138,10 @@ export default function UserProfilePage() {
         setLoading(false);
         return;
       }
+
+      // Check if viewing own profile
+      const isViewingOwnProfile = currentUser?.username === username;
+      setIsCurrentUser(isViewingOwnProfile);
 
       setUser(userData);
 
@@ -181,8 +184,8 @@ export default function UserProfilePage() {
         // Error loading following
       }
 
-      // Check follow status
-      if (token && !isCurrentUser) {
+      // Check follow status (only if not viewing own profile and logged in)
+      if (token && !isViewingOwnProfile) {
         try {
           const followStatusRes = await fetch(`${API_URL}/api/v1/users/${userData.id}/follow-status`, {
             headers: { 'Authorization': `Bearer ${token}` },
@@ -194,7 +197,10 @@ export default function UserProfilePage() {
           }
         } catch (err) {
           // Error checking follow status
+          setIsFollowing(false);
         }
+      } else {
+        setIsFollowing(false);
       }
     } catch (err: any) {
       // Error loading user profile
@@ -379,13 +385,27 @@ export default function UserProfilePage() {
                 <button
                   onClick={handleFollow}
                   style={{
-                    padding: '10px 30px',
-                    backgroundColor: isFollowing ? '#f0f0f0' : '#ADD8E6',
-                    color: '#ffffff',
-                    border: isFollowing ? '1px solid #ccc' : 'none',
+                    padding: '10px 16px',
+                    backgroundColor: isFollowing ? 'transparent' : '#ADD8E6',
+                    color: isFollowing ? '#ffffff' : '#0F0F0F',
+                    border: isFollowing ? '1px solid #ffffff' : 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isFollowing) {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    } else {
+                      e.currentTarget.style.backgroundColor = '#87CEEB';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isFollowing ? 'transparent' : '#ADD8E6';
                   }}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
