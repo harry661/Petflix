@@ -324,20 +324,20 @@ export default function Navigation() {
           >
             Popular
           </Link>
-          <Link
-            to="/favourites"
-            style={{
-              color: isActive('/favourites') ? '#fff' : '#ccc',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: isActive('/favourites') ? 'bold' : 'normal',
-              transition: 'color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-            onMouseLeave={(e) => e.currentTarget.style.color = isActive('/favourites') ? '#fff' : '#ccc'}
-          >
-            Favourites
-          </Link>
+              <Link
+                to="/following"
+                style={{
+                  color: isActive('/following') ? '#fff' : '#ccc',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: isActive('/following') ? 'bold' : 'normal',
+                  transition: 'color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                onMouseLeave={(e) => e.currentTarget.style.color = isActive('/following') ? '#fff' : '#ccc'}
+              >
+                Following
+              </Link>
         </div>
 
         {/* Spacer */}

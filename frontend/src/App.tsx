@@ -37,7 +37,7 @@ function AppContent() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/popular" element={<HomePage />} />
           <Route path="/trending" element={<TrendingPage />} />
-          <Route path="/favourites" element={<FeedPage />} />
+          <Route path="/following" element={<FeedPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/video/:id" element={<VideoDetailPage />} />
           <Route path="/user/:username" element={<UserProfilePage />} />

@@ -84,9 +84,9 @@ export default function FeedPage() {
       backgroundColor: '#0F0F0F',
       padding: '20px'
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <h1 style={{ color: '#ffffff', marginBottom: '30px' }}>Your Feed</h1>
-        <p style={{ color: '#ffffff', marginBottom: '30px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
+        <h1 style={{ color: '#ffffff', marginBottom: '30px', fontSize: '32px', fontWeight: '600' }}>Following</h1>
+        <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '30px', fontSize: '16px' }}>
           Videos from users you follow
         </p>
 
@@ -94,33 +94,44 @@ export default function FeedPage() {
           <div style={{
             textAlign: 'center',
             padding: '60px',
-            backgroundColor: 'white',
+            backgroundColor: 'transparent',
             borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            border: '1px solid rgba(255, 255, 255, 0.1)'
           }}>
-            <h2 style={{ color: '#ffffff', fontSize: '24px', marginBottom: '15px' }}>
-              Welcome to Petflix! 🐾
+            <h2 style={{ color: '#ffffff', fontSize: '24px', marginBottom: '15px', fontWeight: '600' }}>
+              No videos yet
             </h2>
-            <p style={{ color: '#ffffff', fontSize: '18px', marginBottom: '20px' }}>
-              Your feed is empty
+            <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '16px', marginBottom: '20px' }}>
+              Your following feed is empty
             </p>
-            <p style={{ color: '#999', fontSize: '14px', marginBottom: '30px' }}>
+            <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '14px', marginBottom: '30px' }}>
               Follow other users to see their shared videos here, or start by searching for pet videos!
             </p>
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-              <a
-                href="/search"
+              <button
+                onClick={() => navigate('/search')}
                 style={{
                   padding: '12px 24px',
                   backgroundColor: '#ADD8E6',
-                  color: '#ffffff',
-                  textDecoration: 'none',
+                  color: '#0F0F0F',
+                  border: 'none',
                   borderRadius: '6px',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#87CEEB';
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ADD8E6';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
                 Search Videos
-              </a>
+              </button>
             </div>
           </div>
         ) : (
