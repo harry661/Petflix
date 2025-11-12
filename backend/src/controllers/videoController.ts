@@ -323,6 +323,18 @@ export const shareVideo = async (
       }
     }
 
+    // Notify followers that this user shared a new video (async, don't wait)
+    import('../services/notificationService').then(({ notifyFollowersOfVideoShare }) => {
+      notifyFollowersOfVideoShare(
+        req.user!.userId,
+        newVideo.id,
+        finalTitle
+      ).catch(err => {
+        console.error('Error notifying followers:', err);
+        // Non-critical error, don't affect response
+      });
+    });
+
     res.status(201).json({
       id: newVideo.id,
       youtubeVideoId: newVideo.youtube_video_id,

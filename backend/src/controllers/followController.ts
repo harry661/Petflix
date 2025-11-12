@@ -54,6 +54,14 @@ export const followUser = async (
       return;
     }
 
+    // Notify the user that they have a new follower (async, don't wait)
+    import('../services/notificationService').then(({ notifyUserOfNewFollower }) => {
+      notifyUserOfNewFollower(userId, followerId).catch(err => {
+        console.error('Error notifying user of new follower:', err);
+        // Non-critical error, don't affect response
+      });
+    });
+
     res.status(201).json({
       followerId: follow.follower_id,
       followingId: follow.following_id,
