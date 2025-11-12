@@ -585,6 +585,7 @@ export const getRecentVideos = async (
     const tagFilter = req.query.tag;
 
     // Try to select view_count, but handle if column doesn't exist
+    // IMPORTANT: This query fetches ALL videos from ALL users - no user filtering
     let query = supabaseAdmin!
       .from('videos')
       .select(`
@@ -603,6 +604,9 @@ export const getRecentVideos = async (
           profile_picture_url
         )
       `);
+    
+    // Explicitly ensure we're not filtering by user - fetch all videos
+    // No .eq('user_id', ...) filter should be applied here
 
     // If tag filter is provided, join with video_tags_direct and filter
     if (tagFilter && tagFilter.trim()) {
