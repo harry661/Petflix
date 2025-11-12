@@ -478,7 +478,7 @@ export default function Navigation() {
                   position: 'absolute',
                   top: '100%',
                   right: 0,
-                  marginTop: '8px',
+                  marginTop: '0px', // No gap - menu connects directly to prevent closing
                   backgroundColor: 'rgba(0, 0, 0, 0.95)',
                   borderRadius: '8px',
                   minWidth: '320px',
