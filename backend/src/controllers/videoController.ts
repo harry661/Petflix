@@ -235,23 +235,31 @@ export const shareVideo = async (
     let videoDescription = description;
     let videoThumbnail: string | undefined;
 
-    // First try oEmbed API (free, no quota)
+    // Try to get video metadata and view count (prefer oEmbed - free, no quota)
+    // Fallback to Data API if available, then use provided/default values
+    let videoViewCount: number | null = null;
+    
+    // First try oEmbed API (free, no quota) - but it doesn't provide view count
     const oembedData = await getYouTubeVideoMetadata(youtubeVideoId);
     if (oembedData) {
       videoTitle = videoTitle || oembedData.title;
       videoDescription = videoDescription || oembedData.description;
       videoThumbnail = oembedData.thumbnail;
-    } else {
-      // Fallback to Data API if available (optional - may hit quota)
-      try {
-        const youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
-        videoTitle = videoTitle || youtubeData.title;
-        videoDescription = videoDescription || youtubeData.description;
-        videoThumbnail = videoThumbnail || youtubeData.thumbnail;
-      } catch (error: any) {
-        // Log but don't fail - we can still save the video without metadata
-        console.log('YouTube Data API not available (quota exceeded or API key missing). Using provided or default values.');
+    }
+    
+    // Try Data API to get view count (optional - may hit quota)
+    try {
+      const youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
+      videoTitle = videoTitle || youtubeData.title;
+      videoDescription = videoDescription || youtubeData.description;
+      videoThumbnail = videoThumbnail || youtubeData.thumbnail;
+      // Get view count if available
+      if (youtubeData.viewCount) {
+        videoViewCount = parseInt(youtubeData.viewCount) || 0;
       }
+    } catch (error: any) {
+      // Log but don't fail - we can still save the video without metadata
+      console.log('YouTube Data API not available (quota exceeded or API key missing). Using provided or default values.');
     }
 
     // Check if video already shared by this user
@@ -279,8 +287,9 @@ export const shareVideo = async (
         title: finalTitle,
         description: finalDescription,
         user_id: req.user.userId,
+        view_count: videoViewCount || 0, // Store view count if available
       })
-      .select('id, youtube_video_id, title, description, user_id, created_at, updated_at')
+      .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count')
       .single();
 
     if (insertError || !newVideo) {
@@ -585,6 +594,7 @@ export const getRecentVideos = async (
         user_id,
         created_at,
         updated_at,
+        view_count,
         users:user_id (
           id,
           username,
@@ -648,7 +658,10 @@ export const getRecentVideos = async (
       query = query.in('id', videoIds);
     }
 
+    // Order by popularity: view count (descending) first, then recency (created_at descending)
+    // This ensures popular videos appear first, with newer popular videos prioritized
     const { data: videos, error: dbError } = await query
+      .order('view_count', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(limit);
 
