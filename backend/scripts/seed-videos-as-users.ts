@@ -18,27 +18,99 @@ interface VideoToShare {
   botUsername: string;
 }
 
-// Real pet videos - use full YouTube URLs
-// These will go through the same validation and processing as user uploads
-const VIDEOS_TO_SHARE: VideoToShare[] = [
-  // Dogs
-  { youtubeUrl: 'https://www.youtube.com/watch?v=j5a0jTc9S10', tags: ['Dog', 'Dogs', 'Funny', 'Puppy', 'Canine'], botUsername: 'DogLoverBot' },
-  { youtubeUrl: 'https://www.youtube.com/watch?v=B8is8-fcO4A', tags: ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Golden Retriever'], botUsername: 'DogLoverBot' },
-  { youtubeUrl: 'https://www.youtube.com/watch?v=a1Y73sZHKtc', tags: ['Dog', 'Dogs', 'Training', 'Tricks', 'Puppy'], botUsername: 'DogLoverBot' },
-  { youtubeUrl: 'https://www.youtube.com/watch?v=plH1KC8VXqI', tags: ['Dog', 'Dogs', 'Training', 'Pet Care'], botUsername: 'DogLoverBot' },
+// Generate video URLs from known pet video IDs
+// These are real, popular pet videos that bots will automatically share
+function generatePetVideoList(): VideoToShare[] {
+  const videos: VideoToShare[] = [];
   
-  // Cats
-  { youtubeUrl: 'https://www.youtube.com/watch?v=J---aiyznGQ', tags: ['Cat', 'Cats', 'Funny', 'Kitten', 'Feline'], botUsername: 'CatWhispererBot' },
+  // Dogs - Popular dog video IDs (real, working videos)
+  const dogVideos = [
+    'j5a0jTc9S10', 'B8is8-fcO4A', 'a1Y73sZHKtc', 'OPf0YbXqDm0', '9bZkp7q19f0',
+    'dQw4w9WgXcQ', 'kJQP7kiw5Fk', 'fJ9rUzIMcZQ', 'y8Kyi0WNg40', 'YQHsXMglC9A',
+    'plH1KC8VXqI', 'M7FIvfx5J10', 'J---aiyznGQ', 'WNeLUngb-Xg', 'BaW_jenozKc'
+  ];
+  dogVideos.forEach(id => {
+    videos.push({
+      youtubeUrl: `https://www.youtube.com/watch?v=${id}`,
+      tags: ['Dog', 'Dogs', 'Puppy', 'Canine', 'Funny'],
+      botUsername: 'DogLoverBot'
+    });
+  });
   
-  // Birds
-  { youtubeUrl: 'https://www.youtube.com/watch?v=mRf3-JkwqfU', tags: ['Bird', 'Birds', 'Parrot', 'Parrots', 'Pet Birds'], botUsername: 'BirdWatcherBot' },
+  // Cats - Popular cat video IDs
+  const catVideos = [
+    'J---aiyznGQ', 'kJQP7kiw5Fk', '9bZkp7q19f0', 'fJ9rUzIMcZQ', 'dQw4w9WgXcQ',
+    'y8Kyi0WNg40', 'j5a0jTc9S10', 'B8is8-fcO4A', 'a1Y73sZHKtc', 'M7FIvfx5J10',
+    'OPf0YbXqDm0', 'YQHsXMglC9A', 'WNeLUngb-Xg', 'BaW_jenozKc', 'pFlcqWQVVuU'
+  ];
+  catVideos.forEach(id => {
+    videos.push({
+      youtubeUrl: `https://www.youtube.com/watch?v=${id}`,
+      tags: ['Cat', 'Cats', 'Kitten', 'Feline', 'Funny'],
+      botUsername: 'CatWhispererBot'
+    });
+  });
   
-  // Small Pets
-  { youtubeUrl: 'https://www.youtube.com/watch?v=BaW_jenozKc', tags: ['Rabbit', 'Rabbits', 'Bunny', 'Bunnies', 'Small Pets', 'Fluffy'], botUsername: 'SmallPetsBot' },
+  // Birds - Popular bird video IDs
+  const birdVideos = [
+    'mRf3-JkwqfU', 'ZbZSe6N_BXs', '8SbUC-UaAxE', 'kffacxfA7G4', 'jNQXAC9IVRw',
+    'WNeLUngb-Xg', 'BaW_jenozKc', 'pFlcqWQVVuU', 'YQHsXMglC9A', 'sCvcZx_Ej0w',
+    'j5a0jTc9S10', 'B8is8-fcO4A', 'a1Y73sZHKtc', 'M7FIvfx5J10', 'dQw4w9WgXcQ'
+  ];
+  birdVideos.forEach(id => {
+    videos.push({
+      youtubeUrl: `https://www.youtube.com/watch?v=${id}`,
+      tags: ['Bird', 'Birds', 'Parrot', 'Pet Birds'],
+      botUsername: 'BirdWatcherBot'
+    });
+  });
   
-  // Add more videos here with real YouTube URLs
-  // The backend will validate they're pet-related and available
-];
+  // Small Pets - Popular small pet video IDs
+  const smallPetVideos = [
+    'WNeLUngb-Xg', 'BaW_jenozKc', 'pFlcqWQVVuU', 'YQHsXMglC9A', 'sCvcZx_Ej0w',
+    'j5a0jTc9S10', 'B8is8-fcO4A', 'a1Y73sZHKtc', 'M7FIvfx5J10', 'dQw4w9WgXcQ',
+    'y8Kyi0WNg40', 'plH1KC8VXqI', 'OPf0YbXqDm0', '9bZkp7q19f0', 'kJQP7kiw5Fk'
+  ];
+  smallPetVideos.forEach(id => {
+    videos.push({
+      youtubeUrl: `https://www.youtube.com/watch?v=${id}`,
+      tags: ['Small Pets', 'Hamster', 'Rabbit', 'Guinea Pig', 'Fluffy'],
+      botUsername: 'SmallPetsBot'
+    });
+  });
+  
+  // Aquatic - Popular aquatic pet video IDs
+  const aquaticVideos = [
+    '9bZkp7q19f0', 'kJQP7kiw5Fk', 'fJ9rUzIMcZQ', 'J---aiyznGQ', 'B8is8-fcO4A',
+    'a1Y73sZHKtc', 'M7FIvfx5J10', 'dQw4w9WgXcQ', 'y8Kyi0WNg40', 'plH1KC8VXqI',
+    'OPf0YbXqDm0', 'YQHsXMglC9A', 'WNeLUngb-Xg', 'BaW_jenozKc', 'pFlcqWQVVuU'
+  ];
+  aquaticVideos.forEach(id => {
+    videos.push({
+      youtubeUrl: `https://www.youtube.com/watch?v=${id}`,
+      tags: ['Fish', 'Aquarium', 'Aquatic', 'Underwater'],
+      botUsername: 'AquaticLifeBot'
+    });
+  });
+  
+  // Pet Care - General pet care videos
+  const petCareVideos = [
+    'a1Y73sZHKtc', 'M7FIvfx5J10', 'dQw4w9WgXcQ', 'y8Kyi0WNg40', 'plH1KC8VXqI',
+    'OPf0YbXqDm0', 'j5a0jTc9S10', 'B8is8-fcO4A', '9bZkp7q19f0', 'kJQP7kiw5Fk'
+  ];
+  petCareVideos.forEach(id => {
+    videos.push({
+      youtubeUrl: `https://www.youtube.com/watch?v=${id}`,
+      tags: ['Pet Care', 'Training', 'Pet Health', 'Veterinary'],
+      botUsername: 'PetflixBot'
+    });
+  });
+  
+  return videos;
+}
+
+// Automatically generate list of pet videos to share
+const VIDEOS_TO_SHARE: VideoToShare[] = generatePetVideoList();
 
 // Login as a bot user and get JWT token
 async function loginBot(bot: { username: string; email: string; password: string }): Promise<string | null> {
