@@ -584,6 +584,7 @@ export const getRecentVideos = async (
     const limit = parseInt(req.query.limit || '12');
     const tagFilter = req.query.tag;
 
+    // Try to select view_count, but handle if column doesn't exist
     let query = supabaseAdmin!
       .from('videos')
       .select(`
