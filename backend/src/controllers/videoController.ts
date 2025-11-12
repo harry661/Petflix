@@ -584,8 +584,6 @@ export const getRecentVideos = async (
     const limit = parseInt(req.query.limit || '12');
     const tagFilter = req.query.tag;
 
-    // Try to select view_count, but handle if column doesn't exist
-    // IMPORTANT: This query fetches ALL videos from ALL users - no user filtering
     let query = supabaseAdmin!
       .from('videos')
       .select(`
@@ -604,9 +602,6 @@ export const getRecentVideos = async (
           profile_picture_url
         )
       `);
-    
-    // Explicitly ensure we're not filtering by user - fetch all videos
-    // No .eq('user_id', ...) filter should be applied here
 
     // If tag filter is provided, join with video_tags_direct and filter
     if (tagFilter && tagFilter.trim()) {
@@ -665,77 +660,13 @@ export const getRecentVideos = async (
 
     // Order by popularity: view count (descending) first, then recency (created_at descending)
     // This ensures popular videos appear first, with newer popular videos prioritized
-    // Try to order by view_count, but fallback to created_at if view_count column doesn't exist
-    // NOTE: This should return videos from ALL users, not just the current user
-    let { data: videos, error: dbError } = await query
-      .order('view_count', { ascending: false, nullsFirst: false })
+    const { data: videos, error: dbError } = await query
+      .order('view_count', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(limit);
-    
-    // Debug logging to verify we're getting videos from multiple users
-    if (videos && videos.length > 0) {
-      const uniqueUserIds = new Set(videos.map((v: any) => v.user_id));
-      console.log(`[getRecentVideos] Fetched ${videos.length} videos from ${uniqueUserIds.size} unique user(s)`);
-      if (uniqueUserIds.size === 1) {
-        console.log(`[getRecentVideos] WARNING: Only videos from one user found. This might indicate the database only has videos from one user.`);
-      }
-    }
-
-    // If ordering by view_count fails (column doesn't exist), try without it
-    if (dbError && dbError.message && dbError.message.includes('view_count')) {
-      console.log('view_count column may not exist, using created_at ordering only');
-      // Rebuild query without view_count ordering (but still try to select it if it exists)
-      let fallbackQuery = supabaseAdmin!
-        .from('videos')
-        .select(`
-          id,
-          youtube_video_id,
-          title,
-          description,
-          user_id,
-          created_at,
-          updated_at,
-          view_count,
-          users:user_id (
-            id,
-            username,
-            email,
-            profile_picture_url
-          )
-        `);
-      
-      // Reapply tag filter if it was set
-      if (tagFilter && tagFilter.trim()) {
-        const tagMap: { [key: string]: string[] } = {
-          'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Pup', 'Pups', 'Canine', 'Doggy', 'Doggo'],
-          'cats': ['Cat', 'Cats', 'Kitten', 'Kittens', 'Kitty', 'Kitties', 'Feline', 'Meow', 'Purr'],
-          'birds': ['Bird', 'Birds', 'Parrot', 'Parrots'],
-          'small and fluffy': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Bunny', 'Bunnies'],
-          'underwater': ['Fish', 'Fishes', 'Goldfish', 'Aquarium', 'Aquatic', 'Underwater']
-        };
-        const filterLower = tagFilter.toLowerCase();
-        const tagNames = tagMap[filterLower] || [tagFilter];
-        const { data: taggedVideos } = await supabaseAdmin!
-          .from('video_tags_direct')
-          .select('video_id')
-          .in('tag_name', tagNames);
-        if (taggedVideos && taggedVideos.length > 0) {
-          const videoIds = taggedVideos.map((tv: any) => tv.video_id);
-          fallbackQuery = fallbackQuery.in('id', videoIds);
-        }
-      }
-      
-      const fallbackResult = await fallbackQuery
-        .order('created_at', { ascending: false })
-        .limit(limit);
-      
-      videos = fallbackResult.data;
-      dbError = fallbackResult.error;
-    }
 
     if (dbError) {
-      console.error('Database error in getRecentVideos:', dbError);
-      res.status(500).json({ error: 'Failed to load videos', details: dbError.message });
+      res.status(500).json({ error: 'Failed to load videos' });
       return;
     }
 
@@ -776,7 +707,7 @@ export const getRecentVideos = async (
         userId: video.user_id,
         createdAt: video.created_at,
         updatedAt: video.updated_at,
-        viewCount: (video.view_count !== undefined && video.view_count !== null) ? video.view_count : 0,
+        viewCount: video.view_count || 0,
         tags: videoTagsMap[video.id] || [],
         user: userData ? {
           id: userData.id,

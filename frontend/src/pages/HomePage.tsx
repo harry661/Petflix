@@ -83,7 +83,8 @@ export default function HomePage() {
       setLoading(true);
       
       // Build URL with tag filter if selected
-      let url = `${API_URL}/api/v1/videos/recent?limit=12`;
+      // Limit to 8 videos for 2 rows on home page
+      let url = `${API_URL}/api/v1/videos/recent?limit=8`;
       if (filter) {
         url += `&tag=${encodeURIComponent(filter)}`;
       }
@@ -385,46 +386,36 @@ export default function HomePage() {
         
         {/* Videos Section - Adapts to search or trending */}
         <div>
-          {/* Header with Title and See More button (only for trending, not search) */}
-          {!isSearchOpen && (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
-              <h2 style={{ color: '#ffffff', margin: 0 }}>{displayTitle}</h2>
-              {displayVideos.length > 0 && (
-                <button
-                  onClick={() => navigate('/trending')}
-                  style={{
-                    padding: '10px 24px',
-                    backgroundColor: 'transparent',
-                    color: '#ADD8E6',
-                    border: '1px solid #ADD8E6',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: '500',
-                    fontSize: '14px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(173, 216, 230, 0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  See more
-                </button>
-              )}
-            </div>
-          )}
-          
-          {/* Search title (no See more button) */}
-          {isSearchOpen && (
-            <h2 style={{ color: '#ffffff', marginBottom: '20px' }}>{displayTitle}</h2>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ color: '#ffffff', margin: 0 }}>{displayTitle}</h2>
+            {!isSearchOpen && !selectedFilter && (
+              <a
+                href="/trending"
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: 'transparent',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                }}
+              >
+                See more
+              </a>
+            )}
+          </div>
           
           {displayLoading && isSearchOpen && (
             <div style={{
@@ -458,8 +449,7 @@ export default function HomePage() {
               gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
               gap: '20px'
             }}>
-              {/* Limit to 2 rows for trending videos (approximately 8 videos), show all for search */}
-              {(isSearchOpen ? displayVideos : displayVideos.slice(0, 8)).map((video) => (
+              {displayVideos.map((video) => (
                 <VideoCard key={video.id} video={video} />
               ))}
             </div>
