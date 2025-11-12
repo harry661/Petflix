@@ -428,6 +428,36 @@ export default function HomePage() {
             </div>
           )}
 
+          {/* Show loading overlay for filter changes, but keep existing videos visible */}
+          {displayLoading && !isSearchOpen && displayVideos.length > 0 && (
+            <div style={{
+              position: 'relative',
+              opacity: 0.6,
+              pointerEvents: 'none'
+            }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '20px'
+              }}>
+                {displayVideos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {displayLoading && !isSearchOpen && displayVideos.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '60px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '8px'
+            }}>
+              <p style={{ color: '#ffffff' }}>Loading videos...</p>
+            </div>
+          )}
+
           {!displayLoading && displayVideos.length === 0 && (
             <div style={{
               textAlign: 'center',
