@@ -9,7 +9,7 @@ import {
   ErrorResponse,
 } from '../types';
 // YouTube URL validation is handled in youtubeService
-import { searchYouTubeVideos, getYouTubeVideoDetails, getYouTubeVideoMetadata } from '../services/youtubeService';
+import { searchYouTubeVideos, getYouTubeVideoDetails, getYouTubeVideoMetadata, getTrendingYouTubeVideos } from '../services/youtubeService';
 
 /**
  * Search for videos (YouTube + Petflix shared videos)

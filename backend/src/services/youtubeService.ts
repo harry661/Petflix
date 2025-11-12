@@ -111,6 +111,106 @@ export const searchYouTubeVideos = async (
 };
 
 /**
+ * Get trending YouTube videos (pet-related, sorted by view count)
+ */
+export const getTrendingYouTubeVideos = async (
+  maxResults: number = 10,
+  tagFilter?: string
+): Promise<{ videos: YouTubeVideoData[] }> => {
+  if (!YOUTUBE_API_KEY) {
+    throw new Error('YouTube API key is not configured');
+  }
+
+  // Build search query for trending pet videos
+  // Use popular pet-related search terms to find trending content
+  let searchQuery = 'trending pets OR popular pet videos OR viral pet videos';
+  
+  // Add tag-specific terms if filter is provided
+  if (tagFilter) {
+    const tagQueries: { [key: string]: string } = {
+      'dogs': 'trending dogs OR popular dog videos OR viral dog videos',
+      'cats': 'trending cats OR popular cat videos OR viral cat videos',
+      'birds': 'trending birds OR popular bird videos OR viral bird videos',
+      'small and fluffy': 'trending small pets OR popular hamster rabbit guinea pig videos',
+      'underwater': 'trending fish OR popular aquarium videos OR viral fish videos'
+    };
+    
+    const filterLower = tagFilter.toLowerCase();
+    if (tagQueries[filterLower]) {
+      searchQuery = tagQueries[filterLower];
+    }
+  }
+
+  try {
+    // Search for videos sorted by viewCount (most popular)
+    const response = await axios.get(`${YOUTUBE_API_URL}/search`, {
+      params: {
+        part: 'snippet',
+        q: searchQuery,
+        type: 'video',
+        maxResults: Math.min(maxResults * 2, 50), // Get more to filter by view count
+        key: YOUTUBE_API_KEY,
+        order: 'viewCount', // Sort by view count (most popular)
+        relevanceLanguage: 'en',
+      },
+    });
+
+    const videos: YouTubeVideoData[] = response.data.items.map((item: any) => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      description: item.snippet.description,
+      thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+      channelTitle: item.snippet.channelTitle,
+      publishedAt: item.snippet.publishedAt,
+    }));
+
+    // Get additional stats for videos (view count, likes, etc.)
+    if (videos.length > 0) {
+      const videoIds = videos.map(v => v.id).join(',');
+      const statsResponse = await axios.get(`${YOUTUBE_API_URL}/videos`, {
+        params: {
+          part: 'statistics',
+          id: videoIds,
+          key: YOUTUBE_API_KEY,
+        },
+      });
+
+      const statsMap = new Map();
+      statsResponse.data.items.forEach((item: any) => {
+        statsMap.set(item.id, {
+          viewCount: item.statistics.viewCount,
+          likeCount: item.statistics.likeCount,
+          commentCount: item.statistics.commentCount,
+        });
+      });
+
+      videos.forEach(video => {
+        const stats = statsMap.get(video.id);
+        if (stats) {
+          video.viewCount = stats.viewCount;
+          video.likeCount = stats.likeCount;
+          video.commentCount = stats.commentCount;
+        }
+      });
+
+      // Sort by view count (descending) and take top results
+      videos.sort((a, b) => {
+        const aViews = parseInt(a.viewCount || '0');
+        const bViews = parseInt(b.viewCount || '0');
+        return bViews - aViews;
+      });
+    }
+
+    return {
+      videos: videos.slice(0, maxResults), // Return top N results
+    };
+  } catch (error: any) {
+    console.error('YouTube trending API error:', error.response?.data || error.message);
+    throw new Error('Failed to get trending YouTube videos');
+  }
+};
+
+/**
  * Get YouTube video metadata using oEmbed API (free, no quota)
  * Falls back to Data API if oEmbed fails
  */
