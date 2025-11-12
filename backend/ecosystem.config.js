@@ -1,8 +1,9 @@
 module.exports = {
   apps: [{
     name: 'petflix-backend',
-    script: 'src/index.ts',
-    interpreter: 'node_modules/.bin/ts-node',
+    script: 'npm',
+    args: 'run dev',
+    cwd: __dirname,
     instances: 1,
     autorestart: true,
     watch: false,
@@ -13,7 +14,8 @@ module.exports = {
     error_file: './logs/err.log',
     out_file: './logs/out.log',
     log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-    merge_logs: true
+    merge_logs: true,
+    kill_timeout: 5000
   }]
 };
 
