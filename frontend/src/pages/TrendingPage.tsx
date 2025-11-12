@@ -15,18 +15,19 @@ export default function TrendingPage() {
   const [offset, setOffset] = useState(0);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  const loadTrendingVideos = useCallback(async (reset: boolean = false) => {
+  const loadTrendingVideos = useCallback(async (reset: boolean = false, currentOffset?: number) => {
     try {
       if (reset) {
         setLoading(true);
         setVideos([]);
         setOffset(0);
+        currentOffset = 0;
       } else {
         setLoadingMore(true);
+        currentOffset = currentOffset ?? offset;
       }
       setError('');
       
-      const currentOffset = reset ? 0 : offset;
       const limit = 20; // Load 20 videos at a time
       
       // Build URL with tag filter and pagination
@@ -42,12 +43,13 @@ export default function TrendingPage() {
         
         if (reset) {
           setVideos(newVideos);
+          setOffset(newVideos.length);
         } else {
           setVideos(prev => [...prev, ...newVideos]);
+          setOffset(prev => prev + newVideos.length);
         }
         
         setHasMore(data.hasMore !== false && newVideos.length === limit);
-        setOffset(currentOffset + newVideos.length);
       } else {
         setError('Failed to load trending videos');
       }
