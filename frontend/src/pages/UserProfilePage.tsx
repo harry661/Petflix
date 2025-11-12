@@ -368,14 +368,34 @@ export default function UserProfilePage() {
                 <p style={{ color: '#ffffff', marginBottom: '20px' }}>{user.bio}</p>
               )}
               <div style={{ display: 'flex', gap: '30px', marginBottom: '20px' }}>
-                <div>
+                <Link
+                  to={`/user/${username}/followers`}
+                  style={{
+                    textDecoration: 'none',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
                   <strong style={{ color: '#ffffff' }}>{followers.length}</strong>
                   <span style={{ color: '#ffffff', marginLeft: '5px' }}>Followers</span>
-                </div>
-                <div>
+                </Link>
+                <Link
+                  to={`/user/${username}/following`}
+                  style={{
+                    textDecoration: 'none',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
                   <strong style={{ color: '#ffffff' }}>{following.length}</strong>
                   <span style={{ color: '#ffffff', marginLeft: '5px' }}>Following</span>
-                </div>
+                </Link>
                 <div>
                   <strong style={{ color: '#ffffff' }}>{videos.length}</strong>
                   <span style={{ color: '#ffffff', marginLeft: '5px' }}>Videos</span>

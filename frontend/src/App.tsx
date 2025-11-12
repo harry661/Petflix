@@ -10,6 +10,7 @@ const SearchPage = lazy(() => import('./pages/SearchPage'));
 const TrendingPage = lazy(() => import('./pages/TrendingPage'));
 const VideoDetailPage = lazy(() => import('./pages/VideoDetailPage'));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
+const FollowersFollowingPage = lazy(() => import('./pages/FollowersFollowingPage'));
 const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
 
@@ -40,6 +41,8 @@ function AppContent() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/video/:id" element={<VideoDetailPage />} />
           <Route path="/user/:username" element={<UserProfilePage />} />
+          <Route path="/user/:username/followers" element={<FollowersFollowingPage />} />
+          <Route path="/user/:username/following" element={<FollowersFollowingPage />} />
           <Route path="/settings" element={<AccountSettingsPage />} />
           <Route path="/feed" element={<FeedPage />} />
           {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
