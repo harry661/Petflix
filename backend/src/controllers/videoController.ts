@@ -670,7 +670,7 @@ export const getRecentVideos = async (
     // If ordering by view_count fails (column doesn't exist), try without it
     if (dbError && dbError.message && dbError.message.includes('view_count')) {
       console.log('view_count column may not exist, using created_at ordering only');
-      // Rebuild query without view_count ordering
+      // Rebuild query without view_count ordering (but still try to select it if it exists)
       let fallbackQuery = supabaseAdmin!
         .from('videos')
         .select(`
@@ -681,6 +681,7 @@ export const getRecentVideos = async (
           user_id,
           created_at,
           updated_at,
+          view_count,
           users:user_id (
             id,
             username,
@@ -761,7 +762,7 @@ export const getRecentVideos = async (
         userId: video.user_id,
         createdAt: video.created_at,
         updatedAt: video.updated_at,
-        viewCount: video.view_count || 0,
+        viewCount: (video.view_count !== undefined && video.view_count !== null) ? video.view_count : 0,
         tags: videoTagsMap[video.id] || [],
         user: userData ? {
           id: userData.id,
