@@ -1,25 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { Edit2, Trash2, Save, X } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function VideoDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { isAuthenticated: authIsAuthenticated, user } = useAuth();
   const [video, setVideo] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [recommendedVideos, setRecommendedVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newComment, setNewComment] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+  const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
     if (id) {
       loadVideo();
       loadComments();
       loadRecommendedVideos();
-      setIsAuthenticated(!!localStorage.getItem('auth_token'));
     }
   }, [id]);
 
@@ -64,6 +68,70 @@ export default function VideoDetailPage() {
       }
     } catch (err) {
       // Comments might not be implemented yet
+    }
+  };
+
+  const handleEditComment = (comment: any) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentText(comment.text);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingCommentText('');
+  };
+
+  const handleSaveEdit = async (commentId: string) => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text: editingCommentText }),
+      });
+
+      if (response.ok) {
+        await loadComments();
+        setEditingCommentId(null);
+        setEditingCommentText('');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update comment');
+      }
+    } catch (err) {
+      alert('Failed to update comment');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        await loadComments();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete comment');
+      }
+    } catch (err) {
+      alert('Failed to delete comment');
     }
   };
 
@@ -346,25 +414,160 @@ export default function VideoDetailPage() {
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
-                    <strong style={{ color: '#ffffff', fontSize: '16px' }}>{comment.user?.username || 'Anonymous'}</strong>
-                    <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
-                      {new Date(comment.createdAt).toLocaleDateString()}
-                    </span>
+              {comments.map((comment) => {
+                const isOwnComment = user && comment.userId === user.id;
+                const isEditing = editingCommentId === comment.id;
+
+                return (
+                  <div
+                    key={comment.id}
+                    style={{
+                      padding: '20px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
+                      <strong style={{ color: '#ffffff', fontSize: '16px' }}>{comment.user?.username || 'Anonymous'}</strong>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+                          {new Date(comment.createdAt).toLocaleDateString()}
+                        </span>
+                        {isOwnComment && !isEditing && (
+                          <>
+                            <button
+                              onClick={() => handleEditComment(comment)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'color 0.2s'
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = '#ADD8E6'}
+                              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                              title="Edit comment"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'color 0.2s'
+                              }}
+                              onMouseEnter={(e) => e.currentTarget.style.color = '#ff6b6b'}
+                              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                              title="Delete comment"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {isEditing ? (
+                      <div>
+                        <textarea
+                          value={editingCommentText}
+                          onChange={(e) => setEditingCommentText(e.target.value)}
+                          maxLength={1000}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            minHeight: '80px',
+                            boxSizing: 'border-box',
+                            marginBottom: '12px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            color: '#fff',
+                            outline: 'none',
+                            resize: 'vertical',
+                            fontFamily: 'inherit'
+                          }}
+                          onFocus={(e) => {
+                            e.target.style.borderColor = '#ADD8E6';
+                            e.target.style.borderWidth = '1px';
+                            e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                            e.target.style.borderWidth = '1px';
+                            e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                          }}
+                        />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => handleSaveEdit(comment.id)}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#ADD8E6',
+                              color: '#0F0F0F',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '14px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#87CEEB';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#ADD8E6';
+                            }}
+                          >
+                            <Save size={14} />
+                            Save
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: 'transparent',
+                              color: '#ffffff',
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <X size={14} />
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p style={{ color: '#ffffff', margin: 0, lineHeight: '1.6' }}>{comment.text}</p>
+                    )}
                   </div>
-                  <p style={{ color: '#ffffff', margin: 0, lineHeight: '1.6' }}>{comment.text}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

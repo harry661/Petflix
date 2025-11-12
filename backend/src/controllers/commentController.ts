@@ -124,6 +124,85 @@ export const getCommentsByVideo = async (
 };
 
 /**
+ * Update a comment
+ * PUT /api/v1/comments/:id
+ */
+export const updateComment = async (
+  req: Request<{ id: string }, CommentResponse | ErrorResponse, { text: string }>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { text } = req.body;
+
+    if (!text || text.trim() === '') {
+      res.status(400).json({ error: 'Comment text is required' });
+      return;
+    }
+
+    if (text.length > 1000) {
+      res.status(400).json({ error: 'Comment must be 1000 characters or less' });
+      return;
+    }
+
+    // Verify user owns the comment
+    const { data: comment, error: commentError } = await supabaseAdmin!
+      .from('comments')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (commentError || !comment) {
+      res.status(404).json({ error: 'Comment not found' });
+      return;
+    }
+
+    if (comment.user_id !== req.user.userId) {
+      res.status(403).json({ error: 'You can only edit your own comments' });
+      return;
+    }
+
+    // Sanitize comment text
+    const sanitizedText = sanitizeInput(text);
+
+    // Update comment
+    const { data: updatedComment, error: updateError } = await supabaseAdmin!
+      .from('comments')
+      .update({
+        text: sanitizedText,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select('id, video_id, user_id, text, parent_comment_id, created_at, updated_at')
+      .single();
+
+    if (updateError || !updatedComment) {
+      console.error('Error updating comment:', updateError);
+      res.status(500).json({ error: 'Failed to update comment' });
+      return;
+    }
+
+    res.json({
+      id: updatedComment.id,
+      videoId: updatedComment.video_id,
+      userId: updatedComment.user_id,
+      text: updatedComment.text,
+      parentCommentId: updatedComment.parent_comment_id,
+      createdAt: updatedComment.created_at,
+      updatedAt: updatedComment.updated_at,
+    });
+  } catch (error) {
+    console.error('Update comment error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Delete a comment
  * DELETE /api/v1/comments/:id
  */

@@ -1,0 +1,37 @@
+{
+  "name": "Petflix",
+  "short_name": "Petflix",
+  "description": "Discover, share, and engage with pet videos from YouTube",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0F0F",
+  "theme_color": "#ADD8E6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "video", "social"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Search",
+      "short_name": "Search",
+      "description": "Search for pet videos",
+      "url": "/search",
+      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Following",
+      "short_name": "Following",
+      "description": "Videos from users you follow",
+      "url": "/following",
+      "icons": [{ "src": "/vite.svg", "sizes": "any" }]
+    }
+  ]
+}
+
