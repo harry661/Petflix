@@ -78,13 +78,13 @@ export default function HomePage() {
       }, [bannerItems.length, isSearchOpen]);
 
 
-  const loadTrendingVideos = async (filter?: string | null) => {
+  const loadTrendingVideos = useCallback(async (filter?: string | null) => {
     try {
       setLoading(true);
       
       // Build URL with tag filter if selected
       // Limit to 8 videos for 2 rows on home page
-      let url = `${API_URL}/api/v1/videos/recent?limit=8`;
+      let url = `${API_URL}/api/v1/videos/recent?limit=8&offset=0`;
       if (filter) {
         url += `&tag=${encodeURIComponent(filter)}`;
       }
@@ -102,7 +102,7 @@ export default function HomePage() {
       
       // Fallback: try to search for trending pet videos (only if no filter is selected)
       if (!filter) {
-        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent('cats dogs pets')}&limit=12`);
+        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent('cats dogs pets')}&limit=8`);
         if (searchResponse.ok) {
           const searchData = await searchResponse.json();
           if (searchData.videos && searchData.videos.length > 0) {
@@ -121,15 +121,14 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   
   // Reload videos when filter changes (real-time update, no page reload)
   useEffect(() => {
     if (isAuthenticated && user && !isSearchOpen) {
       loadTrendingVideos(selectedFilter);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFilter, isAuthenticated, user, isSearchOpen]);
+  }, [selectedFilter, isAuthenticated, user, isSearchOpen, loadTrendingVideos]);
 
   // Determine which videos to show
   const displayVideos = isSearchOpen && searchQuery ? searchResults : trendingVideos;
