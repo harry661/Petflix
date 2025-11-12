@@ -720,9 +720,53 @@ export const getRecentVideos = async (
       };
     });
 
+    // Fetch trending YouTube videos (only if no tag filter or tag filter matches YouTube search)
+    let youtubeTrendingVideos: any[] = [];
+    try {
+      const youtubeResults = await getTrendingYouTubeVideos(Math.floor(limit / 2), tagFilter || undefined);
+      youtubeTrendingVideos = youtubeResults.videos.map(video => ({
+        id: `youtube_${video.id}`,
+        youtubeVideoId: video.id,
+        title: video.title,
+        description: video.description,
+        thumbnail: video.thumbnail,
+        channelTitle: video.channelTitle,
+        viewCount: parseInt(video.viewCount || '0'),
+        publishedAt: video.publishedAt,
+        createdAt: video.publishedAt, // Use publishedAt as createdAt for YouTube videos
+        user: null, // YouTube videos don't have a Petflix user
+        tags: [],
+        source: 'youtube',
+      }));
+    } catch (error: any) {
+      // Silently fail - don't crash if YouTube API fails
+      if (process.env.NODE_ENV === 'development') {
+        console.log('YouTube trending unavailable (quota exceeded or API key missing)');
+      }
+    }
+
+    // Combine platform and YouTube videos, sort by view count
+    const allVideos = [...videosFormatted, ...youtubeTrendingVideos];
+    
+    // Sort by view count (descending), then by recency
+    allVideos.sort((a, b) => {
+      const aViews = a.viewCount || 0;
+      const bViews = b.viewCount || 0;
+      if (bViews !== aViews) {
+        return bViews - aViews; // Higher view count first
+      }
+      // If view counts are equal, sort by recency
+      const aDate = new Date(a.createdAt || 0).getTime();
+      const bDate = new Date(b.createdAt || 0).getTime();
+      return bDate - aDate; // Newer first
+    });
+
+    // Limit to requested number
+    const limitedVideos = allVideos.slice(0, limit);
+
     res.json({
-      videos: videosFormatted,
-      total: videosFormatted.length,
+      videos: limitedVideos,
+      total: limitedVideos.length,
       page: 1,
       pageSize: limit,
     });
