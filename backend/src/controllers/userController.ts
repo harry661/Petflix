@@ -263,6 +263,185 @@ export const searchUsers = async (
 };
 
 /**
+ * Change user password
+ * PUT /api/v1/users/me/password
+ */
+export const changePassword = async (
+  req: Request<{}, { success: boolean } | ErrorResponse, { currentPassword: string; newPassword: string }>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: 'Current password and new password are required' });
+      return;
+    }
+
+    if (!validatePassword(newPassword)) {
+      res.status(400).json({ error: 'New password must be at least 8 characters with uppercase, lowercase, and number' });
+      return;
+    }
+
+    // Get current user with password hash
+    const { data: user, error: userError } = await supabaseAdmin!
+      .from('users')
+      .select('password_hash')
+      .eq('id', req.user.userId)
+      .single();
+
+    if (userError || !user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Verify current password
+    const isValidPassword = await comparePassword(currentPassword, user.password_hash);
+    if (!isValidPassword) {
+      res.status(401).json({ error: 'Current password is incorrect' });
+      return;
+    }
+
+    // Hash new password
+    const newPasswordHash = await hashPassword(newPassword);
+
+    // Update password
+    const { error: updateError } = await supabaseAdmin!
+      .from('users')
+      .update({ password_hash: newPasswordHash })
+      .eq('id', req.user.userId);
+
+    if (updateError) {
+      console.error('Error updating password:', updateError);
+      res.status(500).json({ error: 'Failed to change password' });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Delete user account
+ * DELETE /api/v1/users/me
+ */
+export const deleteAccount = async (
+  req: Request,
+  res: Response<{ success: boolean } | ErrorResponse>
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    // Delete user (CASCADE will handle related data)
+    const { error } = await supabaseAdmin!
+      .from('users')
+      .delete()
+      .eq('id', req.user.userId);
+
+    if (error) {
+      console.error('Error deleting account:', error);
+      res.status(500).json({ error: 'Failed to delete account' });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get user's global notification preferences
+ * GET /api/v1/users/me/notification-preference
+ */
+export const getGlobalNotificationPreference = async (
+  req: Request,
+  res: Response<{ notificationsEnabled: boolean } | ErrorResponse>
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { data, error } = await supabaseAdmin!
+      .from('user_notification_preferences')
+      .select('notifications_enabled')
+      .eq('user_id', req.user.userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error fetching notification preference:', error);
+      res.status(500).json({ error: 'Failed to fetch notification preference' });
+      return;
+    }
+
+    // Default to true if no preference exists
+    res.json({
+      notificationsEnabled: data?.notifications_enabled ?? true,
+    });
+  } catch (error) {
+    console.error('Get global notification preference error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Update user's global notification preferences
+ * PUT /api/v1/users/me/notification-preference
+ */
+export const updateGlobalNotificationPreference = async (
+  req: Request<{}, { notificationsEnabled: boolean } | ErrorResponse, { enabled: boolean }>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { enabled } = req.body;
+
+    const { data, error } = await supabaseAdmin!
+      .from('user_notification_preferences')
+      .upsert({
+        user_id: req.user.userId,
+        notifications_enabled: enabled,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id'
+      })
+      .select('notifications_enabled')
+      .single();
+
+    if (error) {
+      console.error('Error updating notification preference:', error);
+      res.status(500).json({ error: 'Failed to update notification preference' });
+      return;
+    }
+
+    res.json({
+      notificationsEnabled: data.notifications_enabled,
+    });
+  } catch (error) {
+    console.error('Update global notification preference error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Get user profile by ID
  * GET /api/v1/users/:userId
  */

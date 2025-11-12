@@ -6,6 +6,10 @@ import {
   getUserById,
   updateProfile,
   searchUsers,
+  changePassword,
+  deleteAccount,
+  getGlobalNotificationPreference,
+  updateGlobalNotificationPreference,
 } from '../controllers/userController';
 import {
   followUser,
@@ -30,6 +34,10 @@ router.get('/search', searchUsers);
 // Protected routes - must come before /:userId to avoid route conflicts
 router.get('/me', authenticate, getCurrentUser);
 router.put('/me', authenticate, updateProfile);
+router.put('/me/password', authenticate, changePassword);
+router.delete('/me', authenticate, deleteAccount);
+router.get('/me/notification-preference', authenticate, getGlobalNotificationPreference);
+router.put('/me/notification-preference', authenticate, updateGlobalNotificationPreference);
 
 // User-specific routes (must come after /me)
 router.get('/:userId', getUserById);
