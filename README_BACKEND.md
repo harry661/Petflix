@@ -1,46 +1,50 @@
 # Backend Server Setup
 
-## Quick Start
+## ⚠️ IMPORTANT: Keep Backend Running
 
-The backend server must be running for the frontend to work. To start it:
+The backend **MUST** be running for the frontend to work. If you see "Cannot connect to server" errors, the backend has stopped.
+
+## Quick Start (Recommended - Persistent)
+
+**Use PM2 for persistent backend (survives terminal closes):**
+
+```bash
+./start-backend-persistent.sh
+```
+
+This will:
+- Install PM2 if needed
+- Start the backend in the background
+- Keep it running even if you close the terminal
+- Auto-restart if it crashes
+
+**View logs:**
+```bash
+pm2 logs petflix-backend
+```
+
+**Stop backend:**
+```bash
+pm2 stop petflix-backend
+```
+
+**Restart backend:**
+```bash
+pm2 restart petflix-backend
+```
+
+## Alternative: Manual Start
+
+If PM2 doesn't work, keep a terminal open:
 
 ```bash
 cd backend
 npm run dev
 ```
 
-Or use the startup script:
+**Keep this terminal window open** - closing it stops the backend.
 
-```bash
-./start-backend.sh
-```
-
-## Why the backend stops
-
-The backend may stop if:
-- The terminal window is closed
-- The process is killed
-- Your computer goes to sleep
-- There's an error that crashes the server
-
-## Keep it running
-
-**Option 1: Keep terminal open**
-- Open a terminal and run `npm run dev` in the `backend` folder
-- Keep that terminal window open while developing
-
-**Option 2: Run in background (macOS/Linux)**
-```bash
-cd backend
-nohup npm run dev > backend.log 2>&1 &
-```
-
-**Option 3: Use a process manager (recommended for production)**
-- Install PM2: `npm install -g pm2`
-- Run: `pm2 start backend/src/index.ts --interpreter ts-node`
-- Or use: `pm2 start npm --name "petflix-backend" -- run dev`
-
-## Check if backend is running
+## Check if Backend is Running
 
 ```bash
 curl http://localhost:3000/api/v1/users/me
@@ -48,3 +52,19 @@ curl http://localhost:3000/api/v1/users/me
 
 If you get a response (even an error), the backend is running.
 
+## Troubleshooting
+
+**Backend keeps stopping?**
+- Use PM2 (see above) - it auto-restarts
+- Check for errors: `pm2 logs petflix-backend`
+- Make sure port 3000 isn't blocked
+
+**Port 3000 already in use?**
+```bash
+lsof -ti:3000 | xargs kill -9
+```
+
+**YouTube videos not loading?**
+- Check backend logs for YouTube API errors
+- May be quota exceeded - check Google Cloud Console
+- Backend will continue with database videos only
