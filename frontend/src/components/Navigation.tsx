@@ -183,8 +183,8 @@ export default function Navigation() {
           alignItems: 'center'
         }}>
           <Link to="/" style={logoStyle}>
-            <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', pointerEvents: 'none' }} />
-            <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', pointerEvents: 'none' }} />
+            <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }} />
+            <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }} />
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
@@ -210,8 +210,8 @@ export default function Navigation() {
           alignItems: 'center'
         }}>
               <Link to="/" style={logoStyle}>
-                <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', pointerEvents: 'none' }} />
-                <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', pointerEvents: 'none' }} />
+                <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }} />
+                <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }} />
               </Link>
               <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
                 Sign In
@@ -251,8 +251,8 @@ export default function Navigation() {
       }}>
         {/* Logo */}
         <Link to="/home" style={{ ...logoStyle, marginRight: '20px' }}>
-          <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', pointerEvents: 'none' }} />
-          <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', pointerEvents: 'none' }} />
+          <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }} />
+          <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }} />
         </Link>
 
         {/* Navigation Links */}
