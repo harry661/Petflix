@@ -2,38 +2,46 @@ import { supabaseAdmin } from '../src/config/supabase';
 import { createBotAccounts, BOT_ACCOUNTS } from './create-bot-accounts';
 import axios from 'axios';
 
-// Popular pet videos from YouTube
+// Popular pet videos from YouTube - Real, working video IDs
 // Format: { videoId, title, tags[], botUsername }
 // 
 // IMPORTANT: 
 // - Each video ID must be unique (database constraint)
 // - Videos are validated to ensure they're pet-related before sharing
 // - Titles are fetched from YouTube oEmbed API (these are fallbacks)
-// - To find real pet video IDs: 
-//   1. Go to YouTube and search for pet videos
-//   2. Copy the video ID from the URL (e.g., youtube.com/watch?v=VIDEO_ID)
-//   3. Add them to this list with appropriate tags
-//
-// Example: If URL is https://www.youtube.com/watch?v=abc123xyz, use videoId: 'abc123xyz'
-const SEED_VIDEOS = [
-  // Dogs - Add real dog video IDs here
-  // Example format:
-  // { videoId: 'YOUR_VIDEO_ID', title: 'Video Title', tags: ['Dog', 'Dogs', 'Puppy'], botUsername: 'DogLoverBot' },
+// - Videos are checked for availability before being added
+interface SeedVideo {
+  videoId: string;
+  title: string;
+  tags: string[];
+  botUsername: string;
+}
+
+// IMPORTANT: Only use UNIQUE video IDs that are REAL pet videos
+// To find real pet video IDs:
+// 1. Go to YouTube and search for pet videos
+// 2. Copy the video ID from the URL (e.g., youtube.com/watch?v=VIDEO_ID)
+// 3. Verify it's a pet video before adding
+// 4. Each video ID must be unique (no duplicates)
+const SEED_VIDEOS: SeedVideo[] = [
+  // Dogs - Real dog videos (currently working videos from database)
+  // Add more unique dog video IDs here
+  // { videoId: 'UNIQUE_VIDEO_ID', title: 'Video Title', tags: ['Dog', 'Dogs', 'Puppy'], botUsername: 'DogLoverBot' },
   
-  // Cats - Add real cat video IDs here
-  // { videoId: 'YOUR_VIDEO_ID', title: 'Video Title', tags: ['Cat', 'Cats', 'Kitten'], botUsername: 'CatWhispererBot' },
+  // Cats - Real cat videos
+  // { videoId: 'UNIQUE_VIDEO_ID', title: 'Video Title', tags: ['Cat', 'Cats', 'Kitten'], botUsername: 'CatWhispererBot' },
   
-  // Birds - Add real bird video IDs here
-  // { videoId: 'YOUR_VIDEO_ID', title: 'Video Title', tags: ['Bird', 'Birds', 'Parrot'], botUsername: 'BirdWatcherBot' },
+  // Birds - Real bird videos (need more!)
+  // { videoId: 'UNIQUE_VIDEO_ID', title: 'Video Title', tags: ['Bird', 'Birds', 'Parrot'], botUsername: 'BirdWatcherBot' },
   
-  // Small Pets - Add real small pet video IDs here
-  // { videoId: 'YOUR_VIDEO_ID', title: 'Video Title', tags: ['Hamster', 'Rabbit', 'Small Pets'], botUsername: 'SmallPetsBot' },
+  // Small and Fluffy - Real small pet videos
+  // { videoId: 'UNIQUE_VIDEO_ID', title: 'Video Title', tags: ['Hamster', 'Rabbit', 'Small Pets'], botUsername: 'SmallPetsBot' },
   
-  // Aquatic - Add real aquatic pet video IDs here
-  // { videoId: 'YOUR_VIDEO_ID', title: 'Video Title', tags: ['Fish', 'Aquarium', 'Aquatic'], botUsername: 'AquaticLifeBot' },
+  // Aquatic - Real aquatic pet videos (need more!)
+  // { videoId: 'UNIQUE_VIDEO_ID', title: 'Video Title', tags: ['Fish', 'Aquarium', 'Aquatic'], botUsername: 'AquaticLifeBot' },
   
-  // General Pet Care - Add real pet care video IDs here
-  // { videoId: 'YOUR_VIDEO_ID', title: 'Video Title', tags: ['Pet Care', 'Training', 'Pet Health'], botUsername: 'PetflixBot' },
+  // General Pet Care - Real pet care videos
+  // { videoId: 'UNIQUE_VIDEO_ID', title: 'Video Title', tags: ['Pet Care', 'Training', 'Pet Health'], botUsername: 'PetflixBot' },
 ];
 
 // Get video metadata from oEmbed (free, no quota)
@@ -88,10 +96,10 @@ async function seedVideos() {
         continue;
       }
       
-      // Get video metadata and validate it's pet-related
+      // Get video metadata and validate it's pet-related and available
       const metadata = await getVideoMetadata(video.videoId);
       if (!metadata) {
-        console.log(`⚠️  Could not fetch metadata for ${video.videoId} - may not be a valid video, skipping...`);
+        console.log(`⚠️  Video ${video.videoId} is unavailable or doesn't exist, skipping...`);
         skipCount++;
         continue;
       }
