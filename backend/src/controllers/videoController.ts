@@ -448,6 +448,7 @@ export const getVideoById = async (
     }
 
     // Get from database
+    // Note: like_count column may not exist if migration 007_add_likes.sql hasn't been run
     const { data: video, error } = await supabaseAdmin!
       .from('videos')
       .select(`
@@ -458,7 +459,7 @@ export const getVideoById = async (
         user_id,
         created_at,
         updated_at,
-        like_count,
+        view_count,
         users:user_id (
           id,
           username,
@@ -471,13 +472,14 @@ export const getVideoById = async (
       .single();
 
     if (error) {
-      console.error('Error fetching video:', error);
+      console.error('Error fetching video:', JSON.stringify(error, null, 2));
+      console.error('Video ID:', id);
       // Check if it's a "not found" error (PGRST116) or something else
       if (error.code === 'PGRST116') {
         res.status(404).json({ error: 'Video not found' });
       } else {
-        console.error('Database error fetching video:', error);
-        res.status(500).json({ error: 'Failed to load video' });
+        console.error('Database error fetching video - code:', error.code, 'message:', error.message);
+        res.status(500).json({ error: 'Failed to load video', details: error.message });
       }
       return;
     }
@@ -510,7 +512,7 @@ export const getVideoById = async (
       userId: video.user_id,
       createdAt: video.created_at,
       updatedAt: video.updated_at,
-      likeCount: video.like_count || 0,
+      likeCount: (video as any).like_count || 0,
       isLiked: isLiked,
       user: userData ? {
         id: userData.id,
@@ -522,9 +524,10 @@ export const getVideoById = async (
         updated_at: (userData as any).updated_at || video.updated_at,
       } : undefined,
     } as VideoDetailsResponse);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get video error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error stack:', error?.stack);
+    res.status(500).json({ error: 'Internal server error', details: error?.message });
   }
 };
 
