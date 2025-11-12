@@ -205,8 +205,25 @@ export const getTrendingYouTubeVideos = async (
       videos: videos.slice(0, maxResults), // Return top N results
     };
   } catch (error: any) {
-    console.error('YouTube trending API error:', error.response?.data || error.message);
-    throw new Error('Failed to get trending YouTube videos');
+    // Log detailed error for debugging
+    const errorDetails = error.response?.data?.error || {};
+    console.error('[YouTube Service] Trending API error:', {
+      message: error.message,
+      code: errorDetails.code,
+      reason: errorDetails.errors?.[0]?.reason,
+      message_detail: errorDetails.message,
+      fullResponse: error.response?.data
+    });
+    
+    // Provide more specific error message
+    if (errorDetails.code === 403 && errorDetails.errors?.[0]?.reason === 'quotaExceeded') {
+      throw new Error('YouTube API quota exceeded. Please try again later.');
+    }
+    if (errorDetails.code === 400) {
+      throw new Error(`YouTube API error: ${errorDetails.message || 'Invalid request'}`);
+    }
+    
+    throw new Error(`Failed to get trending YouTube videos: ${error.message}`);
   }
 };
 

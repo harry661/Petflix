@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
@@ -78,13 +78,13 @@ export default function HomePage() {
       }, [bannerItems.length, isSearchOpen]);
 
 
-  const loadTrendingVideos = useCallback(async (filter?: string | null) => {
+  const loadTrendingVideos = async (filter?: string | null) => {
     try {
       setLoading(true);
       
       // Build URL with tag filter if selected
       // Limit to 8 videos for 2 rows on home page
-      let url = `${API_URL}/api/v1/videos/recent?limit=8&offset=0`;
+      let url = `${API_URL}/api/v1/videos/recent?limit=8`;
       if (filter) {
         url += `&tag=${encodeURIComponent(filter)}`;
       }
@@ -102,7 +102,7 @@ export default function HomePage() {
       
       // Fallback: try to search for trending pet videos (only if no filter is selected)
       if (!filter) {
-        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent('cats dogs pets')}&limit=8`);
+        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent('cats dogs pets')}&limit=12`);
         if (searchResponse.ok) {
           const searchData = await searchResponse.json();
           if (searchData.videos && searchData.videos.length > 0) {
@@ -121,14 +121,15 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
   
-  // Reload videos when filter changes (real-time update, no page reload)
+  // Reload videos when filter changes
   useEffect(() => {
     if (isAuthenticated && user && !isSearchOpen) {
       loadTrendingVideos(selectedFilter);
     }
-  }, [selectedFilter, isAuthenticated, user, isSearchOpen, loadTrendingVideos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilter, isAuthenticated, user, isSearchOpen]);
 
   // Determine which videos to show
   const displayVideos = isSearchOpen && searchQuery ? searchResults : trendingVideos;
@@ -332,12 +333,7 @@ export default function HomePage() {
               return (
                 <button
                   key={filter}
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelectedFilter(selectedFilter === filter ? null : filter);
-                  }}
+                  onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
                   style={{
                     flex: 1,
                     padding: 0,
@@ -429,36 +425,6 @@ export default function HomePage() {
               borderRadius: '8px'
             }}>
               <p style={{ color: '#ffffff' }}>Searching...</p>
-            </div>
-          )}
-
-          {/* Show loading overlay for filter changes, but keep existing videos visible */}
-          {displayLoading && !isSearchOpen && displayVideos.length > 0 && (
-            <div style={{
-              position: 'relative',
-              opacity: 0.6,
-              pointerEvents: 'none'
-            }}>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: '20px'
-              }}>
-                {displayVideos.map((video) => (
-                  <VideoCard key={video.id} video={video} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {displayLoading && !isSearchOpen && displayVideos.length === 0 && (
-            <div style={{
-              textAlign: 'center',
-              padding: '60px',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '8px'
-            }}>
-              <p style={{ color: '#ffffff' }}>Loading videos...</p>
             </div>
           )}
 

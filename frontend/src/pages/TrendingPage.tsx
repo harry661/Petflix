@@ -61,10 +61,9 @@ export default function TrendingPage() {
     }
   }, [tagFilter, offset]);
 
-  // Reset and load when filter changes (real-time update, no page reload)
+  // Reset and load when filter changes
   useEffect(() => {
     loadTrendingVideos(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tagFilter]); // Only depend on tagFilter, not the function
 
   // Infinite scroll observer
@@ -101,13 +100,11 @@ export default function TrendingPage() {
     'Underwater': '/aquatic-filter.png'
   };
 
-  const handleFilterClick = (e: React.MouseEvent<HTMLButtonElement>, filter: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleFilterClick = (filter: string) => {
     if (tagFilter === filter.toLowerCase()) {
-      setSearchParams({}, { replace: true }); // Use replace to avoid adding to history
+      setSearchParams({});
     } else {
-      setSearchParams({ tag: filter.toLowerCase() }, { replace: true }); // Use replace to avoid adding to history
+      setSearchParams({ tag: filter.toLowerCase() });
     }
   };
 
@@ -141,8 +138,7 @@ export default function TrendingPage() {
             return (
               <button
                 key={filter}
-                type="button"
-                onClick={(e) => handleFilterClick(e, filter)}
+                onClick={() => handleFilterClick(filter)}
                 style={{
                   flex: 1,
                   padding: 0,

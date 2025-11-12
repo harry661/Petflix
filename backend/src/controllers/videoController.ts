@@ -731,7 +731,9 @@ export const getRecentVideos = async (
       try {
         // If tag filter exists, get more YouTube results since we might not have database videos
         const youtubeLimit = tagFilter ? limit : Math.floor(limit / 2);
+        console.log(`[YouTube] Fetching ${youtubeLimit} trending videos${tagFilter ? ` for filter: ${tagFilter}` : ''}`);
         const youtubeResults = await getTrendingYouTubeVideos(youtubeLimit, tagFilter || undefined);
+        console.log(`[YouTube] Successfully fetched ${youtubeResults.videos.length} trending videos`);
         youtubeTrendingVideos = youtubeResults.videos.map(video => ({
         id: `youtube_${video.id}`,
         youtubeVideoId: video.id,
@@ -747,10 +749,14 @@ export const getRecentVideos = async (
         source: 'youtube',
       }));
     } catch (error: any) {
-      // Silently fail - don't crash if YouTube API fails
-      if (process.env.NODE_ENV === 'development') {
-        console.log('YouTube trending unavailable (quota exceeded or API key missing)');
-      }
+      // Log detailed error information
+      console.error('[YouTube] Failed to fetch trending videos:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        tagFilter: tagFilter || 'none'
+      });
+      // Don't crash - continue with just database videos
       }
     }
 
