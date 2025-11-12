@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Upload, Pencil, CheckCircle2 } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
