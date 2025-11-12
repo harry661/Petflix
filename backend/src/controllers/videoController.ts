@@ -660,13 +660,66 @@ export const getRecentVideos = async (
 
     // Order by popularity: view count (descending) first, then recency (created_at descending)
     // This ensures popular videos appear first, with newer popular videos prioritized
-    const { data: videos, error: dbError } = await query
-      .order('view_count', { ascending: false })
+    // Try to order by view_count, but fallback to created_at if view_count column doesn't exist
+    let { data: videos, error: dbError } = await query
+      .order('view_count', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(limit);
 
+    // If ordering by view_count fails (column doesn't exist), try without it
+    if (dbError && dbError.message && dbError.message.includes('view_count')) {
+      console.log('view_count column may not exist, using created_at ordering only');
+      // Rebuild query without view_count ordering
+      let fallbackQuery = supabaseAdmin!
+        .from('videos')
+        .select(`
+          id,
+          youtube_video_id,
+          title,
+          description,
+          user_id,
+          created_at,
+          updated_at,
+          users:user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          )
+        `);
+      
+      // Reapply tag filter if it was set
+      if (tagFilter && tagFilter.trim()) {
+        const tagMap: { [key: string]: string[] } = {
+          'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Pup', 'Pups', 'Canine', 'Doggy', 'Doggo'],
+          'cats': ['Cat', 'Cats', 'Kitten', 'Kittens', 'Kitty', 'Kitties', 'Feline', 'Meow', 'Purr'],
+          'birds': ['Bird', 'Birds', 'Parrot', 'Parrots'],
+          'small and fluffy': ['Hamster', 'Hamsters', 'Rabbit', 'Rabbits', 'Bunny', 'Bunnies'],
+          'underwater': ['Fish', 'Fishes', 'Goldfish', 'Aquarium', 'Aquatic', 'Underwater']
+        };
+        const filterLower = tagFilter.toLowerCase();
+        const tagNames = tagMap[filterLower] || [tagFilter];
+        const { data: taggedVideos } = await supabaseAdmin!
+          .from('video_tags_direct')
+          .select('video_id')
+          .in('tag_name', tagNames);
+        if (taggedVideos && taggedVideos.length > 0) {
+          const videoIds = taggedVideos.map((tv: any) => tv.video_id);
+          fallbackQuery = fallbackQuery.in('id', videoIds);
+        }
+      }
+      
+      const fallbackResult = await fallbackQuery
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      
+      videos = fallbackResult.data;
+      dbError = fallbackResult.error;
+    }
+
     if (dbError) {
-      res.status(500).json({ error: 'Failed to load videos' });
+      console.error('Database error in getRecentVideos:', dbError);
+      res.status(500).json({ error: 'Failed to load videos', details: dbError.message });
       return;
     }
 
