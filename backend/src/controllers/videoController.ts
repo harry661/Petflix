@@ -9,7 +9,7 @@ import {
   ErrorResponse,
 } from '../types';
 // YouTube URL validation is handled in youtubeService
-import { searchYouTubeVideos, getYouTubeVideoDetails, getYouTubeVideoMetadata, getTrendingYouTubeVideos } from '../services/youtubeService';
+import { searchYouTubeVideos, getYouTubeVideoDetails, getYouTubeVideoMetadata } from '../services/youtubeService';
 
 /**
  * Search for videos (YouTube + Petflix shared videos)
@@ -723,8 +723,8 @@ export const getRecentVideos = async (
       };
     });
 
-    // Only use videos shared by Petflix users (no YouTube API calls)
-    // All videos come from the database (shared by users including bots)
+    // Only show videos shared by Petflix users (no YouTube API calls)
+    // Videos are already sorted by view count and recency from the database query
     const allVideos = videosFormatted;
 
     res.json({
