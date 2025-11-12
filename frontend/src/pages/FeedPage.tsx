@@ -76,10 +76,19 @@ export default function FeedPage() {
       <div style={{
         minHeight: '100vh',
         backgroundColor: '#0F0F0F',
-        padding: '40px',
-        textAlign: 'center'
+        padding: '40px'
       }}>
-        <p style={{ color: '#c62828' }}>{error}</p>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
+          <h1 style={{ color: '#ffffff', marginBottom: '30px', fontSize: '32px', fontWeight: '600' }}>Following</h1>
+          <div style={{
+            padding: '20px',
+            backgroundColor: 'rgba(198, 40, 40, 0.2)',
+            borderRadius: '8px',
+            border: '1px solid rgba(198, 40, 40, 0.4)'
+          }}>
+            <p style={{ color: '#ff6b6b', margin: 0 }}>{error}</p>
+          </div>
+        </div>
       </div>
     );
   }
