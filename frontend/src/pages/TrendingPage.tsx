@@ -26,15 +26,20 @@ export default function TrendingPage() {
         url += `&tag=${encodeURIComponent(tagFilter)}`;
       }
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: 'include' // Include credentials for CORS
+      });
+      
       if (response.ok) {
         const data = await response.json();
         setVideos(data.videos || []);
       } else {
-        setError('Failed to load trending videos');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        setError(errorData.error || `Failed to load trending videos (${response.status})`);
       }
     } catch (err: any) {
-      setError('Failed to load trending videos. Please try again.');
+      console.error('Error loading trending videos:', err);
+      setError(err.message || 'Failed to load trending videos. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
