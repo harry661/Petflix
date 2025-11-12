@@ -183,8 +183,8 @@ export default function Navigation() {
           alignItems: 'center'
         }}>
           <Link to="/" style={logoStyle}>
-            <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-            <img src={PetflixLogo} alt="Petflix" style={{ height: '20px', width: 'auto' }} />
+            <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', pointerEvents: 'none' }} />
+            <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', pointerEvents: 'none' }} />
           </Link>
           <div style={{ color: '#fff', fontSize: '14px' }}>Loading...</div>
         </div>
@@ -209,13 +209,13 @@ export default function Navigation() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <Link to="/" style={logoStyle}>
-            <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-            <img src={PetflixLogo} alt="Petflix" style={{ height: '20px', width: 'auto' }} />
-          </Link>
-          <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
-            Sign In
-          </Link>
+              <Link to="/" style={logoStyle}>
+                <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', pointerEvents: 'none' }} />
+                <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', pointerEvents: 'none' }} />
+              </Link>
+              <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '14px' }}>
+                Sign In
+              </Link>
         </div>
       </nav>
     );
