@@ -20,6 +20,10 @@ export default function VideoDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [liking, setLiking] = useState(false);
+  const [isEditingVideo, setIsEditingVideo] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [savingVideo, setSavingVideo] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
@@ -54,6 +58,8 @@ export default function VideoDetailPage() {
         setVideo(data);
         setIsLiked(data.isLiked || false);
         setLikeCount(data.likeCount || 0);
+        setEditTitle(data.title || '');
+        setEditDescription(data.description || '');
       } else {
         setError(data.error || 'Video not found');
       }
@@ -175,6 +181,56 @@ export default function VideoDetailPage() {
       alert('Failed to like video');
     } finally {
       setLiking(false);
+    }
+  };
+
+  const handleEditVideo = () => {
+    setIsEditingVideo(true);
+    setEditTitle(video.title || '');
+    setEditDescription(video.description || '');
+  };
+
+  const handleCancelEditVideo = () => {
+    setIsEditingVideo(false);
+    setEditTitle(video.title || '');
+    setEditDescription(video.description || '');
+  };
+
+  const handleSaveVideo = async () => {
+    if (!id) return;
+
+    setSavingVideo(true);
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setSavingVideo(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/videos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          description: editDescription.trim() || null,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVideo(data);
+        setIsEditingVideo(false);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update video');
+      }
+    } catch (err) {
+      alert('Failed to update video');
+    } finally {
+      setSavingVideo(false);
     }
   };
 
@@ -319,27 +375,197 @@ export default function VideoDetailPage() {
 
           {/* Video Info */}
           <div style={{ marginBottom: '30px' }}>
-            <h1 style={{ color: '#ffffff', marginTop: 0, marginBottom: '12px', fontSize: '20px', lineHeight: '1.4' }}>
-              {video.title}
-            </h1>
-
-            {video.user && (
-              <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '16px', fontSize: '14px' }}>
-                Shared by <strong style={{ color: '#ffffff' }}>{video.user.username}</strong>
-              </p>
-            )}
-
-            {video.description && (
-              <div style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '20px'
-              }}>
-                <p style={{ color: '#ffffff', margin: 0, whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6' }}>
-                  {video.description}
-                </p>
+            {isEditingVideo ? (
+              <div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    maxLength={255}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '4px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#fff',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#ADD8E6';
+                      e.target.style.borderWidth = '1px';
+                      e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                      e.target.style.borderWidth = '1px';
+                      e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                  />
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    Description
+                  </label>
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      minHeight: '120px',
+                      boxSizing: 'border-box',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#fff',
+                      outline: 'none',
+                      resize: 'vertical',
+                      fontFamily: 'inherit'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#ADD8E6';
+                      e.target.style.borderWidth = '1px';
+                      e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                      e.target.style.borderWidth = '1px';
+                      e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={handleSaveVideo}
+                    disabled={savingVideo || !editTitle.trim()}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: '#ADD8E6',
+                      color: '#0F0F0F',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: savingVideo || !editTitle.trim() ? 'not-allowed' : 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      opacity: savingVideo || !editTitle.trim() ? 0.6 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!savingVideo && editTitle.trim()) {
+                        e.currentTarget.style.backgroundColor = '#87CEEB';
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#ADD8E6';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <Save size={16} />
+                    {savingVideo ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={handleCancelEditVideo}
+                    disabled={savingVideo}
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: 'transparent',
+                      color: '#ffffff',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '6px',
+                      cursor: savingVideo ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!savingVideo) {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <X size={16} />
+                    Cancel
+                  </button>
+                </div>
               </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <h1 style={{ color: '#ffffff', marginTop: 0, marginBottom: 0, fontSize: '20px', lineHeight: '1.4', flex: 1 }}>
+                    {video.title}
+                  </h1>
+                  {user && video.userId === user.id && (
+                    <button
+                      onClick={handleEditVideo}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        cursor: 'pointer',
+                        padding: '4px 8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'color 0.2s',
+                        marginLeft: '12px'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#ADD8E6'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                      title="Edit video"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                  )}
+                </div>
+
+                {video.user && (
+                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '16px', fontSize: '14px' }}>
+                    Shared by <strong style={{ color: '#ffffff' }}>{video.user.username}</strong>
+                  </p>
+                )}
+
+                {video.description && (
+                  <div style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    marginBottom: '20px'
+                  }}>
+                    <p style={{ color: '#ffffff', margin: 0, whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6' }}>
+                      {video.description}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

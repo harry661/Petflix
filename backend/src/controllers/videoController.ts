@@ -1044,6 +1044,105 @@ export const getLikeStatus = async (req: Request<{ id: string }>, res: Response)
 };
 
 /**
+ * Update a video (title and description)
+ * PUT /api/v1/videos/:id
+ */
+export const updateVideo = async (
+  req: Request<{ id: string }, VideoResponse | ErrorResponse, { title?: string; description?: string }>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { title, description } = req.body;
+
+    // Verify user owns the video
+    const { data: video, error: videoError } = await supabaseAdmin!
+      .from('videos')
+      .select('user_id, title, description')
+      .eq('id', id)
+      .single();
+
+    if (videoError || !video) {
+      res.status(404).json({ error: 'Video not found' });
+      return;
+    }
+
+    if (video.user_id !== req.user.userId) {
+      res.status(403).json({ error: 'You can only edit your own videos' });
+      return;
+    }
+
+    // Update video
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (title !== undefined) {
+      updateData.title = title.trim();
+    }
+
+    if (description !== undefined) {
+      updateData.description = description || null;
+    }
+
+    const { data: updatedVideo, error: updateError } = await supabaseAdmin!
+      .from('videos')
+      .update(updateData)
+      .eq('id', id)
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        created_at,
+        updated_at,
+        like_count,
+        users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        )
+      `)
+      .single();
+
+    if (updateError || !updatedVideo) {
+      console.error('Error updating video:', updateError);
+      res.status(500).json({ error: 'Failed to update video' });
+      return;
+    }
+
+    const userData = Array.isArray(updatedVideo.users) ? updatedVideo.users[0] : updatedVideo.users;
+
+    res.json({
+      id: updatedVideo.id,
+      youtubeVideoId: updatedVideo.youtube_video_id,
+      title: updatedVideo.title,
+      description: updatedVideo.description,
+      userId: updatedVideo.user_id,
+      createdAt: updatedVideo.created_at,
+      updatedAt: updatedVideo.updated_at,
+      likeCount: updatedVideo.like_count || 0,
+      user: userData ? {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        profile_picture_url: userData.profile_picture_url,
+      } : null,
+    });
+  } catch (error) {
+    console.error('Update video error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Delete a shared video
  * DELETE /api/v1/videos/:id
  */

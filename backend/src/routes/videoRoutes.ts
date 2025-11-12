@@ -11,6 +11,7 @@ import {
   getLikeStatus,
   getSearchHistory,
   clearSearchHistory,
+  updateVideo,
   deleteVideo,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
@@ -30,6 +31,7 @@ router.delete('/search-history', authenticate, clearSearchHistory);
 router.post('/:id/like', authenticate, likeVideo);
 router.delete('/:id/like', authenticate, unlikeVideo);
 router.get('/:id/like-status', optionalAuthenticate, getLikeStatus);
+router.put('/:id', authenticate, updateVideo);
 router.delete('/:id', authenticate, deleteVideo);
 
 // This must come last to avoid matching /feed, /search, etc. as video IDs
