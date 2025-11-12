@@ -666,10 +666,20 @@ export const getRecentVideos = async (
     // Order by popularity: view count (descending) first, then recency (created_at descending)
     // This ensures popular videos appear first, with newer popular videos prioritized
     // Try to order by view_count, but fallback to created_at if view_count column doesn't exist
+    // NOTE: This should return videos from ALL users, not just the current user
     let { data: videos, error: dbError } = await query
       .order('view_count', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(limit);
+    
+    // Debug logging to verify we're getting videos from multiple users
+    if (videos && videos.length > 0) {
+      const uniqueUserIds = new Set(videos.map((v: any) => v.user_id));
+      console.log(`[getRecentVideos] Fetched ${videos.length} videos from ${uniqueUserIds.size} unique user(s)`);
+      if (uniqueUserIds.size === 1) {
+        console.log(`[getRecentVideos] WARNING: Only videos from one user found. This might indicate the database only has videos from one user.`);
+      }
+    }
 
     // If ordering by view_count fails (column doesn't exist), try without it
     if (dbError && dbError.message && dbError.message.includes('view_count')) {
