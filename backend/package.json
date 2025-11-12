@@ -9,6 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "create-bots": "ts-node scripts/create-bot-accounts.ts",
     "seed-videos": "ts-node scripts/seed-videos.ts",
+    "seed-videos-as-users": "ts-node scripts/seed-videos-as-users.ts",
     "cleanup-videos": "ts-node scripts/cleanup-non-pet-videos.ts"
   },
   "keywords": [],
