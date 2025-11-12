@@ -283,8 +283,8 @@ export const changePassword = async (
       return;
     }
 
-    if (!validatePassword(newPassword)) {
-      res.status(400).json({ error: 'New password must be at least 8 characters with uppercase, lowercase, and number' });
+    if (newPassword.length < 8) {
+      res.status(400).json({ error: 'New password must be at least 8 characters' });
       return;
     }
 
