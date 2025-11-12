@@ -333,7 +333,12 @@ export default function HomePage() {
               return (
                 <button
                   key={filter}
-                  onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelectedFilter(selectedFilter === filter ? null : filter);
+                  }}
                   style={{
                     flex: 1,
                     padding: 0,

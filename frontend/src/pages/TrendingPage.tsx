@@ -101,11 +101,13 @@ export default function TrendingPage() {
     'Underwater': '/aquatic-filter.png'
   };
 
-  const handleFilterClick = (filter: string) => {
+  const handleFilterClick = (e: React.MouseEvent<HTMLButtonElement>, filter: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (tagFilter === filter.toLowerCase()) {
-      setSearchParams({});
+      setSearchParams({}, { replace: true }); // Use replace to avoid adding to history
     } else {
-      setSearchParams({ tag: filter.toLowerCase() });
+      setSearchParams({ tag: filter.toLowerCase() }, { replace: true }); // Use replace to avoid adding to history
     }
   };
 
@@ -139,7 +141,8 @@ export default function TrendingPage() {
             return (
               <button
                 key={filter}
-                onClick={() => handleFilterClick(filter)}
+                type="button"
+                onClick={(e) => handleFilterClick(e, filter)}
                 style={{
                   flex: 1,
                   padding: 0,
