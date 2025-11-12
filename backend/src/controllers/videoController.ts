@@ -55,8 +55,17 @@ export const searchVideos = async (
       // Continue with just shared videos
     }
 
-    // Search shared videos in database
-    const { data: sharedVideos, error: dbError } = await supabaseAdmin!
+    // Search shared videos in database by title, description, AND tags
+    // First, get video IDs that match the query in tags
+    const { data: matchingTags, error: tagsError } = await supabaseAdmin!
+      .from('video_tags_direct')
+      .select('video_id')
+      .ilike('tag_name', `%${query}%`);
+
+    const tagMatchedVideoIds = matchingTags ? matchingTags.map((t: any) => t.video_id) : [];
+
+    // Build query for videos matching title/description OR tags
+    let videoQuery = supabaseAdmin!
       .from('videos')
       .select(`
         id,
@@ -73,11 +82,81 @@ export const searchVideos = async (
           profile_picture_url
         )
       `)
-      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .or(`title.ilike.%${query}%,description.ilike.%${query}%`);
 
-    const sharedVideosFormatted = (sharedVideos || []).map((video: any) => {
+    // If there are tag matches, include them using a union approach
+    // We'll combine results after fetching
+    const { data: titleDescVideos, error: titleDescError } = await videoQuery
+      .order('created_at', { ascending: false })
+      .limit(limit * 2); // Get more to account for deduplication
+
+    // Get videos by tag match if there are any
+    let tagVideos: any[] = [];
+    if (tagMatchedVideoIds.length > 0) {
+      const { data: tagMatchedVideos, error: tagVideosError } = await supabaseAdmin!
+        .from('videos')
+        .select(`
+          id,
+          youtube_video_id,
+          title,
+          description,
+          user_id,
+          created_at,
+          updated_at,
+          users:user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          )
+        `)
+        .in('id', tagMatchedVideoIds)
+        .order('created_at', { ascending: false })
+        .limit(limit * 2);
+
+      if (!tagVideosError && tagMatchedVideos) {
+        tagVideos = tagMatchedVideos;
+      }
+    }
+
+    // Combine and deduplicate videos (tag matches first, then title/description)
+    const videoMap = new Map();
+    
+    // Add tag-matched videos first (higher priority)
+    tagVideos.forEach((video: any) => {
+      videoMap.set(video.id, video);
+    });
+    
+    // Add title/description matches (won't overwrite tag matches)
+    (titleDescVideos || []).forEach((video: any) => {
+      if (!videoMap.has(video.id)) {
+        videoMap.set(video.id, video);
+      }
+    });
+
+    const sharedVideos = Array.from(videoMap.values()).slice(0, limit);
+
+    // Get tags for all videos in one query
+    const videoIds = sharedVideos.map((v: any) => v.id);
+    let videoTagsMap: { [key: string]: string[] } = {};
+    
+    if (videoIds.length > 0) {
+      const { data: allTags } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('video_id, tag_name')
+        .in('video_id', videoIds);
+      
+      if (allTags) {
+        allTags.forEach((tagRow: any) => {
+          if (!videoTagsMap[tagRow.video_id]) {
+            videoTagsMap[tagRow.video_id] = [];
+          }
+          videoTagsMap[tagRow.video_id].push(tagRow.tag_name);
+        });
+      }
+    }
+
+    const sharedVideosFormatted = sharedVideos.map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
       // Generate thumbnail URL - YouTube thumbnails are generally available for valid video IDs
       // Use hqdefault as it's more reliable than maxresdefault (which may not exist for all videos)
@@ -96,6 +175,7 @@ export const searchVideos = async (
         userId: video.user_id,
         createdAt: video.created_at,
         updatedAt: video.updated_at,
+        tags: videoTagsMap[video.id] || [],
         user: userData ? {
           id: userData.id,
           username: userData.username,

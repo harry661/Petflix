@@ -16,7 +16,7 @@ export interface YouTubeVideoData {
 }
 
 /**
- * Search YouTube videos
+ * Search YouTube videos (restricted to pet-related content)
  */
 export const searchYouTubeVideos = async (
   query: string,
@@ -27,15 +27,36 @@ export const searchYouTubeVideos = async (
     throw new Error('YouTube API key is not configured');
   }
 
+  // Pet-related keywords to append to all searches to restrict results
+  // This ensures we only get pet-related content including pet care, training, and veterinary advice
+  // YouTube search works best with AND logic, so we'll append common pet terms
+  const petKeywords = [
+    'pet', 'pets', 'animal', 'animals',
+    'dog', 'dogs', 'puppy', 'puppies', 'canine',
+    'cat', 'cats', 'kitten', 'kittens', 'feline',
+    'bird', 'birds', 'parrot', 'parrots',
+    'hamster', 'rabbit', 'guinea pig', 'ferret', 'chinchilla',
+    'fish', 'aquarium', 'turtle', 'reptile',
+    'pet care', 'pet training', 'veterinary', 'vet advice', 'pet health',
+    'pet tips', 'animal training', 'pet grooming'
+  ];
+
+  // Append pet keywords to the query to restrict results to pet-related content
+  // Use AND logic: (original query) AND (pet|animal|dog|cat|bird)
+  // This ensures results are pet-related while still matching the user's search
+  const petQuery = `${query} (pet OR pets OR animal OR animals OR dog OR dogs OR cat OR cats OR bird OR birds OR "pet care" OR "pet training" OR veterinary OR "vet advice" OR "pet health")`;
+
   try {
     const response = await axios.get(`${YOUTUBE_API_URL}/search`, {
       params: {
         part: 'snippet',
-        q: query,
+        q: petQuery,
         type: 'video',
         maxResults,
         key: YOUTUBE_API_KEY,
         pageToken,
+        // Use relevanceLanguage and regionCode to help with relevance
+        relevanceLanguage: 'en',
       },
     });
 
