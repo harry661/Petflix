@@ -128,11 +128,11 @@ export const getTrendingYouTubeVideos = async (
   // Add tag-specific terms if filter is provided
   if (tagFilter) {
     const tagQueries: { [key: string]: string } = {
-      'dogs': 'trending dogs OR popular dog videos OR viral dog videos',
-      'cats': 'trending cats OR popular cat videos OR viral cat videos',
-      'birds': 'trending birds OR popular bird videos OR viral bird videos',
-      'small and fluffy': 'trending small pets OR popular hamster rabbit guinea pig videos',
-      'underwater': 'trending fish OR popular aquarium videos OR viral fish videos'
+      'dogs': 'trending dogs OR popular dog videos OR viral dog videos OR cute puppies',
+      'cats': 'trending cats OR popular cat videos OR viral cat videos OR cute kittens',
+      'birds': 'trending birds OR popular bird videos OR viral bird videos OR cute parrots OR pet birds',
+      'small and fluffy': 'trending small pets OR popular hamster rabbit guinea pig videos OR cute hamsters OR cute rabbits',
+      'underwater': 'trending fish OR popular aquarium videos OR viral fish videos OR pet fish OR aquarium pets OR aquatic pets'
     };
     
     const filterLower = tagFilter.toLowerCase();

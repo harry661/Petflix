@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 
@@ -9,19 +9,28 @@ export default function TrendingPage() {
   const tagFilter = searchParams.get('tag') || '';
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadTrendingVideos();
-  }, [tagFilter]);
-
-  const loadTrendingVideos = async () => {
+  const loadTrendingVideos = useCallback(async (reset: boolean = false) => {
     try {
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+        setVideos([]);
+        setOffset(0);
+      } else {
+        setLoadingMore(true);
+      }
       setError('');
       
-      // Build URL with tag filter if selected
-      let url = `${API_URL}/api/v1/videos/recent?limit=50`;
+      const currentOffset = reset ? 0 : offset;
+      const limit = 20; // Load 20 videos at a time
+      
+      // Build URL with tag filter and pagination
+      let url = `${API_URL}/api/v1/videos/recent?limit=${limit}&offset=${currentOffset}`;
       if (tagFilter) {
         url += `&tag=${encodeURIComponent(tagFilter)}`;
       }
@@ -29,7 +38,16 @@ export default function TrendingPage() {
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        setVideos(data.videos || []);
+        const newVideos = data.videos || [];
+        
+        if (reset) {
+          setVideos(newVideos);
+        } else {
+          setVideos(prev => [...prev, ...newVideos]);
+        }
+        
+        setHasMore(data.hasMore !== false && newVideos.length === limit);
+        setOffset(currentOffset + newVideos.length);
       } else {
         setError('Failed to load trending videos');
       }
@@ -37,8 +55,37 @@ export default function TrendingPage() {
       setError('Failed to load trending videos. Please try again.');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [tagFilter, offset]);
+
+  // Reset and load when filter changes
+  useEffect(() => {
+    loadTrendingVideos(true);
+  }, [tagFilter]); // Only depend on tagFilter, not the function
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          loadTrendingVideos(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, loadingMore, loadTrendingVideos]);
 
   const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
   
@@ -153,7 +200,7 @@ export default function TrendingPage() {
         )}
 
         {/* Results */}
-        {loading && (
+        {loading && videos.length === 0 && (
           <div style={{
             textAlign: 'center',
             padding: '60px',
@@ -177,19 +224,42 @@ export default function TrendingPage() {
           </div>
         )}
 
-        {!loading && videos.length > 0 && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '20px'
-          }}>
-            {videos.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))}
-          </div>
+        {videos.length > 0 && (
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '20px'
+            }}>
+              {videos.map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
+            </div>
+
+            {/* Infinite scroll trigger */}
+            <div ref={observerTarget} style={{ height: '20px', marginTop: '20px' }}>
+              {loadingMore && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: '#ffffff'
+                }}>
+                  <p>Loading more videos...</p>
+                </div>
+              )}
+              {!hasMore && videos.length > 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: 'rgba(255, 255, 255, 0.7)'
+                }}>
+                  <p>You've reached the end of trending videos!</p>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
   );
 }
-

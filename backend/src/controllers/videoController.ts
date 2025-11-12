@@ -577,11 +577,12 @@ export const getVideosByUser = async (
  * GET /api/v1/videos/recent
  */
 export const getRecentVideos = async (
-  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string; tag?: string }>,
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string; tag?: string; offset?: string }>,
   res: Response
 ) => {
   try {
     const limit = parseInt(req.query.limit || '12');
+    const offset = parseInt(req.query.offset || '0');
     const tagFilter = req.query.tag;
 
     let query = supabaseAdmin!
@@ -663,7 +664,7 @@ export const getRecentVideos = async (
     const { data: videos, error: dbError } = await query
       .order('view_count', { ascending: false })
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .range(offset, offset + limit - 1); // Use range for pagination
 
     if (dbError) {
       res.status(500).json({ error: 'Failed to load videos' });
@@ -721,10 +722,12 @@ export const getRecentVideos = async (
     });
 
     // Fetch trending YouTube videos (only if no tag filter or tag filter matches YouTube search)
+    // For pagination, only fetch YouTube videos on first page (offset === 0)
     let youtubeTrendingVideos: any[] = [];
-    try {
-      const youtubeResults = await getTrendingYouTubeVideos(Math.floor(limit / 2), tagFilter || undefined);
-      youtubeTrendingVideos = youtubeResults.videos.map(video => ({
+    if (offset === 0) {
+      try {
+        const youtubeResults = await getTrendingYouTubeVideos(Math.floor(limit / 2), tagFilter || undefined);
+        youtubeTrendingVideos = youtubeResults.videos.map(video => ({
         id: `youtube_${video.id}`,
         youtubeVideoId: video.id,
         title: video.title,
@@ -743,32 +746,41 @@ export const getRecentVideos = async (
       if (process.env.NODE_ENV === 'development') {
         console.log('YouTube trending unavailable (quota exceeded or API key missing)');
       }
+      }
     }
 
     // Combine platform and YouTube videos, sort by view count
-    const allVideos = [...videosFormatted, ...youtubeTrendingVideos];
-    
-    // Sort by view count (descending), then by recency
-    allVideos.sort((a, b) => {
-      const aViews = a.viewCount || 0;
-      const bViews = b.viewCount || 0;
-      if (bViews !== aViews) {
-        return bViews - aViews; // Higher view count first
-      }
-      // If view counts are equal, sort by recency
-      const aDate = new Date(a.createdAt || 0).getTime();
-      const bDate = new Date(b.createdAt || 0).getTime();
-      return bDate - aDate; // Newer first
-    });
+    // Only combine on first page (offset === 0), otherwise just use platform videos
+    let allVideos: any[];
+    if (offset === 0) {
+      allVideos = [...videosFormatted, ...youtubeTrendingVideos];
+      
+      // Sort by view count (descending), then by recency
+      allVideos.sort((a, b) => {
+        const aViews = a.viewCount || 0;
+        const bViews = b.viewCount || 0;
+        if (bViews !== aViews) {
+          return bViews - aViews; // Higher view count first
+        }
+        // If view counts are equal, sort by recency
+        const aDate = new Date(a.createdAt || 0).getTime();
+        const bDate = new Date(b.createdAt || 0).getTime();
+        return bDate - aDate; // Newer first
+      });
 
-    // Limit to requested number
-    const limitedVideos = allVideos.slice(0, limit);
+      // Limit to requested number
+      allVideos = allVideos.slice(0, limit);
+    } else {
+      // For subsequent pages, just use platform videos (already paginated)
+      allVideos = videosFormatted;
+    }
 
     res.json({
-      videos: limitedVideos,
-      total: limitedVideos.length,
-      page: 1,
+      videos: allVideos,
+      total: allVideos.length,
+      page: Math.floor(offset / limit) + 1,
       pageSize: limit,
+      hasMore: allVideos.length === limit, // Indicate if there might be more results
     });
   } catch (error) {
     console.error('Get recent videos error:', error);
