@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase';
 import { authenticate } from '../middleware/auth';
+import { notifyFollowersOfVideoShare } from '../services/notificationService';
 import {
   VideoCreationRequest,
   VideoResponse,
@@ -328,7 +329,7 @@ export const shareVideo = async (
       req.user!.userId,
       newVideo.id,
       finalTitle
-    ).catch(err => {
+    ).catch((err: any) => {
       console.error('Error notifying followers:', err);
       // Non-critical error, don't affect response
     });
