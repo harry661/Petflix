@@ -18,16 +18,18 @@ export default function FeedPage() {
       return; // Still checking auth
     }
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/');
       return;
     }
     loadFeed();
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   const loadFeed = async () => {
+    setLoading(true);
+    setError('');
     const token = localStorage.getItem('auth_token');
     if (!token) {
-      navigate('/login');
+      navigate('/');
       return;
     }
 
@@ -36,16 +38,20 @@ export default function FeedPage() {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setVideos(data.videos || []);
-      } else {
-        setError(data.error || 'Failed to load feed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.error || 'Failed to load feed');
+        setLoading(false);
+        return;
       }
+
+      const data = await response.json();
+      setVideos(data.videos || []);
     } catch (err: any) {
+      console.error('Error loading feed:', err);
       setError('Failed to load feed. Please try again.');
     } finally {
       setLoading(false);
