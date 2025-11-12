@@ -723,75 +723,9 @@ export const getRecentVideos = async (
       };
     });
 
-    // Fetch trending YouTube videos
-    // For pagination, only fetch YouTube videos on first page (offset === 0)
-    // Always try YouTube if there's a tag filter (even if no database videos found)
-    let youtubeTrendingVideos: any[] = [];
-    if (offset === 0) {
-      try {
-        // If tag filter exists, get more YouTube results since we might not have database videos
-        const youtubeLimit = tagFilter ? limit : Math.floor(limit / 2);
-        console.log(`[YouTube] Fetching ${youtubeLimit} trending videos${tagFilter ? ` for filter: ${tagFilter}` : ''}`);
-        const youtubeResults = await getTrendingYouTubeVideos(youtubeLimit, tagFilter || undefined);
-        console.log(`[YouTube] Successfully fetched ${youtubeResults.videos.length} trending videos`);
-        youtubeTrendingVideos = youtubeResults.videos.map(video => ({
-        id: `youtube_${video.id}`,
-        youtubeVideoId: video.id,
-        title: video.title,
-        description: video.description,
-        thumbnail: video.thumbnail,
-        channelTitle: video.channelTitle,
-        viewCount: parseInt(video.viewCount || '0'),
-        publishedAt: video.publishedAt,
-        createdAt: video.publishedAt, // Use publishedAt as createdAt for YouTube videos
-        user: null, // YouTube videos don't have a Petflix user
-        tags: [],
-        source: 'youtube',
-      }));
-    } catch (error: any) {
-      // Log detailed error information
-      console.error('[YouTube] Failed to fetch trending videos:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        tagFilter: tagFilter || 'none'
-      });
-      // Don't crash - continue with just database videos
-      }
-    }
-
-    // Combine platform and YouTube videos, sort by view count
-    // Only combine on first page (offset === 0), otherwise just use platform videos
-    let allVideos: any[];
-    if (offset === 0) {
-      // Combine both sources
-      allVideos = [...videosFormatted, ...youtubeTrendingVideos];
-      
-      // If we have a tag filter and no database videos, prioritize YouTube results
-      if (tagFilter && videosFormatted.length === 0 && youtubeTrendingVideos.length > 0) {
-        // Use all YouTube videos (already sorted by view count)
-        allVideos = youtubeTrendingVideos.slice(0, limit);
-      } else {
-        // Sort by view count (descending), then by recency
-        allVideos.sort((a, b) => {
-          const aViews = a.viewCount || 0;
-          const bViews = b.viewCount || 0;
-          if (bViews !== aViews) {
-            return bViews - aViews; // Higher view count first
-          }
-          // If view counts are equal, sort by recency
-          const aDate = new Date(a.createdAt || 0).getTime();
-          const bDate = new Date(b.createdAt || 0).getTime();
-          return bDate - aDate; // Newer first
-        });
-
-        // Limit to requested number
-        allVideos = allVideos.slice(0, limit);
-      }
-    } else {
-      // For subsequent pages, just use platform videos (already paginated)
-      allVideos = videosFormatted;
-    }
+    // Only use videos shared by Petflix users (no YouTube API calls)
+    // All videos come from the database (shared by users including bots)
+    const allVideos = videosFormatted;
 
     res.json({
       videos: allVideos,
