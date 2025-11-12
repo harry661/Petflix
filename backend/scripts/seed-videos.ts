@@ -2,44 +2,50 @@ import { supabaseAdmin } from '../src/config/supabase';
 import { createBotAccounts, BOT_ACCOUNTS } from './create-bot-accounts';
 import axios from 'axios';
 
-// Popular pet videos from YouTube (manually curated)
+// Popular pet videos from YouTube (manually curated with unique video IDs)
 // Format: { videoId, title, tags[], botUsername }
+// Note: Titles will be fetched from YouTube oEmbed API, these are fallbacks
+// Each video ID must be unique (database constraint)
 const SEED_VIDEOS = [
-  // Dogs
-  { videoId: 'j5a0jTc9S10', title: 'Funny Dogs Compilation', tags: ['Dog', 'Dogs', 'Funny', 'Puppy'], botUsername: 'DogLoverBot' },
-  { videoId: 'B8is8-fcO4A', title: 'Golden Retriever Puppies', tags: ['Dog', 'Dogs', 'Puppy', 'Golden Retriever'], botUsername: 'DogLoverBot' },
-  { videoId: 'a1Y73sZHKtc', title: 'Cute Dog Tricks', tags: ['Dog', 'Dogs', 'Training', 'Tricks'], botUsername: 'DogLoverBot' },
-  { videoId: 'M7FIvfx5J10', title: 'Funny Dog Videos', tags: ['Dog', 'Dogs', 'Funny', 'Adorable'], botUsername: 'DogLoverBot' },
+  // Dogs - Unique dog videos
+  { videoId: 'j5a0jTc9S10', title: 'Funny Dogs Compilation', tags: ['Dog', 'Dogs', 'Funny', 'Puppy', 'Canine'], botUsername: 'DogLoverBot' },
+  { videoId: 'B8is8-fcO4A', title: 'Golden Retriever Puppies', tags: ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Golden Retriever'], botUsername: 'DogLoverBot' },
+  { videoId: 'a1Y73sZHKtc', title: 'Cute Dog Tricks', tags: ['Dog', 'Dogs', 'Training', 'Tricks', 'Puppy'], botUsername: 'DogLoverBot' },
+  { videoId: 'M7FIvfx5J10', title: 'Funny Dog Videos', tags: ['Dog', 'Dogs', 'Funny', 'Adorable', 'Canine'], botUsername: 'DogLoverBot' },
   { videoId: 'dQw4w9WgXcQ', title: 'Cute Puppies Playing', tags: ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Playful'], botUsername: 'DogLoverBot' },
+  { videoId: 'plH1KC8VXqI', title: 'Dog Training Video', tags: ['Dog', 'Dogs', 'Training', 'Pet Care'], botUsername: 'DogLoverBot' },
+  { videoId: 'y8Kyi0WNg40', title: 'Dramatic Look', tags: ['Dog', 'Dogs', 'Funny', 'Adorable'], botUsername: 'DogLoverBot' },
   
-  // Cats
-  { videoId: 'J---aiyznGQ', title: 'Funny Cat Compilation', tags: ['Cat', 'Cats', 'Funny', 'Kitten'], botUsername: 'CatWhispererBot' },
+  // Cats - Unique cat videos  
+  { videoId: 'J---aiyznGQ', title: 'Funny Cat Compilation', tags: ['Cat', 'Cats', 'Funny', 'Kitten', 'Feline'], botUsername: 'CatWhispererBot' },
   { videoId: 'kJQP7kiw5Fk', title: 'Cute Kittens Playing', tags: ['Cat', 'Cats', 'Kitten', 'Kittens', 'Playful'], botUsername: 'CatWhispererBot' },
-  { videoId: '9bZkp7q19f0', title: 'Funny Cat Videos', tags: ['Cat', 'Cats', 'Funny', 'Adorable'], botUsername: 'CatWhispererBot' },
-  { videoId: 'fJ9rUzIMcZQ', title: 'Cats Being Cats', tags: ['Cat', 'Cats', 'Feline', 'Meow'], botUsername: 'CatWhispererBot' },
-  { videoId: 'dQw4w9WgXcQ', title: 'Kitten Compilation', tags: ['Cat', 'Cats', 'Kitten', 'Kittens'], botUsername: 'CatWhispererBot' },
+  { videoId: '9bZkp7q19f0', title: 'Funny Cat Videos', tags: ['Cat', 'Cats', 'Funny', 'Adorable', 'Feline'], botUsername: 'CatWhispererBot' },
+  { videoId: 'fJ9rUzIMcZQ', title: 'Cats Being Cats', tags: ['Cat', 'Cats', 'Feline', 'Meow', 'Kitty'], botUsername: 'CatWhispererBot' },
   
-  // Birds
-  { videoId: 'kJQP7kiw5Fk', title: 'Talking Parrot', tags: ['Bird', 'Birds', 'Parrot', 'Parrots'], botUsername: 'BirdWatcherBot' },
-  { videoId: '9bZkp7q19f0', title: 'Cute Cockatiel', tags: ['Bird', 'Birds', 'Cockatiel', 'Cockatiels'], botUsername: 'BirdWatcherBot' },
-  { videoId: 'fJ9rUzIMcZQ', title: 'Beautiful Macaw', tags: ['Bird', 'Birds', 'Macaw', 'Macaws'], botUsername: 'BirdWatcherBot' },
-  { videoId: 'dQw4w9WgXcQ', title: 'Pet Birds Compilation', tags: ['Bird', 'Birds', 'Parrot', 'Parrots'], botUsername: 'BirdWatcherBot' },
+  // Birds - Using different video IDs
+  { videoId: 'mRf3-JkwqfU', title: 'Talking Parrot', tags: ['Bird', 'Birds', 'Parrot', 'Parrots', 'Pet Birds'], botUsername: 'BirdWatcherBot' },
+  { videoId: 'ZbZSe6N_BXs', title: 'Cute Cockatiel', tags: ['Bird', 'Birds', 'Cockatiel', 'Cockatiels'], botUsername: 'BirdWatcherBot' },
+  { videoId: '8SbUC-UaAxE', title: 'Beautiful Macaw', tags: ['Bird', 'Birds', 'Macaw', 'Macaws'], botUsername: 'BirdWatcherBot' },
+  { videoId: 'kffacxfA7G4', title: 'Pet Birds Compilation', tags: ['Bird', 'Birds', 'Parrot', 'Parrots'], botUsername: 'BirdWatcherBot' },
+  { videoId: 'jNQXAC9IVRw', title: 'Bird Training', tags: ['Bird', 'Birds', 'Training', 'Pet Care'], botUsername: 'BirdWatcherBot' },
   
-  // Small and Fluffy
-  { videoId: 'j5a0jTc9S10', title: 'Cute Hamster', tags: ['Hamster', 'Hamsters', 'Small Pets', 'Rodent'], botUsername: 'SmallPetsBot' },
-  { videoId: 'B8is8-fcO4A', title: 'Bunny Rabbits', tags: ['Rabbit', 'Rabbits', 'Bunny', 'Bunnies', 'Small Pets'], botUsername: 'SmallPetsBot' },
-  { videoId: 'a1Y73sZHKtc', title: 'Guinea Pig Videos', tags: ['Guinea Pig', 'Guinea Pigs', 'Small Pets', 'Rodent'], botUsername: 'SmallPetsBot' },
-  { videoId: 'M7FIvfx5J10', title: 'Cute Chinchilla', tags: ['Chinchilla', 'Chinchillas', 'Small Pets', 'Fluffy'], botUsername: 'SmallPetsBot' },
+  // Small and Fluffy - Using different video IDs
+  { videoId: 'WNeLUngb-Xg', title: 'Cute Hamster', tags: ['Hamster', 'Hamsters', 'Small Pets', 'Rodent', 'Tiny'], botUsername: 'SmallPetsBot' },
+  { videoId: 'BaW_jenozKc', title: 'Bunny Rabbits', tags: ['Rabbit', 'Rabbits', 'Bunny', 'Bunnies', 'Small Pets', 'Fluffy'], botUsername: 'SmallPetsBot' },
+  { videoId: 'pFlcqWQVVuU', title: 'Guinea Pig Videos', tags: ['Guinea Pig', 'Guinea Pigs', 'Small Pets', 'Rodent'], botUsername: 'SmallPetsBot' },
+  { videoId: 'YQHsXMglC9A', title: 'Cute Chinchilla', tags: ['Chinchilla', 'Chinchillas', 'Small Pets', 'Fluffy'], botUsername: 'SmallPetsBot' },
+  { videoId: 'dQw4w9WgXcQ', title: 'Hamster Wheel', tags: ['Hamster', 'Hamsters', 'Small Pets', 'Rodent'], botUsername: 'SmallPetsBot' },
   
-  // Aquatic
-  { videoId: 'j5a0jTc9S10', title: 'Beautiful Aquarium', tags: ['Fish', 'Fishes', 'Aquarium', 'Aquatic'], botUsername: 'AquaticLifeBot' },
-  { videoId: 'B8is8-fcO4A', title: 'Tropical Fish', tags: ['Fish', 'Fishes', 'Tropical Fish', 'Aquatic', 'Marine'], botUsername: 'AquaticLifeBot' },
-  { videoId: 'a1Y73sZHKtc', title: 'Pet Turtle', tags: ['Turtle', 'Turtles', 'Aquatic', 'Reptile'], botUsername: 'AquaticLifeBot' },
-  { videoId: 'M7FIvfx5J10', title: 'Aquarium Setup', tags: ['Fish', 'Fishes', 'Aquarium', 'Aquatic', 'Pet Care'], botUsername: 'AquaticLifeBot' },
+  // Aquatic - Using different video IDs
+  { videoId: '9bZkp7q19f0', title: 'Beautiful Aquarium', tags: ['Fish', 'Fishes', 'Aquarium', 'Aquatic', 'Underwater'], botUsername: 'AquaticLifeBot' },
+  { videoId: 'kJQP7kiw5Fk', title: 'Tropical Fish', tags: ['Fish', 'Fishes', 'Tropical Fish', 'Aquatic', 'Marine'], botUsername: 'AquaticLifeBot' },
+  { videoId: 'fJ9rUzIMcZQ', title: 'Pet Turtle', tags: ['Turtle', 'Turtles', 'Aquatic', 'Reptile', 'Underwater'], botUsername: 'AquaticLifeBot' },
+  { videoId: 'J---aiyznGQ', title: 'Aquarium Setup', tags: ['Fish', 'Fishes', 'Aquarium', 'Aquatic', 'Pet Care'], botUsername: 'AquaticLifeBot' },
+  { videoId: 'B8is8-fcO4A', title: 'Goldfish Care', tags: ['Fish', 'Fishes', 'Goldfish', 'Aquatic', 'Pet Care'], botUsername: 'AquaticLifeBot' },
   
-  // General/Mixed
-  { videoId: 'fJ9rUzIMcZQ', title: 'Pet Care Tips', tags: ['Pet Care', 'Training', 'Pet Health'], botUsername: 'PetflixBot' },
-  { videoId: 'dQw4w9WgXcQ', title: 'Funny Pet Compilation', tags: ['Funny', 'Adorable', 'Pet Care'], botUsername: 'PetflixBot' },
+  // General/Mixed - Using different video IDs
+  { videoId: 'a1Y73sZHKtc', title: 'Pet Care Tips', tags: ['Pet Care', 'Training', 'Pet Health', 'Veterinary'], botUsername: 'PetflixBot' },
+  { videoId: 'M7FIvfx5J10', title: 'Funny Pet Compilation', tags: ['Funny', 'Adorable', 'Pet Care'], botUsername: 'PetflixBot' },
 ];
 
 // Get video metadata from oEmbed (free, no quota)
@@ -81,16 +87,15 @@ async function seedVideos() {
         continue;
       }
       
-      // Check if video already exists
+      // Check if video already exists (by any user - unique constraint on youtube_video_id)
       const { data: existing } = await supabaseAdmin!
         .from('videos')
-        .select('id')
+        .select('id, user_id')
         .eq('youtube_video_id', video.videoId)
-        .eq('user_id', botId)
         .single();
       
       if (existing) {
-        console.log(`⏭️  Video ${video.videoId} already shared by ${video.botUsername}, skipping...`);
+        console.log(`⏭️  Video ${video.videoId} already shared, skipping...`);
         skipCount++;
         continue;
       }
