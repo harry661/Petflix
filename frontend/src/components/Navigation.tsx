@@ -26,7 +26,12 @@ export default function Navigation() {
     letterSpacing: '0.5px',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px'
+    gap: '8px',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    MozUserSelect: 'none',
+    msUserSelect: 'none',
+    pointerEvents: 'auto'
   };
 
   const handleLogout = () => {
@@ -246,8 +251,8 @@ export default function Navigation() {
       }}>
         {/* Logo */}
         <Link to="/home" style={{ ...logoStyle, marginRight: '20px' }}>
-          <img src={PawLogo} alt="Petflix" style={{ width: '32px', height: '28px' }} />
-          <img src={PetflixLogo} alt="Petflix" style={{ height: '20px', width: 'auto' }} />
+          <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', pointerEvents: 'none' }} />
+          <img src={PetflixLogo} alt="" style={{ height: '20px', width: 'auto', userSelect: 'none', pointerEvents: 'none' }} />
         </Link>
 
         {/* Navigation Links */}
