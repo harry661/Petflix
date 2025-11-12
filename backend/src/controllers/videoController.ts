@@ -17,13 +17,14 @@ import { searchYouTubeVideos, getYouTubeVideoDetails, getYouTubeVideoMetadata } 
  * GET /api/v1/videos/search
  */
 export const searchVideos = async (
-  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { q?: string; page?: string; limit?: string }>,
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { q?: string; page?: string; limit?: string; sort?: string }>,
   res: Response
 ) => {
   try {
     const query = req.query.q;
     const page = parseInt(req.query.page || '1');
     const limit = parseInt(req.query.limit || '10');
+    const sort = req.query.sort || 'relevance'; // relevance, recency, views, engagement
 
     if (!query || query.trim() === '') {
       res.status(400).json({ error: 'Search query is required' });
@@ -65,6 +66,22 @@ export const searchVideos = async (
 
     const tagMatchedVideoIds = matchingTags ? matchingTags.map((t: any) => t.video_id) : [];
 
+    // Determine sort order based on sort parameter
+    let orderBy = 'created_at';
+    let ascending = false;
+    
+    if (sort === 'recency') {
+      orderBy = 'created_at';
+      ascending = false;
+    } else if (sort === 'views') {
+      orderBy = 'view_count';
+      ascending = false;
+    } else if (sort === 'engagement') {
+      orderBy = 'like_count';
+      ascending = false;
+    }
+    // 'relevance' keeps default (tag matches first, then by created_at)
+
     // Build query for videos matching title/description OR tags
     let videoQuery = supabaseAdmin!
       .from('videos')
@@ -76,6 +93,8 @@ export const searchVideos = async (
         user_id,
         created_at,
         updated_at,
+        view_count,
+        like_count,
         users:user_id (
           id,
           username,
@@ -88,7 +107,7 @@ export const searchVideos = async (
     // If there are tag matches, include them using a union approach
     // We'll combine results after fetching
     const { data: titleDescVideos, error: titleDescError } = await videoQuery
-      .order('created_at', { ascending: false })
+      .order(orderBy, { ascending })
       .limit(limit * 2); // Get more to account for deduplication
 
     // Get videos by tag match if there are any
@@ -104,6 +123,8 @@ export const searchVideos = async (
           user_id,
           created_at,
           updated_at,
+          view_count,
+          like_count,
           users:user_id (
             id,
             username,
@@ -112,7 +133,7 @@ export const searchVideos = async (
           )
         `)
         .in('id', tagMatchedVideoIds)
-        .order('created_at', { ascending: false })
+        .order(orderBy, { ascending })
         .limit(limit * 2);
 
       if (!tagVideosError && tagMatchedVideos) {
@@ -120,10 +141,10 @@ export const searchVideos = async (
       }
     }
 
-    // Combine and deduplicate videos (tag matches first, then title/description)
+    // Combine and deduplicate videos
     const videoMap = new Map();
     
-    // Add tag-matched videos first (higher priority)
+    // Add tag-matched videos first (higher priority for relevance)
     tagVideos.forEach((video: any) => {
       videoMap.set(video.id, video);
     });
@@ -135,7 +156,23 @@ export const searchVideos = async (
       }
     });
 
-    const sharedVideos = Array.from(videoMap.values()).slice(0, limit);
+    let sharedVideos = Array.from(videoMap.values());
+    
+    // Sort combined results if not relevance (relevance keeps tag matches first)
+    if (sort !== 'relevance') {
+      sharedVideos.sort((a: any, b: any) => {
+        if (sort === 'recency') {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        } else if (sort === 'views') {
+          return (b.view_count || 0) - (a.view_count || 0);
+        } else if (sort === 'engagement') {
+          return (b.like_count || 0) - (a.like_count || 0);
+        }
+        return 0;
+      });
+    }
+    
+    sharedVideos = sharedVideos.slice(0, limit);
 
     // Get tags for all videos in one query
     const videoIds = sharedVideos.map((v: any) => v.id);
@@ -188,8 +225,25 @@ export const searchVideos = async (
       };
     });
 
+    // Sort YouTube videos based on sort parameter
+    let sortedYoutubeVideos = [...youtubeVideos];
+    if (sort === 'recency') {
+      sortedYoutubeVideos.sort((a, b) => {
+        const dateA = new Date(a.publishedAt || a.createdAt || 0).getTime();
+        const dateB = new Date(b.publishedAt || b.createdAt || 0).getTime();
+        return dateB - dateA;
+      });
+    } else if (sort === 'views') {
+      sortedYoutubeVideos.sort((a, b) => {
+        const viewsA = parseInt(a.viewCount || '0') || 0;
+        const viewsB = parseInt(b.viewCount || '0') || 0;
+        return viewsB - viewsA;
+      });
+    }
+    // 'relevance' and 'engagement' keep YouTube videos as-is (no engagement data from YouTube)
+
     // Combine results (Petflix videos first, then YouTube)
-    const allVideos = [...sharedVideosFormatted, ...youtubeVideos];
+    const allVideos = [...sharedVideosFormatted, ...sortedYoutubeVideos];
 
     res.json({
       videos: allVideos,
