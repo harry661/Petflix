@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
 import VideoCard from '../components/VideoCard';
@@ -389,8 +389,8 @@ export default function HomePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ color: '#ffffff', margin: 0 }}>{displayTitle}</h2>
             {!isSearchOpen && !selectedFilter && (
-              <a
-                href="/trending"
+              <Link
+                to="/trending"
                 style={{
                   padding: '10px 20px',
                   backgroundColor: 'transparent',
@@ -413,7 +413,7 @@ export default function HomePage() {
                 }}
               >
                 See more
-              </a>
+              </Link>
             )}
           </div>
           
