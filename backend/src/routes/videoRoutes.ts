@@ -6,6 +6,9 @@ import {
   getFeed,
   getVideosByUser,
   getRecentVideos,
+  likeVideo,
+  unlikeVideo,
+  getLikeStatus,
   deleteVideo,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
@@ -20,6 +23,9 @@ router.get('/user/:userId', optionalAuthenticate, getVideosByUser);
 // Protected routes
 router.post('/', authenticate, shareVideo);
 router.get('/feed', authenticate, getFeed); // Must come before /:id route
+router.post('/:id/like', authenticate, likeVideo);
+router.delete('/:id/like', authenticate, unlikeVideo);
+router.get('/:id/like-status', optionalAuthenticate, getLikeStatus);
 router.delete('/:id', authenticate, deleteVideo);
 
 // This must come last to avoid matching /feed, /search, etc. as video IDs

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Edit2, Trash2, Save, X } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Heart } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -17,6 +17,9 @@ export default function VideoDetailPage() {
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liking, setLiking] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
@@ -49,6 +52,8 @@ export default function VideoDetailPage() {
       
       if (response.ok) {
         setVideo(data);
+        setIsLiked(data.isLiked || false);
+        setLikeCount(data.likeCount || 0);
       } else {
         setError(data.error || 'Video not found');
       }
@@ -132,6 +137,44 @@ export default function VideoDetailPage() {
       }
     } catch (err) {
       alert('Failed to delete comment');
+    }
+  };
+
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      alert('Please log in to like videos');
+      return;
+    }
+
+    if (!id) return;
+
+    setLiking(true);
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setLiking(false);
+      return;
+    }
+
+    try {
+      const endpoint = isLiked ? 'DELETE' : 'POST';
+      const response = await fetch(`${API_URL}/api/v1/videos/${id}/like`, {
+        method: endpoint,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setIsLiked(!isLiked);
+        setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to like video');
+      }
+    } catch (err) {
+      alert('Failed to like video');
+    } finally {
+      setLiking(false);
     }
   };
 
@@ -299,7 +342,40 @@ export default function VideoDetailPage() {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button
+                onClick={handleLike}
+                disabled={liking || !isAuthenticated}
+                style={{
+                  padding: '14px 24px',
+                  backgroundColor: isLiked ? '#ff6b6b' : 'transparent',
+                  color: isLiked ? '#ffffff' : '#ffffff',
+                  border: isLiked ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '6px',
+                  cursor: isAuthenticated && !liking ? 'pointer' : 'not-allowed',
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s ease',
+                  opacity: isAuthenticated && !liking ? 1 : 0.6
+                }}
+                onMouseEnter={(e) => {
+                  if (isAuthenticated && !liking) {
+                    e.currentTarget.style.backgroundColor = isLiked ? '#ff5252' : 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isLiked ? '#ff6b6b' : 'transparent';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                title={isAuthenticated ? (isLiked ? 'Unlike video' : 'Like video') : 'Log in to like videos'}
+              >
+                <Heart size={18} fill={isLiked ? '#ffffff' : 'none'} />
+                {likeCount > 0 && <span>{likeCount}</span>}
+              </button>
               {isAuthenticated && (
                 <button
                   onClick={handleShare}

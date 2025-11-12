@@ -389,6 +389,7 @@ export const getVideoById = async (
         user_id,
         created_at,
         updated_at,
+        like_count,
         users:user_id (
           id,
           username,
@@ -406,6 +407,19 @@ export const getVideoById = async (
     }
 
     const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+    
+    // Get like status if user is authenticated
+    let isLiked = false;
+    if (req.user) {
+      const { data: like } = await supabaseAdmin!
+        .from('likes')
+        .select('id')
+        .eq('user_id', req.user.userId)
+        .eq('video_id', id)
+        .single();
+      isLiked = !!like;
+    }
+
     res.json({
       id: video.id,
       youtubeVideoId: video.youtube_video_id,
@@ -414,6 +428,8 @@ export const getVideoById = async (
       userId: video.user_id,
       createdAt: video.created_at,
       updatedAt: video.updated_at,
+      likeCount: video.like_count || 0,
+      isLiked: isLiked,
       user: userData ? {
         id: userData.id,
         username: userData.username,
@@ -759,6 +775,138 @@ export const getRecentVideos = async (
   } catch (error) {
     console.error('Get recent videos error:', error);
     res.status(500).json({ error: 'Failed to load recent videos' });
+  }
+};
+
+/**
+ * Like a video
+ * POST /api/v1/videos/:id/like
+ */
+export const likeVideo = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    // Check if video exists
+    const { data: video, error: videoError } = await supabaseAdmin!
+      .from('videos')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (videoError || !video) {
+      res.status(404).json({ error: 'Video not found' });
+      return;
+    }
+
+    // Check if already liked
+    const { data: existingLike } = await supabaseAdmin!
+      .from('likes')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('video_id', id)
+      .single();
+
+    if (existingLike) {
+      res.status(409).json({ error: 'Video already liked' });
+      return;
+    }
+
+    // Create like (trigger will update like_count)
+    const { error: likeError } = await supabaseAdmin!
+      .from('likes')
+      .insert({
+        user_id: userId,
+        video_id: id,
+      });
+
+    if (likeError) {
+      console.error('Error liking video:', likeError);
+      res.status(500).json({ error: 'Failed to like video' });
+      return;
+    }
+
+    res.json({ message: 'Video liked successfully' });
+  } catch (error) {
+    console.error('Like video error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Unlike a video
+ * DELETE /api/v1/videos/:id/like
+ */
+export const unlikeVideo = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    // Delete like (trigger will update like_count)
+    const { error: unlikeError } = await supabaseAdmin!
+      .from('likes')
+      .delete()
+      .eq('user_id', userId)
+      .eq('video_id', id);
+
+    if (unlikeError) {
+      console.error('Error unliking video:', unlikeError);
+      res.status(500).json({ error: 'Failed to unlike video' });
+      return;
+    }
+
+    res.json({ message: 'Video unliked successfully' });
+  } catch (error) {
+    console.error('Unlike video error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Check if user has liked a video
+ * GET /api/v1/videos/:id/like-status
+ */
+export const getLikeStatus = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    if (!req.user) {
+      res.json({ isLiked: false, likeCount: 0 });
+      return;
+    }
+
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    // Check if user has liked the video
+    const { data: like } = await supabaseAdmin!
+      .from('likes')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('video_id', id)
+      .single();
+
+    // Get like count
+    const { count: likeCount } = await supabaseAdmin!
+      .from('likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('video_id', id);
+
+    res.json({
+      isLiked: !!like,
+      likeCount: likeCount || 0,
+    });
+  } catch (error) {
+    console.error('Get like status error:', error);
+    res.json({ isLiked: false, likeCount: 0 });
   }
 };
 
