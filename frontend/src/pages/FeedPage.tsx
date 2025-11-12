@@ -49,6 +49,8 @@ export default function FeedPage() {
       }
 
       const data = await response.json();
+      console.log('Feed response:', data);
+      console.log('Videos count:', data.videos?.length || 0);
       setVideos(data.videos || []);
     } catch (err: any) {
       console.error('Error loading feed:', err);
