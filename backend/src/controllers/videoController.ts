@@ -707,6 +707,7 @@ export const getRecentVideos = async (
         userId: video.user_id,
         createdAt: video.created_at,
         updatedAt: video.updated_at,
+        viewCount: video.view_count || 0,
         tags: videoTagsMap[video.id] || [],
         user: userData ? {
           id: userData.id,
