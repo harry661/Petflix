@@ -470,6 +470,7 @@ export const getFeed = async (req: Request, res: Response) => {
         user_id,
         created_at,
         updated_at,
+        view_count,
         users:user_id (
           id,
           username,
@@ -504,6 +505,7 @@ export const getFeed = async (req: Request, res: Response) => {
         userId: video.user_id,
         createdAt: video.created_at,
         updatedAt: video.updated_at,
+        viewCount: video.view_count || 0,
         thumbnail: thumbnail,
         user: userData ? {
           id: userData.id,
