@@ -114,22 +114,37 @@ export const notifyUserOfNewFollower = async (
   followerId: string
 ): Promise<void> => {
   try {
-    // Get the follower's username
-    const { data: followerData } = await supabaseAdmin!
+    // Get the follower's username and profile picture
+    const { data: followerData, error: followerError } = await supabaseAdmin!
       .from('users')
-      .select('username')
+      .select('username, profile_picture_url')
       .eq('id', followerId)
       .single();
 
-    const followerUsername = followerData?.username || 'Someone';
+    if (followerError || !followerData) {
+      console.error('Error fetching follower data:', followerError);
+      return;
+    }
 
-    await createNotification(
-      followedUserId,
-      'follow',
-      `${followerUsername} started following you`,
-      `${followerUsername} is now following you`,
-      followerId
-    );
+    const followerUsername = followerData.username || 'Someone';
+
+    // Create the notification
+    const { error: notifError } = await supabaseAdmin!
+      .from('notifications')
+      .insert({
+        user_id: followedUserId,
+        type: 'follow',
+        title: `${followerUsername} started following you`,
+        message: `${followerUsername} is now following you. Check out their profile!`,
+        related_user_id: followerId,
+        read: false,
+      });
+
+    if (notifError) {
+      console.error('Error creating follow notification:', notifError);
+    } else {
+      console.log(`✅ Created follow notification for user ${followedUserId} from ${followerUsername}`);
+    }
   } catch (error) {
     console.error('Error notifying user of new follower:', error);
     // Don't throw - notifications are non-critical

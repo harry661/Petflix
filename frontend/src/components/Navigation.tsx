@@ -2,7 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
-import { Search, Bell, ChevronDown, X } from 'lucide-react';
+import { Search, Bell, ChevronDown, X, UserPlus, Video, Heart, MessageCircle } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
 import PetflixLogo from '../assets/PETFLIX.svg';
 
@@ -586,42 +586,63 @@ export default function Navigation() {
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = notification.read ? 'transparent' : 'rgba(173, 216, 230, 0.1)'}
                       >
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                          {notification.related_user?.profile_picture_url ? (
-                            <img
-                              src={notification.related_user.profile_picture_url}
-                              alt={notification.related_user.username}
-                              style={{
+                          {/* Profile Picture or Icon */}
+                          <div style={{ position: 'relative', flexShrink: 0 }}>
+                            {notification.related_user?.profile_picture_url ? (
+                              <img
+                                src={notification.related_user.profile_picture_url}
+                                alt={notification.related_user.username}
+                                style={{
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '50%',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                            ) : (
+                              <div style={{
                                 width: '40px',
                                 height: '40px',
                                 borderRadius: '50%',
-                                objectFit: 'cover',
-                                flexShrink: 0
-                              }}
-                            />
-                          ) : (
+                                backgroundColor: '#ADD8E6',
+                                color: '#0F0F0F',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 'bold',
+                                fontSize: '16px'
+                              }}>
+                                {notification.related_user?.username?.charAt(0).toUpperCase() || 'U'}
+                              </div>
+                            )}
+                            {/* Notification type icon overlay */}
                             <div style={{
-                              width: '40px',
-                              height: '40px',
+                              position: 'absolute',
+                              bottom: '-2px',
+                              right: '-2px',
+                              width: '18px',
+                              height: '18px',
                               borderRadius: '50%',
-                              backgroundColor: '#ADD8E6',
-                              color: '#0F0F0F',
+                              backgroundColor: '#0F0F0F',
+                              border: '2px solid #0F0F0F',
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              fontWeight: 'bold',
-                              fontSize: '16px',
-                              flexShrink: 0
+                              justifyContent: 'center'
                             }}>
-                              {notification.related_user?.username?.charAt(0).toUpperCase() || 'U'}
+                              {notification.type === 'follow' && <UserPlus size={10} color="#ADD8E6" />}
+                              {notification.type === 'video_shared' && <Video size={10} color="#ADD8E6" />}
+                              {notification.type === 'like' && <Heart size={10} color="#ADD8E6" />}
+                              {notification.type === 'comment' && <MessageCircle size={10} color="#ADD8E6" />}
                             </div>
-                          )}
+                          </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{
                               color: '#fff',
                               margin: 0,
                               fontSize: '14px',
                               fontWeight: notification.read ? '400' : '600',
-                              marginBottom: '4px'
+                              marginBottom: '4px',
+                              lineHeight: '1.4'
                             }}>
                               {notification.title}
                             </p>
@@ -629,18 +650,30 @@ export default function Navigation() {
                               color: 'rgba(255, 255, 255, 0.7)',
                               margin: 0,
                               fontSize: '12px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
+                              lineHeight: '1.4',
+                              marginBottom: '4px'
                             }}>
                               {notification.message}
                             </p>
                             <p style={{
                               color: 'rgba(255, 255, 255, 0.5)',
-                              margin: '4px 0 0 0',
+                              margin: 0,
                               fontSize: '11px'
                             }}>
-                              {new Date(notification.created_at).toLocaleDateString()}
+                              {(() => {
+                                const date = new Date(notification.created_at);
+                                const now = new Date();
+                                const diffMs = now.getTime() - date.getTime();
+                                const diffMins = Math.floor(diffMs / (1000 * 60));
+                                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                                
+                                if (diffMins < 1) return 'Just now';
+                                if (diffMins < 60) return `${diffMins}m ago`;
+                                if (diffHours < 24) return `${diffHours}h ago`;
+                                if (diffDays < 7) return `${diffDays}d ago`;
+                                return date.toLocaleDateString();
+                              })()}
                             </p>
                           </div>
                         </div>
