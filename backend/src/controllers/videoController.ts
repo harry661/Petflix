@@ -448,16 +448,21 @@ export const getFeed = async (req: Request, res: Response) => {
       .eq('follower_id', req.user.userId);
 
     if (followingError) {
+      console.error('Error fetching following users:', followingError);
       res.status(500).json({ error: 'Failed to load feed' });
       return;
     }
 
+    console.log(`User ${req.user.userId} is following ${following?.length || 0} users`);
+
     if (!following || following.length === 0) {
+      console.log('No users being followed, returning empty feed');
       res.json({ videos: [] });
       return;
     }
 
     const followingIds = following.map(f => f.following_id);
+    console.log('Following user IDs:', followingIds);
 
     // Get videos from followed users
     const { data: videos, error: videosError } = await supabaseAdmin!
@@ -483,9 +488,12 @@ export const getFeed = async (req: Request, res: Response) => {
       .limit(50);
 
     if (videosError) {
+      console.error('Error fetching videos from followed users:', videosError);
       res.status(500).json({ error: 'Failed to load feed' });
       return;
     }
+
+    console.log(`Found ${videos?.length || 0} videos from followed users`);
 
     // Format videos with thumbnails (generate directly from video IDs)
     const videosFormatted = (videos || []).map((video: any) => {
@@ -516,6 +524,7 @@ export const getFeed = async (req: Request, res: Response) => {
       };
     });
 
+    console.log(`Returning ${videosFormatted.length} formatted videos`);
     res.json({
       videos: videosFormatted,
     });

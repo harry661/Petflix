@@ -51,6 +51,12 @@ export default function FeedPage() {
       const data = await response.json();
       console.log('Feed response:', data);
       console.log('Videos count:', data.videos?.length || 0);
+      console.log('Videos array:', data.videos);
+      
+      if (data.videos && data.videos.length > 0) {
+        console.log('First video:', data.videos[0]);
+      }
+      
       setVideos(data.videos || []);
     } catch (err: any) {
       console.error('Error loading feed:', err);
