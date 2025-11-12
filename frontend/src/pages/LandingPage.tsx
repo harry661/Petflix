@@ -371,7 +371,6 @@ export default function LandingPage() {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              minLength={8}
               style={{
                 width: '100%',
                 padding: '16px',
