@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Edit2, Trash2, Save, X, Heart } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Heart, Flag } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+const REPORT_REASONS = [
+  'Inappropriate content',
+  'Spam or misleading',
+  'Violence or harmful content',
+  'Copyright infringement',
+  'Other'
+];
 
 export default function VideoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +32,10 @@ export default function VideoDetailPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
+  const [reporting, setReporting] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
@@ -231,6 +243,56 @@ export default function VideoDetailPage() {
       alert('Failed to update video');
     } finally {
       setSavingVideo(false);
+    }
+  };
+
+  const handleReportVideo = async () => {
+    if (!isAuthenticated) {
+      alert('Please log in to report videos');
+      return;
+    }
+
+    if (!reportReason) {
+      alert('Please select a reason for reporting');
+      return;
+    }
+
+    if (!id) return;
+
+    setReporting(true);
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setReporting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/videos/${id}/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reason: reportReason,
+          description: reportDescription.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || 'Video reported successfully');
+        setShowReportModal(false);
+        setReportReason('');
+        setReportDescription('');
+      } else {
+        alert(data.error || 'Failed to report video');
+      }
+    } catch (err) {
+      alert('Failed to report video');
+    } finally {
+      setReporting(false);
     }
   };
 
@@ -603,32 +665,65 @@ export default function VideoDetailPage() {
                 {likeCount > 0 && <span>{likeCount}</span>}
               </button>
               {isAuthenticated && (
-                <button
-                  onClick={handleShare}
-                  style={{
-                    padding: '14px 32px',
-                    backgroundColor: '#ADD8E6',
-                    color: '#0F0F0F',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '16px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#87CEEB';
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ADD8E6';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  Share This Video
-                </button>
+                <>
+                  <button
+                    onClick={handleShare}
+                    style={{
+                      padding: '14px 32px',
+                      backgroundColor: '#ADD8E6',
+                      color: '#0F0F0F',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '16px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#87CEEB';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#ADD8E6';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    Share This Video
+                  </button>
+                  {user && video.userId !== user.id && (
+                    <button
+                      onClick={() => setShowReportModal(true)}
+                      style={{
+                        padding: '14px 24px',
+                        backgroundColor: 'transparent',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                      title="Report video"
+                    >
+                      <Flag size={18} />
+                      Report
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>

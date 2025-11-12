@@ -1143,6 +1143,77 @@ export const updateVideo = async (
 };
 
 /**
+ * Report a video
+ * POST /api/v1/videos/:id/report
+ */
+export const reportVideo = async (
+  req: Request<{ id: string }, { message: string } | ErrorResponse, { reason: string; description?: string }>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+    const { reason, description } = req.body;
+
+    if (!reason || reason.trim() === '') {
+      res.status(400).json({ error: 'Report reason is required' });
+      return;
+    }
+
+    // Check if video exists
+    const { data: video, error: videoError } = await supabaseAdmin!
+      .from('videos')
+      .select('id')
+      .eq('id', id)
+      .single();
+
+    if (videoError || !video) {
+      res.status(404).json({ error: 'Video not found' });
+      return;
+    }
+
+    // Check if user already reported this video
+    const { data: existingReport } = await supabaseAdmin!
+      .from('video_reports')
+      .select('id')
+      .eq('video_id', id)
+      .eq('reporter_id', req.user.userId)
+      .single();
+
+    if (existingReport) {
+      res.status(409).json({ error: 'You have already reported this video' });
+      return;
+    }
+
+    // Create report
+    const { error: reportError } = await supabaseAdmin!
+      .from('video_reports')
+      .insert({
+        video_id: id,
+        reporter_id: req.user.userId,
+        reason: reason.trim(),
+        description: description?.trim() || null,
+        status: 'pending',
+      });
+
+    if (reportError) {
+      console.error('Error creating report:', reportError);
+      res.status(500).json({ error: 'Failed to submit report' });
+      return;
+    }
+
+    res.json({ message: 'Video reported successfully. Thank you for helping keep Petflix safe.' });
+  } catch (error) {
+    console.error('Report video error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Delete a shared video
  * DELETE /api/v1/videos/:id
  */
