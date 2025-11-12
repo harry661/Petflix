@@ -649,14 +649,16 @@ export const getRecentVideos = async (
         .select('video_id')
         .in('tag_name', tagNames);
 
-      if (tagsError || !taggedVideos || taggedVideos.length === 0) {
-        // No videos with this tag, return empty
-        res.json({ videos: [], total: 0, page: 1, pageSize: limit });
-        return;
+      // If there are tagged videos, filter by them
+      // If not, we'll still try to get YouTube results
+      if (taggedVideos && taggedVideos.length > 0) {
+        const videoIds = taggedVideos.map((tv: any) => tv.video_id);
+        query = query.in('id', videoIds);
+      } else {
+        // No tagged videos in database, but we'll still try YouTube
+        // Set query to return no results from database (we'll rely on YouTube)
+        query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // Impossible ID to return empty
       }
-
-      const videoIds = taggedVideos.map((tv: any) => tv.video_id);
-      query = query.in('id', videoIds);
     }
 
     // Order by popularity: view count (descending) first, then recency (created_at descending)
@@ -721,12 +723,15 @@ export const getRecentVideos = async (
       };
     });
 
-    // Fetch trending YouTube videos (only if no tag filter or tag filter matches YouTube search)
+    // Fetch trending YouTube videos
     // For pagination, only fetch YouTube videos on first page (offset === 0)
+    // Always try YouTube if there's a tag filter (even if no database videos found)
     let youtubeTrendingVideos: any[] = [];
     if (offset === 0) {
       try {
-        const youtubeResults = await getTrendingYouTubeVideos(Math.floor(limit / 2), tagFilter || undefined);
+        // If tag filter exists, get more YouTube results since we might not have database videos
+        const youtubeLimit = tagFilter ? limit : Math.floor(limit / 2);
+        const youtubeResults = await getTrendingYouTubeVideos(youtubeLimit, tagFilter || undefined);
         youtubeTrendingVideos = youtubeResults.videos.map(video => ({
         id: `youtube_${video.id}`,
         youtubeVideoId: video.id,
@@ -753,23 +758,30 @@ export const getRecentVideos = async (
     // Only combine on first page (offset === 0), otherwise just use platform videos
     let allVideos: any[];
     if (offset === 0) {
+      // Combine both sources
       allVideos = [...videosFormatted, ...youtubeTrendingVideos];
       
-      // Sort by view count (descending), then by recency
-      allVideos.sort((a, b) => {
-        const aViews = a.viewCount || 0;
-        const bViews = b.viewCount || 0;
-        if (bViews !== aViews) {
-          return bViews - aViews; // Higher view count first
-        }
-        // If view counts are equal, sort by recency
-        const aDate = new Date(a.createdAt || 0).getTime();
-        const bDate = new Date(b.createdAt || 0).getTime();
-        return bDate - aDate; // Newer first
-      });
+      // If we have a tag filter and no database videos, prioritize YouTube results
+      if (tagFilter && videosFormatted.length === 0 && youtubeTrendingVideos.length > 0) {
+        // Use all YouTube videos (already sorted by view count)
+        allVideos = youtubeTrendingVideos.slice(0, limit);
+      } else {
+        // Sort by view count (descending), then by recency
+        allVideos.sort((a, b) => {
+          const aViews = a.viewCount || 0;
+          const bViews = b.viewCount || 0;
+          if (bViews !== aViews) {
+            return bViews - aViews; // Higher view count first
+          }
+          // If view counts are equal, sort by recency
+          const aDate = new Date(a.createdAt || 0).getTime();
+          const bDate = new Date(b.createdAt || 0).getTime();
+          return bDate - aDate; // Newer first
+        });
 
-      // Limit to requested number
-      allVideos = allVideos.slice(0, limit);
+        // Limit to requested number
+        allVideos = allVideos.slice(0, limit);
+      }
     } else {
       // For subsequent pages, just use platform videos (already paginated)
       allVideos = videosFormatted;
