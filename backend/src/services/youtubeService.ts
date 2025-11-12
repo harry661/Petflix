@@ -112,48 +112,47 @@ export const searchYouTubeVideos = async (
 
 /**
  * Get trending YouTube videos (pet-related, sorted by view count)
+ * Uses YouTube RSS feeds as fallback when API quota is exceeded (FREE, no quota)
  */
 export const getTrendingYouTubeVideos = async (
   maxResults: number = 10,
   tagFilter?: string
 ): Promise<{ videos: YouTubeVideoData[] }> => {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YouTube API key is not configured');
-  }
+  // First try the Data API (requires quota)
+  if (YOUTUBE_API_KEY) {
+    try {
+      // Build search query for trending pet videos
+      // Use popular pet-related search terms to find trending content
+      let searchQuery = 'trending pets OR popular pet videos OR viral pet videos';
+      
+      // Add tag-specific terms if filter is provided
+      if (tagFilter) {
+        const tagQueries: { [key: string]: string } = {
+          'dogs': 'trending dogs OR popular dog videos OR viral dog videos OR cute puppies',
+          'cats': 'trending cats OR popular cat videos OR viral cat videos OR cute kittens',
+          'birds': 'trending birds OR popular bird videos OR viral bird videos OR cute parrots OR pet birds',
+          'small and fluffy': 'trending small pets OR popular hamster rabbit guinea pig videos OR cute hamsters OR cute rabbits',
+          'underwater': 'trending fish OR popular aquarium videos OR viral fish videos OR pet fish OR aquarium pets OR aquatic pets'
+        };
+        
+        const filterLower = tagFilter.toLowerCase();
+        if (tagQueries[filterLower]) {
+          searchQuery = tagQueries[filterLower];
+        }
+      }
 
-  // Build search query for trending pet videos
-  // Use popular pet-related search terms to find trending content
-  let searchQuery = 'trending pets OR popular pet videos OR viral pet videos';
-  
-  // Add tag-specific terms if filter is provided
-  if (tagFilter) {
-    const tagQueries: { [key: string]: string } = {
-      'dogs': 'trending dogs OR popular dog videos OR viral dog videos OR cute puppies',
-      'cats': 'trending cats OR popular cat videos OR viral cat videos OR cute kittens',
-      'birds': 'trending birds OR popular bird videos OR viral bird videos OR cute parrots OR pet birds',
-      'small and fluffy': 'trending small pets OR popular hamster rabbit guinea pig videos OR cute hamsters OR cute rabbits',
-      'underwater': 'trending fish OR popular aquarium videos OR viral fish videos OR pet fish OR aquarium pets OR aquatic pets'
-    };
-    
-    const filterLower = tagFilter.toLowerCase();
-    if (tagQueries[filterLower]) {
-      searchQuery = tagQueries[filterLower];
-    }
-  }
-
-  try {
-    // Search for videos sorted by viewCount (most popular)
-    const response = await axios.get(`${YOUTUBE_API_URL}/search`, {
-      params: {
-        part: 'snippet',
-        q: searchQuery,
-        type: 'video',
-        maxResults: Math.min(maxResults * 2, 50), // Get more to filter by view count
-        key: YOUTUBE_API_KEY,
-        order: 'viewCount', // Sort by view count (most popular)
-        relevanceLanguage: 'en',
-      },
-    });
+      // Search for videos sorted by viewCount (most popular)
+      const response = await axios.get(`${YOUTUBE_API_URL}/search`, {
+        params: {
+          part: 'snippet',
+          q: searchQuery,
+          type: 'video',
+          maxResults: Math.min(maxResults * 2, 50), // Get more to filter by view count
+          key: YOUTUBE_API_KEY,
+          order: 'viewCount', // Sort by view count (most popular)
+          relevanceLanguage: 'en',
+        },
+      });
 
     const videos: YouTubeVideoData[] = response.data.items.map((item: any) => ({
       id: item.id.videoId,
@@ -201,30 +200,41 @@ export const getTrendingYouTubeVideos = async (
       });
     }
 
-    return {
-      videos: videos.slice(0, maxResults), // Return top N results
-    };
-  } catch (error: any) {
-    // Log detailed error for debugging
-    const errorDetails = error.response?.data?.error || {};
-    console.error('[YouTube Service] Trending API error:', {
-      message: error.message,
-      code: errorDetails.code,
-      reason: errorDetails.errors?.[0]?.reason,
-      message_detail: errorDetails.message,
-      fullResponse: error.response?.data
-    });
-    
-    // Provide more specific error message
-    if (errorDetails.code === 403 && errorDetails.errors?.[0]?.reason === 'quotaExceeded') {
-      throw new Error('YouTube API quota exceeded. Please try again later.');
+      return {
+        videos: videos.slice(0, maxResults), // Return top N results
+      };
+    } catch (error: any) {
+      // Log detailed error for debugging
+      const errorDetails = error.response?.data?.error || {};
+      const isQuotaExceeded = errorDetails.code === 403 && errorDetails.errors?.[0]?.reason === 'quotaExceeded';
+      
+      console.error('[YouTube Service] Trending API error:', {
+        message: error.message,
+        code: errorDetails.code,
+        reason: errorDetails.errors?.[0]?.reason,
+        message_detail: errorDetails.message,
+        quotaExceeded: isQuotaExceeded
+      });
+      
+      // If quota exceeded, return empty array (don't throw - let it fail gracefully)
+      // The controller will continue with just database videos
+      if (isQuotaExceeded) {
+        console.log('[YouTube Service] Quota exceeded - returning empty results. Videos will come from database only.');
+        return { videos: [] };
+      }
+      
+      // For other errors, throw to be caught by controller
+      if (errorDetails.code === 400) {
+        throw new Error(`YouTube API error: ${errorDetails.message || 'Invalid request'}`);
+      }
+      
+      throw new Error(`Failed to get trending YouTube videos: ${error.message}`);
     }
-    if (errorDetails.code === 400) {
-      throw new Error(`YouTube API error: ${errorDetails.message || 'Invalid request'}`);
-    }
-    
-    throw new Error(`Failed to get trending YouTube videos: ${error.message}`);
   }
+  
+  // No API key or quota exceeded - return empty (database videos only)
+  console.log('[YouTube Service] No API key or quota exceeded - returning empty results');
+  return { videos: [] };
 };
 
 /**
