@@ -123,7 +123,7 @@ export default function HomePage() {
     }
   };
   
-  // Reload videos when filter changes
+  // Reload videos when filter changes (real-time update, no page reload)
   useEffect(() => {
     if (isAuthenticated && user && !isSearchOpen) {
       loadTrendingVideos(selectedFilter);

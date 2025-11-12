@@ -61,9 +61,10 @@ export default function TrendingPage() {
     }
   }, [tagFilter, offset]);
 
-  // Reset and load when filter changes
+  // Reset and load when filter changes (real-time update, no page reload)
   useEffect(() => {
     loadTrendingVideos(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tagFilter]); // Only depend on tagFilter, not the function
 
   // Infinite scroll observer
