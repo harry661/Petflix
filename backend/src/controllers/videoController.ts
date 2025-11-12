@@ -31,6 +31,21 @@ export const searchVideos = async (
       return;
     }
 
+    // Save search to history if user is authenticated
+    if (req.user) {
+      try {
+        await supabaseAdmin!
+          .from('search_history')
+          .insert({
+            user_id: req.user.userId,
+            query: query.trim(),
+          });
+      } catch (historyError) {
+        // Silently fail - search history is non-critical
+        console.log('Failed to save search history:', historyError);
+      }
+    }
+
     // Search YouTube videos
     let youtubeVideos: any[] = [];
     try {

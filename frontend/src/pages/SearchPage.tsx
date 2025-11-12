@@ -47,7 +47,60 @@ export default function SearchPage() {
       setSortBy(sort);
       handleSearch(undefined, sort);
     }
-  }, [searchParams]);
+    loadSearchHistory();
+  }, [searchParams, isAuthenticated]);
+
+  const loadSearchHistory = async () => {
+    if (!isAuthenticated) {
+      setSearchHistory([]);
+      return;
+    }
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/videos/search-history`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSearchHistory(data.history || []);
+      }
+    } catch (err) {
+      // Silently fail
+    }
+  };
+
+  const handleClearHistory = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/videos/search-history`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setSearchHistory([]);
+      }
+    } catch (err) {
+      // Silently fail
+    }
+  };
+
+  const handleHistoryClick = (query: string) => {
+    setSearchQuery(query);
+    setSearchParams({ q: query, sort: sortBy });
+    handleSearch(undefined, sortBy);
+    setShowHistory(false);
+  };
 
   return (
     <div style={{
@@ -60,34 +113,113 @@ export default function SearchPage() {
 
         {/* Search Bar */}
         <form onSubmit={handleSearch} style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input
-              type="text"
-              placeholder="Search for pet videos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                flex: 1,
-                padding: '16px',
-                fontSize: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                color: '#fff',
-                outline: 'none'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#ADD8E6';
-                e.target.style.borderWidth = '1px';
-                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                e.target.style.borderWidth = '1px';
-                e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-              }}
-            />
+          <div style={{ display: 'flex', gap: '10px', position: 'relative' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <input
+                type="text"
+                placeholder="Search for pet videos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowHistory(true)}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  fontSize: '16px',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  color: '#fff',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ADD8E6';
+                  e.target.style.borderWidth = '1px';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  setShowHistory(true);
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.borderWidth = '1px';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                  // Delay hiding history to allow clicks
+                  setTimeout(() => setShowHistory(false), 200);
+                }}
+              />
+              {/* Search History Dropdown */}
+              {showHistory && isAuthenticated && searchHistory.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  marginTop: '4px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                  zIndex: 1000,
+                  maxHeight: '300px',
+                  overflowY: 'auto'
+                }}>
+                  <div style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '12px', fontWeight: '600' }}>
+                      Recent Searches
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClearHistory();
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                      title="Clear history"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  {searchHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleHistoryClick(item.query)}
+                      style={{
+                        padding: '12px 16px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      <Clock size={16} color="rgba(255, 255, 255, 0.5)" />
+                      <span style={{ color: '#ffffff', fontSize: '14px', flex: 1 }}>
+                        {item.query}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               type="submit"
               disabled={loading}
