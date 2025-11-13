@@ -65,18 +65,18 @@ export default function HomePage() {
   
   // Auto-rotate banner carousel
   useEffect(() => {
-        if (bannerItems.length > 1 && !isSearchOpen) {
-          carouselIntervalRef.current = setInterval(() => {
-            setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
-          }, 5000); // Change every 5 seconds
-          
-          return () => {
-            if (carouselIntervalRef.current) {
-              clearInterval(carouselIntervalRef.current);
-            }
-          };
+    if (bannerItems.length > 1 && !isSearchOpen) {
+      carouselIntervalRef.current = setInterval(() => {
+        setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
+      }, 5000); // Change every 5 seconds
+      
+      return () => {
+        if (carouselIntervalRef.current) {
+          clearInterval(carouselIntervalRef.current);
         }
-      }, [bannerItems.length, isSearchOpen]);
+      };
+    }
+  }, [bannerItems.length, isSearchOpen]);
 
 
   const loadTrendingVideos = async (filter?: string | null, isFilterChange: boolean = false) => {
@@ -171,10 +171,9 @@ export default function HomePage() {
     'Small and fluffy': '/smalls-filter.png',
     'Underwater': '/aquatic-filter.png'
   };
-  
 
-      // Only show full page loading on initial load, not filter changes
-      if (authLoading || (loading && !isSearchOpen && !filterLoading)) {
+  // Only show full page loading on initial load, not filter changes
+  if (authLoading || (loading && !isSearchOpen && !filterLoading)) {
         return (
           <div style={{
             minHeight: '100vh',
