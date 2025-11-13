@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { MoreVertical, CheckCircle2, Trash2 } from 'lucide-react';
+import { MoreVertical, CheckCircle2, Trash2, XCircle } from 'lucide-react';
 
 interface VideoCardProps {
   video: {
@@ -35,6 +35,8 @@ function VideoCard({ video }: VideoCardProps) {
   const [deleting, setDeleting] = useState(false);
   const [canRepost, setCanRepost] = useState<boolean | null>(null);
   const [showRepostSuccess, setShowRepostSuccess] = useState(false);
+  const [showRepostError, setShowRepostError] = useState(false);
+  const [repostErrorMessage, setRepostErrorMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -816,10 +818,14 @@ function VideoCard({ video }: VideoCardProps) {
                                 window.location.reload();
                               }, 2000);
                             } else {
-                              alert(data.error || 'Failed to repost video');
+                              // Show styled error modal
+                              setRepostErrorMessage(data.error || 'Failed to repost video');
+                              setShowRepostError(true);
                             }
                           } catch (err) {
-                            alert('Failed to repost video. Please try again.');
+                            // Show styled error modal
+                            setRepostErrorMessage('Failed to repost video. Please try again.');
+                            setShowRepostError(true);
                           } finally {
                             setSharing(false);
                             setShowMenu(false);
