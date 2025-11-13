@@ -980,8 +980,9 @@ function VideoCard({ video }: VideoCardProps) {
                       </button>
                     )}
                     {/* Show Remove button ONLY if user owns the video (shared or reposted it) */}
-                    {/* IMPORTANT: canDelete must be true */}
-                    {canDelete === true && (
+                    {/* IMPORTANT: canDelete must be true - this means video.userId === user.id */}
+                    {/* If canDelete is true, canRepost should be false, so Remove shows instead of Repost */}
+                    {canDelete && (
                       <button
                         style={{
                           width: '100%',
