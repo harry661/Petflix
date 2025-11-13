@@ -1545,12 +1545,17 @@ export const canRepostVideo = async (
     }
 
     // Check if user has already shared or reposted this video
-    const { data: existingVideo } = await supabaseAdmin!
+    const { data: existingVideo, error: existingError } = await supabaseAdmin!
       .from('videos')
       .select('id')
       .eq('youtube_video_id', video.youtube_video_id)
       .eq('user_id', req.user.userId)
-      .single();
+      .maybeSingle();
+
+    // Only log errors other than "not found"
+    if (existingError && existingError.code !== 'PGRST116') {
+      console.error('Error checking existing video:', existingError);
+    }
 
     if (existingVideo) {
       res.json({ canRepost: false, reason: 'You have already shared this video' });

@@ -84,8 +84,11 @@ export default function VideoDetailPage() {
               });
               if (canRepostRes.ok) {
                 const canRepostData = await canRepostRes.json();
-                // If canRepost is false and reason indicates already shared, user has reposted it
-                setIsReposted(canRepostData.canRepost === false && canRepostData.reason?.includes('already shared'));
+                // If canRepost is false and reason indicates already shared/reposted, user has reposted it
+                const hasReposted = canRepostData.canRepost === false && 
+                  (canRepostData.reason?.includes('already shared') || 
+                   canRepostData.reason?.includes('already reposted'));
+                setIsReposted(hasReposted);
               }
             } catch (err) {
               // Silently fail - repost status is non-critical
