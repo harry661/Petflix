@@ -441,6 +441,14 @@ export const getVideoById = async (
       return;
     }
 
+    // If view count is 0, try to refresh it from YouTube (async, don't wait)
+    if (video.view_count === 0 && video.youtube_video_id) {
+      refreshVideoViewCount(video.id, video.youtube_video_id).catch((err: any) => {
+        console.log('Failed to refresh view count:', err.message);
+        // Non-critical, don't affect response
+      });
+    }
+
     const userData = Array.isArray(video.users) ? video.users[0] : video.users;
     
     // Get like status if user is authenticated

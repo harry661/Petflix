@@ -14,6 +14,7 @@ import {
   updateVideo,
   reportVideo,
   deleteVideo,
+  refreshAllViewCounts,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 
@@ -26,6 +27,7 @@ router.get('/user/:userId', optionalAuthenticate, getVideosByUser);
 
 // Protected routes
 router.post('/', authenticate, shareVideo);
+router.post('/refresh-view-counts', authenticate, refreshAllViewCounts); // Refresh all 0-view videos
 router.get('/feed', authenticate, getFeed); // Must come before /:id route
 router.get('/search-history', authenticate, getSearchHistory);
 router.delete('/search-history', authenticate, clearSearchHistory);
