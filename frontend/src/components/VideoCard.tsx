@@ -417,6 +417,110 @@ function VideoCard({ video }: VideoCardProps) {
         </div>
       )}
 
+      {/* Repost Error Modal */}
+      {showRepostError && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100001,
+            animation: 'fadeIn 0.3s ease'
+          }}
+          onClick={(e) => {
+            // Close on click outside
+            if (e.target === e.currentTarget) {
+              setShowRepostError(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'scaleIn 0.4s ease'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <XCircle size={24} color="#ff6b6b" />
+              </div>
+              <h3 style={{
+                color: '#ffffff',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: 0
+              }}>
+                Cannot Repost Video
+              </h3>
+            </div>
+            
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              marginBottom: '24px'
+            }}>
+              {repostErrorMessage}
+            </p>
+
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setShowRepostError(false)}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#ff6b6b',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ff5252';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ff6b6b';
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Repost Success Animation Overlay */}
       {showRepostSuccess && (
         <div
