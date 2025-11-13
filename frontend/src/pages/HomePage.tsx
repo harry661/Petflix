@@ -173,7 +173,8 @@ export default function HomePage() {
   };
   
 
-      if (authLoading || (displayLoading && !isSearchOpen)) {
+      // Only show full page loading on initial load, not filter changes
+      if (authLoading || (loading && !isSearchOpen && !filterLoading)) {
         return (
           <div style={{
             minHeight: '100vh',
