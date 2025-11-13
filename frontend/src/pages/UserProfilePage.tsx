@@ -1138,6 +1138,35 @@ export default function UserProfilePage() {
             >
               Reposted Videos ({repostedVideos.length})
             </button>
+            {isCurrentUser && (
+              <button
+                onClick={() => setActiveTab('liked')}
+                style={{
+                  padding: '12px 0',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === 'liked' ? '2px solid #ADD8E6' : '2px solid transparent',
+                  color: activeTab === 'liked' ? '#ADD8E6' : 'rgba(255, 255, 255, 0.7)',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: activeTab === 'liked' ? '600' : '400',
+                  transition: 'all 0.2s ease',
+                  marginBottom: '-2px'
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'liked') {
+                    e.currentTarget.style.color = '#ffffff';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'liked') {
+                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                  }
+                }}
+              >
+                Liked Videos ({likedVideos.length})
+              </button>
+            )}
           </div>
 
           {/* Shared Videos Tab */}
