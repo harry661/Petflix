@@ -51,20 +51,20 @@ export default function HomePage() {
       return;
     }
     
-        // Load videos only if authenticated and not searching
-        if (isAuthenticated && user && !isSearchOpen) {
-          loadTrendingVideos();
-        }
-        
-        return () => {
-          if (carouselIntervalRef.current) {
-            clearInterval(carouselIntervalRef.current);
-          }
-        };
-      }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
-      
-      // Auto-rotate banner carousel
-      useEffect(() => {
+    // Load videos only if authenticated and not searching
+    if (isAuthenticated && user && !isSearchOpen) {
+      loadTrendingVideos();
+    }
+    
+    return () => {
+      if (carouselIntervalRef.current) {
+        clearInterval(carouselIntervalRef.current);
+      }
+    };
+  }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
+  
+  // Auto-rotate banner carousel
+  useEffect(() => {
         if (bannerItems.length > 1 && !isSearchOpen) {
           carouselIntervalRef.current = setInterval(() => {
             setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
