@@ -86,52 +86,51 @@ export default function UserProfilePage() {
     'Pet Toys', 'Playful', 'Rescue', 'Training', 'Tricks', 'Vet', 'Veterinary'
   ];
 
+  // Load user profile when username changes
   useEffect(() => {
     if (username) {
       loadUserProfile();
     }
+  }, [username]);
 
-    // Listen for video liked/reposted events to refresh profile tabs
+  // Listen for video liked/reposted events to refresh profile tabs
+  useEffect(() => {
+    if (!isCurrentUser || !user?.id) return;
+
     const handleVideoLiked = () => {
-      if (isCurrentUser) {
-        // Reload liked videos tab
-        const loadLikedVideos = async () => {
-          if (!user) return;
-          try {
-            const likedRes = await fetch(`${API_URL}/api/v1/videos/liked/${user.id}`, {
-              credentials: 'include',
-            });
-            if (likedRes?.ok) {
-              const likedData = await likedRes.json();
-              setLikedVideos(likedData.videos || []);
-            }
-          } catch (err) {
-            // Silently fail
+      // Reload liked videos tab
+      const loadLikedVideos = async () => {
+        try {
+          const likedRes = await fetch(`${API_URL}/api/v1/videos/liked/${user.id}`, {
+            credentials: 'include',
+          });
+          if (likedRes?.ok) {
+            const likedData = await likedRes.json();
+            setLikedVideos(likedData.videos || []);
           }
-        };
-        loadLikedVideos();
-      }
+        } catch (err) {
+          // Silently fail
+        }
+      };
+      loadLikedVideos();
     };
 
     const handleVideoReposted = () => {
-      if (isCurrentUser) {
-        // Reload reposted videos tab
-        const loadRepostedVideos = async () => {
-          if (!user) return;
-          try {
-            const repostedRes = await fetch(`${API_URL}/api/v1/videos/user/${user.id}?type=reposted`, {
-              credentials: 'include',
-            });
-            if (repostedRes?.ok) {
-              const repostedData = await repostedRes.json();
-              setRepostedVideos(repostedData.videos || []);
-            }
-          } catch (err) {
-            // Silently fail
+      // Reload reposted videos tab
+      const loadRepostedVideos = async () => {
+        try {
+          const repostedRes = await fetch(`${API_URL}/api/v1/videos/user/${user.id}?type=reposted`, {
+            credentials: 'include',
+          });
+          if (repostedRes?.ok) {
+            const repostedData = await repostedRes.json();
+            setRepostedVideos(repostedData.videos || []);
           }
-        };
-        loadRepostedVideos();
-      }
+        } catch (err) {
+          // Silently fail
+        }
+      };
+      loadRepostedVideos();
     };
 
     window.addEventListener('video-liked', handleVideoLiked);
@@ -141,7 +140,7 @@ export default function UserProfilePage() {
       window.removeEventListener('video-liked', handleVideoLiked);
       window.removeEventListener('video-reposted', handleVideoReposted);
     };
-  }, [username, isCurrentUser, user]);
+  }, [isCurrentUser, user?.id]);
 
   const loadUserProfile = async () => {
     try {
