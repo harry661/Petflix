@@ -122,16 +122,9 @@ function VideoCard({ video }: VideoCardProps) {
       return;
     }
 
-    // Quick check: if user owns this video (either as original sharer or reposter), they can't repost
-    // Check both video.userId (the person who shared/reposted it) and originalUser (if it's a repost)
-    if (video.userId === user.id) {
-      setCanRepost(false);
-      return;
-    }
-
-    // Also check if the original user is the current user
-    const displayUser = video.originalUser || video.user;
-    if (displayUser?.id === user.id) {
+    // CRITICAL: If user owns this video (canDelete is true), they CANNOT repost it
+    // This must match the canDelete logic exactly
+    if (canDelete) {
       setCanRepost(false);
       return;
     }
@@ -160,7 +153,7 @@ function VideoCard({ video }: VideoCardProps) {
     };
 
     checkCanRepost();
-  }, [isAuthenticated, user, video.id, video.userId, video.user?.id, video.originalUser?.id]);
+  }, [isAuthenticated, user, video.id, video.userId, canDelete]);
 
   // Close menu when clicking outside
   useEffect(() => {
