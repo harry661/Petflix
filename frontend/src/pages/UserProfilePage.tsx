@@ -1056,38 +1056,136 @@ export default function UserProfilePage() {
           </div>
         )}
 
-        {/* User's Videos */}
+        {/* User's Videos with Tabs */}
         <div>
-          <h2 style={{ color: '#ffffff', marginBottom: '20px' }}>Shared Videos</h2>
-          {videos.length === 0 ? (
-            <div style={{
-              backgroundColor: 'transparent',
-              borderRadius: '8px',
-              padding: '40px',
-              textAlign: 'center'
-            }}>
-              <p style={{ color: '#ffffff' }}>No videos shared yet</p>
-            </div>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-              gap: '20px'
-            }}>
-              {videos.map((video) => (
-                <VideoCard
-                  key={video.id}
-                  video={{
-                    ...video,
-                    user: user ? {
-                      id: user.id,
-                      username: user.username,
-                      profile_picture_url: user.profile_picture_url
-                    } : undefined
-                  }}
-                />
-              ))}
-            </div>
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', borderBottom: '2px solid rgba(255, 255, 255, 0.1)' }}>
+            <button
+              onClick={() => setActiveTab('shared')}
+              style={{
+                padding: '12px 0',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderBottom: activeTab === 'shared' ? '2px solid #ADD8E6' : '2px solid transparent',
+                color: activeTab === 'shared' ? '#ADD8E6' : 'rgba(255, 255, 255, 0.7)',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: activeTab === 'shared' ? '600' : '400',
+                transition: 'all 0.2s ease',
+                marginBottom: '-2px'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'shared') {
+                  e.currentTarget.style.color = '#ffffff';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'shared') {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                }
+              }}
+            >
+              Shared Videos ({sharedVideos.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('reposted')}
+              style={{
+                padding: '12px 0',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderBottom: activeTab === 'reposted' ? '2px solid #ADD8E6' : '2px solid transparent',
+                color: activeTab === 'reposted' ? '#ADD8E6' : 'rgba(255, 255, 255, 0.7)',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: activeTab === 'reposted' ? '600' : '400',
+                transition: 'all 0.2s ease',
+                marginBottom: '-2px'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'reposted') {
+                  e.currentTarget.style.color = '#ffffff';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'reposted') {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                }
+              }}
+            >
+              Reposted Videos ({repostedVideos.length})
+            </button>
+          </div>
+
+          {/* Shared Videos Tab */}
+          {activeTab === 'shared' && (
+            <>
+              {sharedVideos.length === 0 ? (
+                <div style={{
+                  backgroundColor: 'transparent',
+                  borderRadius: '8px',
+                  padding: '40px',
+                  textAlign: 'center'
+                }}>
+                  <p style={{ color: '#ffffff' }}>No videos shared yet</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {sharedVideos.map((video) => (
+                    <VideoCard
+                      key={video.id}
+                      video={{
+                        ...video,
+                        user: video.user || (user ? {
+                          id: user.id,
+                          username: user.username,
+                          profile_picture_url: user.profile_picture_url
+                        } : undefined)
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Reposted Videos Tab */}
+          {activeTab === 'reposted' && (
+            <>
+              {repostedVideos.length === 0 ? (
+                <div style={{
+                  backgroundColor: 'transparent',
+                  borderRadius: '8px',
+                  padding: '40px',
+                  textAlign: 'center'
+                }}>
+                  <p style={{ color: '#ffffff' }}>No videos reposted yet</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {repostedVideos.map((video) => (
+                    <VideoCard
+                      key={video.id}
+                      video={{
+                        ...video,
+                        user: video.user || (user ? {
+                          id: user.id,
+                          username: user.username,
+                          profile_picture_url: user.profile_picture_url
+                        } : undefined)
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
