@@ -1112,9 +1112,13 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
     }
 
     res.json({ message: 'Video liked successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Like video error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error stack:', error?.stack);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error?.message || 'Unknown error'
+    });
   }
 };
 
