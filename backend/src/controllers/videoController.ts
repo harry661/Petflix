@@ -217,6 +217,7 @@ export const searchVideos = async (
         userId: video.user_id,
         createdAt: displayDate,
         updatedAt: video.updated_at,
+        viewCount: video.view_count || 0,
         tags: videoTagsMap[video.id] || [],
         user: userData ? {
           id: userData.id,
