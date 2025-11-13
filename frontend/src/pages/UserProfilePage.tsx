@@ -1205,6 +1205,42 @@ export default function UserProfilePage() {
             </>
           )}
 
+          {/* Liked Videos Tab */}
+          {activeTab === 'liked' && (
+            <>
+              {likedVideos.length === 0 ? (
+                <div style={{
+                  backgroundColor: 'transparent',
+                  borderRadius: '8px',
+                  padding: '40px',
+                  textAlign: 'center'
+                }}>
+                  <p style={{ color: '#ffffff' }}>No liked videos yet</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {likedVideos.map((video) => (
+                    <VideoCard
+                      key={video.id}
+                      video={{
+                        ...video,
+                        user: video.user || (user ? {
+                          id: user.id,
+                          username: user.username,
+                          profile_picture_url: user.profile_picture_url
+                        } : undefined)
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
           {/* Reposted Videos Tab */}
           {activeTab === 'reposted' && (
             <>
