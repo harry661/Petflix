@@ -106,6 +106,46 @@ function VideoCard({ video }: VideoCardProps) {
     return `${(numViews / 1000000).toFixed(1)}M views`;
   };
 
+  // Check if user can repost this video
+  useEffect(() => {
+    if (!isAuthenticated || !user || !video.id) {
+      setCanRepost(false);
+      return;
+    }
+
+    // Quick check: if user owns this video, they can't repost
+    const displayUser = video.originalUser || video.user;
+    if (displayUser?.id === user.id) {
+      setCanRepost(false);
+      return;
+    }
+
+    // Check with backend
+    const checkCanRepost = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const token = localStorage.getItem('auth_token');
+        
+        const response = await fetch(`${API_URL}/api/v1/videos/${video.id}/can-repost`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCanRepost(data.canRepost || false);
+        } else {
+          setCanRepost(false);
+        }
+      } catch (err) {
+        setCanRepost(false);
+      }
+    };
+
+    checkCanRepost();
+  }, [isAuthenticated, user, video.id, video.user?.id, video.originalUser?.id]);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -381,59 +421,73 @@ function VideoCard({ video }: VideoCardProps) {
                     >
                       Add to playlist
                     </button>
-                    <button
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '8px 12px',
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        color: '#ffffff'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (!isAuthenticated) {
-                          alert('Please log in to share videos');
-                          setShowMenu(false);
-                          return;
-                        }
-
-                        setSharing(true);
-                        try {
-                          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                          const token = localStorage.getItem('auth_token');
-                          
-                          const response = await fetch(`${API_URL}/api/v1/videos/${video.id}/repost`, {
-                            method: 'POST',
-                            headers: {
-                              'Authorization': `Bearer ${token}`,
-                            },
-                          });
-
-                          const data = await response.json();
-
-                          if (response.ok) {
-                            alert('Video reposted successfully!');
-                            // Optionally reload the page or update UI
-                            window.location.reload();
-                          } else {
-                            alert(data.error || 'Failed to repost video');
+                    {canRepost !== false && (
+                      <button
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '8px 12px',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          cursor: canRepost === true ? 'pointer' : 'not-allowed',
+                          fontSize: '14px',
+                          color: canRepost === true ? '#ffffff' : 'rgba(255, 255, 255, 0.5)',
+                          opacity: canRepost === null ? 0.5 : 1
+                        }}
+                        onMouseEnter={(e) => {
+                          if (canRepost === true) {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                           }
-                        } catch (err) {
-                          alert('Failed to share video. Please try again.');
-                        } finally {
-                          setSharing(false);
-                          setShowMenu(false);
-                        }
-                      }}
-                      disabled={sharing}
-                    >
-                      {sharing ? 'Reposting...' : 'Repost'}
-                    </button>
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!isAuthenticated) {
+                            alert('Please log in to repost videos');
+                            setShowMenu(false);
+                            return;
+                          }
+
+                          if (canRepost !== true) {
+                            setShowMenu(false);
+                            return;
+                          }
+
+                          setSharing(true);
+                          try {
+                            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                            const token = localStorage.getItem('auth_token');
+                            
+                            const response = await fetch(`${API_URL}/api/v1/videos/${video.id}/repost`, {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                              },
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                              alert('Video reposted successfully!');
+                              // Optionally reload the page or update UI
+                              window.location.reload();
+                            } else {
+                              alert(data.error || 'Failed to repost video');
+                            }
+                          } catch (err) {
+                            alert('Failed to repost video. Please try again.');
+                          } finally {
+                            setSharing(false);
+                            setShowMenu(false);
+                          }
+                        }}
+                        disabled={sharing || canRepost !== true}
+                      >
+                        {sharing ? 'Reposting...' : 'Repost'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
