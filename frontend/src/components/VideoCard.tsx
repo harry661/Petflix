@@ -493,6 +493,73 @@ function VideoCard({ video }: VideoCardProps) {
                         {sharing ? 'Reposting...' : 'Repost'}
                       </button>
                     )}
+                    {canDelete && (
+                      <button
+                        style={{
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '8px 12px',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          cursor: deleting ? 'not-allowed' : 'pointer',
+                          fontSize: '14px',
+                          color: deleting ? 'rgba(255, 255, 255, 0.5)' : '#ff6b6b'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!deleting) {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!isAuthenticated || !user) {
+                            setShowMenu(false);
+                            return;
+                          }
+
+                          // Confirm deletion
+                          const confirmed = window.confirm('Are you sure you want to remove this video? This action cannot be undone.');
+                          if (!confirmed) {
+                            setShowMenu(false);
+                            return;
+                          }
+
+                          setDeleting(true);
+                          try {
+                            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                            const token = localStorage.getItem('auth_token');
+                            
+                            const response = await fetch(`${API_URL}/api/v1/videos/${video.id}`, {
+                              method: 'DELETE',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                              },
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                              alert('Video removed successfully!');
+                              // Reload the page to update the UI
+                              window.location.reload();
+                            } else {
+                              alert(data.error || 'Failed to remove video');
+                            }
+                          } catch (err) {
+                            alert('Failed to remove video. Please try again.');
+                          } finally {
+                            setDeleting(false);
+                            setShowMenu(false);
+                          }
+                        }}
+                        disabled={deleting}
+                      >
+                        {deleting ? 'Removing...' : 'Remove'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
