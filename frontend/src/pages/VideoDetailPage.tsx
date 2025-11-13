@@ -440,6 +440,8 @@ export default function VideoDetailPage() {
       console.error('Repost error:', err);
       setRepostErrorMessage('Failed to repost video. Please try again.');
       setShowRepostError(true);
+      // Ensure success overlay is closed on error
+      setShowRepostSuccess(false);
     } finally {
       setReposting(false);
     }
