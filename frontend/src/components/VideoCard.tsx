@@ -44,22 +44,46 @@ function VideoCard({ video }: VideoCardProps) {
   
   const thumbnailUrl = getThumbnailUrl();
 
-  // Format date
+  // Format date - calculate based on calendar days, not 24-hour periods
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
       const date = new Date(dateString);
       const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      
+      // Get dates at midnight (start of day) to calculate calendar days
+      const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const nowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      // Calculate difference in calendar days
+      const diffMs = nowStart.getTime() - dateStart.getTime();
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      // Handle future dates (shouldn't happen, but just in case)
+      if (diffDays < 0) {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
       
       if (diffDays === 0) return 'Today';
       if (diffDays === 1) return '1 day ago';
       if (diffDays < 7) return `${diffDays} days ago`;
-      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-      if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-      return `${Math.floor(diffDays / 365)} years ago`;
+      if (diffDays < 30) {
+        const weeks = Math.floor(diffDays / 7);
+        return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+      }
+      if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30);
+        return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+      }
+      const years = Math.floor(diffDays / 365);
+      return `${years} ${years === 1 ? 'year' : 'years'} ago`;
     } catch (e) {
+      console.error('Error formatting date:', e, dateString);
       return '';
     }
   };
