@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, CheckCircle2 } from 'lucide-react';
 
 interface VideoCardProps {
   video: {
@@ -34,6 +34,7 @@ function VideoCard({ video }: VideoCardProps) {
   const [sharing, setSharing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [canRepost, setCanRepost] = useState<boolean | null>(null);
+  const [showRepostSuccess, setShowRepostSuccess] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user owns this video (can delete it)
