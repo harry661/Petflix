@@ -390,28 +390,57 @@ export default function VideoDetailPage() {
     }
 
     try {
-      // If already reposted, delete the repost (unrepost)
-      // Otherwise, create a repost
-      const endpoint = isReposted ? 'DELETE' : 'POST';
-      const response = await fetch(`${API_URL}/api/v1/videos/${id}/repost`, {
-        method: endpoint,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        // Optimistic UI update
-        setIsReposted(!isReposted);
+      if (isReposted) {
+        // If already reposted, find and delete the reposted video
+        // We need to find the video entry where user_id = current user and youtube_video_id matches
+        const response = await fetch(`${API_URL}/api/v1/videos/user/${user.id}?type=reposted`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
         
-        // Dispatch event to notify profile page to refresh
-        window.dispatchEvent(new CustomEvent('video-reposted', { 
-          detail: { videoId: id, isReposted: !isReposted } 
-        }));
+        if (response.ok) {
+          const data = await response.json();
+          const repostedVideo = data.videos?.find((v: any) => 
+            v.youtubeVideoId === video.youtubeVideoId || 
+            (v.originalUser && v.originalUser.id === video.userId)
+          );
+          
+          if (repostedVideo) {
+            const deleteResponse = await fetch(`${API_URL}/api/v1/videos/${repostedVideo.id}`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+            
+            if (deleteResponse.ok) {
+              setIsReposted(false);
+              window.dispatchEvent(new CustomEvent('video-reposted', { 
+                detail: { videoId: id, isReposted: false } 
+              }));
+            }
+          }
+        }
       } else {
-        // Silently handle 409 (already reposted/not reposted) - just update state
-        if (response.status === 409) {
-          setIsReposted(!isReposted);
+        // Create a repost
+        const response = await fetch(`${API_URL}/api/v1/videos/${id}/repost`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setIsReposted(true);
+          window.dispatchEvent(new CustomEvent('video-reposted', { 
+            detail: { videoId: id, isReposted: true } 
+          }));
+        } else {
+          // Silently handle 409 (already reposted) - just update state
+          if (response.status === 409) {
+            setIsReposted(true);
+          }
         }
       }
     } catch (err) {
@@ -850,14 +879,14 @@ export default function VideoDetailPage() {
                         e.stopPropagation();
                         handleRepost(e);
                       }}
-                      disabled={reposting || !isAuthenticated || isReposted}
+                      disabled={reposting || !isAuthenticated}
                       style={{
                         padding: '14px 24px',
                         backgroundColor: 'transparent',
                         color: '#ffffff',
                         border: '1px solid rgba(255, 255, 255, 0.3)',
                         borderRadius: '6px',
-                        cursor: isAuthenticated && !reposting && !isReposted ? 'pointer' : 'not-allowed',
+                        cursor: isAuthenticated && !reposting ? 'pointer' : 'not-allowed',
                         fontWeight: 'bold',
                         fontSize: '16px',
                         display: 'flex',
@@ -868,7 +897,7 @@ export default function VideoDetailPage() {
                         willChange: 'background-color, transform' // Optimize for smooth transitions
                       }}
                       onMouseEnter={(e) => {
-                        if (isAuthenticated && !reposting && !isReposted) {
+                        if (isAuthenticated && !reposting) {
                           e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                           e.currentTarget.style.transform = 'scale(1.02)';
                         }
