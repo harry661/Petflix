@@ -46,31 +46,7 @@ export const searchVideos = async (
       }
     }
 
-    // Search YouTube videos
-    let youtubeVideos: any[] = [];
-    try {
-      const youtubeResults = await searchYouTubeVideos(query, limit);
-      youtubeVideos = youtubeResults.videos.map(video => ({
-        id: `youtube_${video.id}`,
-        youtubeVideoId: video.id,
-        title: video.title,
-        description: video.description,
-        thumbnail: video.thumbnail,
-        channelTitle: video.channelTitle,
-        viewCount: video.viewCount,
-        publishedAt: video.publishedAt,
-        createdAt: video.publishedAt, // Use publishedAt as createdAt for YouTube videos
-        user: null, // YouTube videos don't have a Petflix user
-        source: 'youtube',
-      }));
-    } catch (error: any) {
-      // Silently fail - don't crash the server if YouTube API fails
-      // This is expected when quota is exceeded or API key is missing
-      if (process.env.NODE_ENV === 'development') {
-        console.log('YouTube search unavailable (quota exceeded or API key missing)');
-      }
-      // Continue with just shared videos
-    }
+    // Only search videos shared by Petflix users (no YouTube API calls)
 
     // Search shared videos in database by title, description, AND tags
     // First, get video IDs that match the query in tags
@@ -109,7 +85,6 @@ export const searchVideos = async (
         created_at,
         updated_at,
         view_count,
-        like_count,
         youtube_published_at,
         users:user_id (
           id,
@@ -245,25 +220,8 @@ export const searchVideos = async (
       };
     });
 
-    // Sort YouTube videos based on sort parameter
-    let sortedYoutubeVideos = [...youtubeVideos];
-    if (sort === 'recency') {
-      sortedYoutubeVideos.sort((a, b) => {
-        const dateA = new Date(a.publishedAt || a.createdAt || 0).getTime();
-        const dateB = new Date(b.publishedAt || b.createdAt || 0).getTime();
-        return dateB - dateA;
-      });
-    } else if (sort === 'views') {
-      sortedYoutubeVideos.sort((a, b) => {
-        const viewsA = parseInt(a.viewCount || '0') || 0;
-        const viewsB = parseInt(b.viewCount || '0') || 0;
-        return viewsB - viewsA;
-      });
-    }
-    // 'relevance' and 'engagement' keep YouTube videos as-is (no engagement data from YouTube)
-
-    // Combine results (Petflix videos first, then YouTube)
-    const allVideos = [...sharedVideosFormatted, ...sortedYoutubeVideos];
+    // Only show videos shared by Petflix users (no YouTube videos)
+    const allVideos = sharedVideosFormatted;
 
     res.json({
       videos: allVideos,
@@ -360,9 +318,6 @@ export const shareVideo = async (
     const finalTitle = videoTitle || `YouTube Video ${youtubeVideoId}`;
     const finalDescription = videoDescription || '';
 
-    // Use YouTube published date for created_at if available, otherwise use current timestamp
-    const videoCreatedAt = youtubePublishedAt || new Date().toISOString();
-
     const { data: newVideo, error: insertError } = await supabaseAdmin!
       .from('videos')
       .insert({
@@ -371,7 +326,6 @@ export const shareVideo = async (
         description: finalDescription,
         user_id: req.user.userId,
         view_count: videoViewCount || 0, // Store view count if available
-        created_at: videoCreatedAt, // Use YouTube published date if available
         youtube_published_at: youtubePublishedAt || null, // Store YouTube publish date if available
       })
       .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count, youtube_published_at')
