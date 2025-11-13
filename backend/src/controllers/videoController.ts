@@ -110,6 +110,7 @@ export const searchVideos = async (
         updated_at,
         view_count,
         like_count,
+        youtube_published_at,
         users:user_id (
           id,
           username,
@@ -140,6 +141,7 @@ export const searchVideos = async (
           updated_at,
           view_count,
           like_count,
+          youtube_published_at,
           users:user_id (
             id,
             username,
@@ -220,13 +222,16 @@ export const searchVideos = async (
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
+      // Use YouTube published date if available, otherwise use created_at
+      const displayDate = (video as any).youtube_published_at || video.created_at;
+
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
         title: video.title,
         description: video.description,
         userId: video.user_id,
-        createdAt: video.created_at,
+        createdAt: displayDate,
         updatedAt: video.updated_at,
         tags: videoTagsMap[video.id] || [],
         user: userData ? {
@@ -308,8 +313,9 @@ export const shareVideo = async (
     // Try to get video metadata and view count (prefer oEmbed - free, no quota)
     // Fallback to Data API if available, then use provided/default values
     let videoViewCount: number | null = null;
+    let youtubePublishedAt: string | null = null;
     
-    // First try oEmbed API (free, no quota) - but it doesn't provide view count
+    // First try oEmbed API (free, no quota) - but it doesn't provide view count or publish date
     const oembedData = await getYouTubeVideoMetadata(youtubeVideoId);
     if (oembedData) {
       videoTitle = videoTitle || oembedData.title;
@@ -317,7 +323,7 @@ export const shareVideo = async (
       videoThumbnail = oembedData.thumbnail;
     }
     
-    // Try Data API to get view count (optional - may hit quota)
+    // Try Data API to get view count and publish date (optional - may hit quota)
     try {
       const youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
       videoTitle = videoTitle || youtubeData.title;
@@ -326,6 +332,10 @@ export const shareVideo = async (
       // Get view count if available
       if (youtubeData.viewCount) {
         videoViewCount = parseInt(youtubeData.viewCount) || 0;
+      }
+      // Get publish date from YouTube
+      if (youtubeData.publishedAt) {
+        youtubePublishedAt = youtubeData.publishedAt;
       }
     } catch (error: any) {
       // Log but don't fail - we can still save the video without metadata
@@ -358,8 +368,9 @@ export const shareVideo = async (
         description: finalDescription,
         user_id: req.user.userId,
         view_count: videoViewCount || 0, // Store view count if available
+        youtube_published_at: youtubePublishedAt || null, // Store YouTube publish date if available
       })
-      .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count')
+      .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count, youtube_published_at')
       .single();
 
     if (insertError || !newVideo) {
@@ -504,13 +515,16 @@ export const getVideoById = async (
       isLiked = !!like;
     }
 
+    // Use YouTube published date if available, otherwise use created_at (when shared on Petflix)
+    const displayDate = (video as any).youtube_published_at || video.created_at;
+
     res.json({
       id: video.id,
       youtubeVideoId: video.youtube_video_id,
       title: video.title,
       description: video.description,
       userId: video.user_id,
-      createdAt: video.created_at,
+      createdAt: displayDate, // Use YouTube publish date if available
       updatedAt: video.updated_at,
       likeCount: (video as any).like_count || 0,
       isLiked: isLiked,
@@ -641,6 +655,7 @@ export const getFeed = async (req: Request, res: Response) => {
         created_at,
         updated_at,
         view_count,
+        youtube_published_at,
         users:user_id (
           id,
           username,
@@ -670,13 +685,16 @@ export const getFeed = async (req: Request, res: Response) => {
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
+      // Use YouTube published date if available, otherwise use created_at
+      const displayDate = (video as any).youtube_published_at || video.created_at;
+
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
         title: video.title,
         description: video.description,
         userId: video.user_id,
-        createdAt: video.created_at,
+        createdAt: displayDate,
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
         thumbnail: thumbnail,
@@ -719,7 +737,8 @@ export const getVideosByUser = async (
         description,
         user_id,
         created_at,
-        updated_at
+        updated_at,
+        youtube_published_at
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -740,13 +759,16 @@ export const getVideosByUser = async (
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
+      // Use YouTube published date if available, otherwise use created_at
+      const displayDate = (video as any).youtube_published_at || video.created_at;
+
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
         title: video.title,
         description: video.description,
         userId: video.user_id,
-        createdAt: video.created_at,
+        createdAt: displayDate,
         updatedAt: video.updated_at,
         thumbnail: thumbnail,
       };
@@ -783,6 +805,7 @@ export const getRecentVideos = async (
         created_at,
         updated_at,
         view_count,
+        youtube_published_at,
         users:user_id (
           id,
           username,
