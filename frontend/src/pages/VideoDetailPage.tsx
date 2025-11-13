@@ -178,7 +178,12 @@ export default function VideoDetailPage() {
     }
   };
 
-  const handleLike = async () => {
+  const handleLike = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
+    
+    console.log('Like button clicked', { isAuthenticated, id, isLiked });
+    
     if (!isAuthenticated) {
       // Graceful prompt for unauthenticated users
       const shouldLogin = window.confirm('Please log in to like videos. Would you like to go to the login page?');
@@ -188,7 +193,10 @@ export default function VideoDetailPage() {
       return;
     }
 
-    if (!id) return;
+    if (!id) {
+      console.error('No video ID');
+      return;
+    }
 
     setLiking(true);
     const token = localStorage.getItem('auth_token');
@@ -358,7 +366,12 @@ export default function VideoDetailPage() {
   const [showRepostError, setShowRepostError] = useState(false);
   const [repostErrorMessage, setRepostErrorMessage] = useState('');
 
-  const handleRepost = async () => {
+  const handleRepost = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
+    
+    console.log('Repost button clicked', { isAuthenticated, id, isReposted });
+    
     if (!isAuthenticated) {
       // Graceful prompt for unauthenticated users
       const shouldLogin = window.confirm('Please log in to repost videos. Would you like to go to the login page?');
@@ -369,7 +382,10 @@ export default function VideoDetailPage() {
     }
 
     const token = localStorage.getItem('auth_token');
-    if (!token) return;
+    if (!token) {
+      console.error('No auth token');
+      return;
+    }
 
     setReposting(true);
     try {
@@ -957,7 +973,10 @@ export default function VideoDetailPage() {
 
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <button
-                onClick={handleLike}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLike(e);
+                }}
                 disabled={liking || !isAuthenticated}
                 style={{
                   padding: '14px 24px',
@@ -994,7 +1013,10 @@ export default function VideoDetailPage() {
                 <>
                   {user && video.userId !== user.id && (
                     <button
-                      onClick={handleRepost}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRepost(e);
+                      }}
                       disabled={reposting || !isAuthenticated || isReposted}
                       style={{
                         padding: '14px 24px',
