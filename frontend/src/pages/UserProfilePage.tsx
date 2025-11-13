@@ -26,7 +26,9 @@ export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [videos, setVideos] = useState<any[]>([]);
+  const [sharedVideos, setSharedVideos] = useState<any[]>([]);
+  const [repostedVideos, setRepostedVideos] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'shared' | 'reposted'>('shared');
   const [followers, setFollowers] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -146,17 +148,30 @@ export default function UserProfilePage() {
 
       setUser(userData);
 
-      // Load user's videos
+      // Load user's shared videos
       try {
-        const videosRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}`, {
+        const sharedRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=shared`, {
           credentials: 'include',
         });
-        if (videosRes.ok) {
-          const videosData = await videosRes.json();
-          setVideos(videosData.videos || []);
+        if (sharedRes.ok) {
+          const sharedData = await sharedRes.json();
+          setSharedVideos(sharedData.videos || []);
         }
       } catch (err) {
-        // Error loading videos
+        // Error loading shared videos
+      }
+
+      // Load user's reposted videos
+      try {
+        const repostedRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=reposted`, {
+          credentials: 'include',
+        });
+        if (repostedRes.ok) {
+          const repostedData = await repostedRes.json();
+          setRepostedVideos(repostedData.videos || []);
+        }
+      } catch (err) {
+        // Error loading reposted videos
       }
 
       // Load followers
@@ -462,7 +477,7 @@ export default function UserProfilePage() {
                   <span style={{ color: '#ffffff', marginLeft: '5px' }}>Following</span>
                 </Link>
                 <div>
-                  <strong style={{ color: '#ffffff' }}>{videos.length}</strong>
+                  <strong style={{ color: '#ffffff' }}>{sharedVideos.length + repostedVideos.length}</strong>
                   <span style={{ color: '#ffffff', marginLeft: '5px' }}>Videos</span>
                 </div>
               </div>

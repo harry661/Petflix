@@ -716,16 +716,17 @@ export const getFeed = async (req: Request, res: Response) => {
 
 /**
  * Get videos by user
- * GET /api/v1/videos/user/:userId
+ * GET /api/v1/videos/user/:userId?type=shared|reposted
  */
 export const getVideosByUser = async (
-  req: Request<{ userId: string }>,
+  req: Request<{ userId: string }, any, {}, { type?: string }>,
   res: Response
 ) => {
   try {
     const { userId } = req.params;
+    const type = req.query.type || 'shared'; // 'shared' or 'reposted'
 
-    const { data: videos, error } = await supabaseAdmin!
+    let query = supabaseAdmin!
       .from('videos')
       .select(`
         id,
@@ -733,12 +734,34 @@ export const getVideosByUser = async (
         title,
         description,
         user_id,
+        original_user_id,
         created_at,
         updated_at,
-        view_count
+        view_count,
+        users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        ),
+        original_user:original_user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        )
       `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    // Filter by type: 'shared' = original videos (no original_user_id), 'reposted' = reposted videos (has original_user_id)
+    if (type === 'reposted') {
+      query = query.not('original_user_id', 'is', null);
+    } else {
+      // Default to 'shared' - videos where user_id is the original sharer
+      query = query.is('original_user_id', null);
+    }
+
+    const { data: videos, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       res.status(500).json({ error: 'Failed to load videos' });
@@ -768,6 +791,11 @@ export const getVideosByUser = async (
       // Use created_at as display date
       const displayDate = video.created_at;
 
+      const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      const originalUserData = video.original_user_id 
+        ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+        : null;
+
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
@@ -776,7 +804,20 @@ export const getVideosByUser = async (
         userId: video.user_id,
         createdAt: displayDate,
         updatedAt: video.updated_at,
+        viewCount: video.view_count || 0,
         thumbnail: thumbnail,
+        user: userData ? {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          profile_picture_url: userData.profile_picture_url,
+        } : null,
+        originalUser: originalUserData ? {
+          id: originalUserData.id,
+          username: originalUserData.username,
+          email: originalUserData.email,
+          profile_picture_url: originalUserData.profile_picture_url,
+        } : null,
       };
     });
 

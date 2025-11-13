@@ -420,7 +420,7 @@ function VideoCard({ video }: VideoCardProps) {
                       }}
                       disabled={sharing}
                     >
-                      {sharing ? 'Sharing...' : 'Share'}
+                      {sharing ? 'Reposting...' : 'Repost'}
                     </button>
                   </div>
                 )}
