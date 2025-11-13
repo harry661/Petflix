@@ -12,6 +12,7 @@ export default function HomePage() {
   const { isSearchOpen, searchQuery, searchResults, isLoading: searchLoading, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false); // Separate loading state for filter changes
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const carouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -78,9 +79,14 @@ export default function HomePage() {
       }, [bannerItems.length, isSearchOpen]);
 
 
-  const loadTrendingVideos = async (filter?: string | null) => {
+  const loadTrendingVideos = async (filter?: string | null, isFilterChange: boolean = false) => {
     try {
-      setLoading(true);
+      // Use filterLoading for filter changes, loading for initial load
+      if (isFilterChange) {
+        setFilterLoading(true);
+      } else {
+        setLoading(true);
+      }
       
       // Build URL with tag filter if selected
       // Limit to 8 videos for 2 rows on home page
@@ -95,7 +101,11 @@ export default function HomePage() {
         const recentData = await recentResponse.json();
         if (recentData.videos && recentData.videos.length > 0) {
           setTrendingVideos(recentData.videos);
-          setLoading(false);
+          if (isFilterChange) {
+            setFilterLoading(false);
+          } else {
+            setLoading(false);
+          }
           return;
         }
       }
@@ -107,7 +117,11 @@ export default function HomePage() {
           const searchData = await searchResponse.json();
           if (searchData.videos && searchData.videos.length > 0) {
             setTrendingVideos(searchData.videos);
-            setLoading(false);
+            if (isFilterChange) {
+              setFilterLoading(false);
+            } else {
+              setLoading(false);
+            }
             return;
           }
         }
@@ -119,17 +133,24 @@ export default function HomePage() {
       // Error loading trending videos - set empty array
       setTrendingVideos([]);
     } finally {
-      setLoading(false);
+      if (isFilterChange) {
+        setFilterLoading(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
   
-  // Reload videos when filter changes
+  // Reload videos when filter changes (use filterLoading, not loading)
   useEffect(() => {
     if (isAuthenticated && user && !isSearchOpen) {
-      loadTrendingVideos(selectedFilter);
+      // Only trigger filter change if we already have videos loaded (not initial load)
+      if (trendingVideos.length > 0 || selectedFilter !== null) {
+        loadTrendingVideos(selectedFilter, true);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFilter, isAuthenticated, user, isSearchOpen]);
+  }, [selectedFilter]);
 
   // Determine which videos to show
   const displayVideos = isSearchOpen && searchQuery ? searchResults : trendingVideos;
