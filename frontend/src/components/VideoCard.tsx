@@ -48,20 +48,23 @@ function VideoCard({ video }: VideoCardProps) {
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
+      // Parse the date string - handle ISO format with timezone
       const date = new Date(dateString);
       const now = new Date();
       
       // Check if date is valid
       if (isNaN(date.getTime())) {
+        console.warn('Invalid date string:', dateString);
         return '';
       }
       
-      // Get dates at midnight (start of day) to calculate calendar days
-      const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const nowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      // Use UTC dates to avoid timezone issues
+      // Get UTC dates at midnight (start of day) to calculate calendar days
+      const dateUTC = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+      const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
       
       // Calculate difference in calendar days
-      const diffMs = nowStart.getTime() - dateStart.getTime();
+      const diffMs = nowUTC.getTime() - dateUTC.getTime();
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       
       // Handle future dates (shouldn't happen, but just in case)
