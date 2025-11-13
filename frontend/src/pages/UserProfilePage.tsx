@@ -201,6 +201,12 @@ export default function UserProfilePage() {
 
       setUser(userData);
 
+      // Initialize arrays immediately so tabs show with counts
+      setSharedVideos([]);
+      setRepostedVideos([]);
+      setLikedVideos([]);
+      setPlaylists([]);
+
       // Load user's shared videos, reposted videos, and liked videos in parallel
       const [sharedRes, repostedRes, likedRes] = await Promise.all([
         fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=shared`, {
