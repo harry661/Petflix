@@ -360,6 +360,9 @@ export const shareVideo = async (
     const finalTitle = videoTitle || `YouTube Video ${youtubeVideoId}`;
     const finalDescription = videoDescription || '';
 
+    // Use YouTube published date for created_at if available, otherwise use current timestamp
+    const videoCreatedAt = youtubePublishedAt || new Date().toISOString();
+
     const { data: newVideo, error: insertError } = await supabaseAdmin!
       .from('videos')
       .insert({
@@ -368,6 +371,7 @@ export const shareVideo = async (
         description: finalDescription,
         user_id: req.user.userId,
         view_count: videoViewCount || 0, // Store view count if available
+        created_at: videoCreatedAt, // Use YouTube published date if available
         youtube_published_at: youtubePublishedAt || null, // Store YouTube publish date if available
       })
       .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count, youtube_published_at')
