@@ -1092,16 +1092,22 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
     }
 
     // Create like (trigger will update like_count)
-    const { error: likeError } = await supabaseAdmin!
+    const { error: likeError, data: likeData } = await supabaseAdmin!
       .from('likes')
       .insert({
         user_id: userId,
         video_id: id,
-      });
+      })
+      .select();
 
     if (likeError) {
-      console.error('Error liking video:', likeError);
-      res.status(500).json({ error: 'Failed to like video' });
+      console.error('Error liking video:', JSON.stringify(likeError, null, 2));
+      console.error('User ID:', userId);
+      console.error('Video ID:', id);
+      res.status(500).json({ 
+        error: 'Failed to like video',
+        details: likeError.message || likeError.code || 'Unknown error'
+      });
       return;
     }
 
