@@ -1455,8 +1455,24 @@ export const repostVideo = async (
       .single();
 
     if (insertError || !newVideo) {
-      console.error('Error creating repost:', insertError);
-      res.status(500).json({ error: 'Failed to repost video' });
+      console.error('Error creating repost:', JSON.stringify(insertError, null, 2));
+      console.error('User ID:', req.user.userId);
+      console.error('Original Video ID:', id);
+      console.error('Original User ID:', originalUserId);
+      
+      // Check if error is due to missing column
+      if (insertError?.message?.includes('original_user_id') || insertError?.code === '42703') {
+        res.status(500).json({ 
+          error: 'Database migration required',
+          details: 'The original_user_id column is missing. Please run migration 011_add_original_user_id.sql in Supabase.'
+        });
+        return;
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to repost video',
+        details: insertError?.message || insertError?.code || 'Unknown error'
+      });
       return;
     }
 
