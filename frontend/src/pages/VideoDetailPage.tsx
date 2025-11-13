@@ -562,10 +562,33 @@ export default function VideoDetailPage() {
               color: 'rgba(255, 255, 255, 0.7)', 
               fontSize: '14px', 
               margin: 0,
-              textAlign: 'center'
+              textAlign: 'center',
+              marginBottom: '16px'
             }}>
               The video has been added to your profile
             </p>
+            <button
+              onClick={() => setShowRepostSuccess(false)}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#ADD8E6',
+                color: '#0F0F0F',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#87CEEB';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#ADD8E6';
+              }}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
