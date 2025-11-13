@@ -365,60 +365,57 @@ export default function VideoDetailPage() {
 
   const [reposting, setReposting] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
-  const [showRepostSuccess, setShowRepostSuccess] = useState(false);
-  const [showRepostError, setShowRepostError] = useState(false);
-  const [repostErrorMessage, setRepostErrorMessage] = useState('');
-
 
   const handleRepost = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
     
     if (!isAuthenticated) {
-      alert('Please log in to repost videos');
+      const shouldLogin = window.confirm('Please log in to repost videos. Would you like to go to the login page?');
+      if (shouldLogin) {
+        window.location.href = '/';
+      }
       return;
     }
 
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
+    if (!id) {
       return;
     }
 
     setReposting(true);
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setReposting(false);
+      return;
+    }
+
     try {
+      // If already reposted, delete the repost (unrepost)
+      // Otherwise, create a repost
+      const endpoint = isReposted ? 'DELETE' : 'POST';
       const response = await fetch(`${API_URL}/api/v1/videos/${id}/repost`, {
-        method: 'POST',
+        method: endpoint,
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
-
       if (response.ok) {
         // Optimistic UI update
-        setIsReposted(true);
+        setIsReposted(!isReposted);
         
         // Dispatch event to notify profile page to refresh
         window.dispatchEvent(new CustomEvent('video-reposted', { 
-          detail: { videoId: id, video: data } 
+          detail: { videoId: id, isReposted: !isReposted } 
         }));
-        
-        // Show success animation
-        setShowRepostSuccess(true);
-        // Auto-hide after 2 seconds
-        setTimeout(() => {
-          setShowRepostSuccess(false);
-        }, 2000);
       } else {
-        // Show styled error modal
-        setRepostErrorMessage(data.error || 'Failed to repost video');
-        setShowRepostError(true);
+        // Silently handle 409 (already reposted/not reposted) - just update state
+        if (response.status === 409) {
+          setIsReposted(!isReposted);
+        }
       }
     } catch (err) {
-      // Show styled error modal
-      setRepostErrorMessage('Failed to repost video. Please try again.');
-      setShowRepostError(true);
+      console.error('Repost error:', err);
     } finally {
       setReposting(false);
     }
@@ -481,197 +478,6 @@ export default function VideoDetailPage() {
 
   return (
     <>
-      {/* Repost Success Animation Overlay */}
-      {showRepostSuccess && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100000,
-            animation: 'fadeIn 0.3s ease',
-            pointerEvents: 'auto'
-          }}
-          onClick={(e) => {
-            // Close on click outside
-            if (e.target === e.currentTarget) {
-              setShowRepostSuccess(false);
-            }
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '16px',
-              padding: '40px',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '16px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              animation: 'scaleIn 0.4s ease',
-              minWidth: '300px'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CheckCircle2 
-              size={64} 
-              color="#4CAF50" 
-              style={{ animation: 'checkmark 0.5s ease' }} 
-            />
-            <p style={{ 
-              color: '#fff', 
-              fontSize: '20px', 
-              fontWeight: '600', 
-              margin: 0,
-              textAlign: 'center'
-            }}>
-              Video reposted successfully!
-            </p>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.7)', 
-              fontSize: '14px', 
-              margin: 0,
-              textAlign: 'center',
-              marginBottom: '16px'
-            }}>
-              The video has been added to your profile
-            </p>
-            <button
-              onClick={() => setShowRepostSuccess(false)}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#ADD8E6',
-                color: '#0F0F0F',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#87CEEB';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ADD8E6';
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Repost Error Modal */}
-      {showRepostError && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100001,
-            animation: 'fadeIn 0.3s ease'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowRepostError(false);
-            }
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#1a1a1a',
-              borderRadius: '16px',
-              padding: '32px',
-              maxWidth: '400px',
-              width: '90%',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              animation: 'scaleIn 0.4s ease'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '20px'
-            }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(255, 107, 107, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <XCircle size={24} color="#ff6b6b" />
-              </div>
-              <h3 style={{
-                color: '#ffffff',
-                fontSize: '20px',
-                fontWeight: '600',
-                margin: 0
-              }}>
-                Cannot Repost Video
-              </h3>
-            </div>
-            
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.8)',
-              fontSize: '16px',
-              lineHeight: '1.5',
-              marginBottom: '24px'
-            }}>
-              {repostErrorMessage}
-            </p>
-
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              justifyContent: 'flex-end'
-            }}>
-              <button
-                onClick={() => setShowRepostError(false)}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#ff6b6b',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ff5252';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#ff6b6b';
-                }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes fadeIn {
