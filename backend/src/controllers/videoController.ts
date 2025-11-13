@@ -1483,6 +1483,68 @@ export const repostVideo = async (
 };
 
 /**
+ * Check if user can repost a video
+ * GET /api/v1/videos/:id/can-repost
+ */
+export const canRepostVideo = async (
+  req: Request<{ id: string }, { canRepost: boolean; reason?: string } | ErrorResponse>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    // Get the video
+    const { data: video, error: videoError } = await supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        user_id,
+        original_user_id
+      `)
+      .eq('id', id)
+      .single();
+
+    if (videoError || !video) {
+      res.status(404).json({ error: 'Video not found' });
+      return;
+    }
+
+    // Determine the original sharer
+    const originalUserId = video.original_user_id || video.user_id;
+
+    // Check if user owns this video (either as original sharer or reposter)
+    if (video.user_id === req.user.userId || originalUserId === req.user.userId) {
+      res.json({ canRepost: false, reason: 'You cannot repost your own video' });
+      return;
+    }
+
+    // Check if user has already shared or reposted this video
+    const { data: existingVideo } = await supabaseAdmin!
+      .from('videos')
+      .select('id')
+      .eq('youtube_video_id', video.youtube_video_id)
+      .eq('user_id', req.user.userId)
+      .single();
+
+    if (existingVideo) {
+      res.json({ canRepost: false, reason: 'You have already shared this video' });
+      return;
+    }
+
+    res.json({ canRepost: true });
+  } catch (error) {
+    console.error('Can repost video error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Report a video
  * POST /api/v1/videos/:id/report
  */

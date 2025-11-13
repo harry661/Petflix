@@ -31,6 +31,7 @@ function VideoCard({ video }: VideoCardProps) {
   const { isAuthenticated, user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [canRepost, setCanRepost] = useState<boolean | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Generate YouTube thumbnail URL if not provided
