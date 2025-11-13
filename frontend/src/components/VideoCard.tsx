@@ -224,6 +224,18 @@ function VideoCard({ video }: VideoCardProps) {
 
   return (
     <>
+      {/* Add to Playlist Modal */}
+      {isAuthenticated && (
+        <AddToPlaylistModal
+          videoId={video.id}
+          isOpen={showAddToPlaylistModal}
+          onClose={() => setShowAddToPlaylistModal(false)}
+          onSuccess={() => {
+            // Optionally refresh or show success message
+          }}
+        />
+      )}
+
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div
