@@ -42,12 +42,9 @@ function VideoCard({ video }: VideoCardProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user owns this video (can delete it)
-  // User owns it if they are the one who shared/reposted it (video.userId)
-  // OR if they are the original sharer (video.originalUser?.id) - this handles reposts
-  const canDelete = isAuthenticated && user && (
-    video.userId === user.id || 
-    video.originalUser?.id === user.id
-  );
+  // video.userId is the person who shared/reposted it - if it matches current user, they can delete
+  // Note: We only check video.userId, not originalUser, because you can only delete videos YOU shared/reposted
+  const canDelete = isAuthenticated && user && video.userId === user.id;
 
   // Generate YouTube thumbnail URL if not provided
   // Use hqdefault as default (more reliable than maxresdefault)
