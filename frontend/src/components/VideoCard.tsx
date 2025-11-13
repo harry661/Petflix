@@ -119,14 +119,21 @@ function VideoCard({ video }: VideoCardProps) {
       return;
     }
 
-    // Quick check: if user owns this video, they can't repost
+    // Quick check: if user owns this video (either as original sharer or reposter), they can't repost
+    // Check both video.userId (the person who shared/reposted it) and originalUser (if it's a repost)
+    if (video.userId === user.id) {
+      setCanRepost(false);
+      return;
+    }
+
+    // Also check if the original user is the current user
     const displayUser = video.originalUser || video.user;
     if (displayUser?.id === user.id) {
       setCanRepost(false);
       return;
     }
 
-    // Check with backend
+    // Check with backend to see if user has already shared/reposted this video
     const checkCanRepost = async () => {
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -150,7 +157,7 @@ function VideoCard({ video }: VideoCardProps) {
     };
 
     checkCanRepost();
-  }, [isAuthenticated, user, video.id, video.user?.id, video.originalUser?.id]);
+  }, [isAuthenticated, user, video.id, video.userId, video.user?.id, video.originalUser?.id]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -521,7 +528,7 @@ function VideoCard({ video }: VideoCardProps) {
                     >
                       Add to playlist
                     </button>
-                    {canRepost !== false && (
+                    {canRepost === true && (
                       <button
                         style={{
                           width: '100%',
