@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2 } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 
@@ -398,6 +398,14 @@ export default function VideoDetailPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to repost video' }));
+        
+        // If already reposted (409), just update state silently - don't show error
+        if (response.status === 409) {
+          setIsReposted(true);
+          setReposting(false);
+          return;
+        }
+        
         setRepostErrorMessage(errorData.error || 'Failed to repost video');
         setShowRepostError(true);
         setReposting(false);
