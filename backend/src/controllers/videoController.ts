@@ -113,6 +113,7 @@ export const searchVideos = async (
           title,
           description,
           user_id,
+          original_user_id,
           created_at,
           updated_at,
           view_count,
@@ -121,9 +122,16 @@ export const searchVideos = async (
             username,
             email,
             profile_picture_url
+          ),
+          original_user:original_user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
           )
         `)
         .in('id', tagMatchedVideoIds)
+        .is('original_user_id', null) // Only show original shares, not reposts
         .order(orderBy, { ascending })
         .limit(limit * 2);
 
@@ -849,6 +857,7 @@ export const getRecentVideos = async (
         title,
         description,
         user_id,
+        original_user_id,
         created_at,
         updated_at,
         view_count,
@@ -857,8 +866,15 @@ export const getRecentVideos = async (
           username,
           email,
           profile_picture_url
+        ),
+        original_user:original_user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
         )
-      `);
+      `)
+      .is('original_user_id', null); // Only show original shares, not reposts
 
     // If tag filter is provided, join with video_tags_direct and filter
     if (tagFilter && tagFilter.trim()) {
