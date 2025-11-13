@@ -904,7 +904,8 @@ function VideoCard({ video }: VideoCardProps) {
                     </button>
                     {/* Show Repost button ONLY if user doesn't own the video AND can repost */}
                     {/* IMPORTANT: canDelete must be false AND canRepost must be true */}
-                    {canDelete === false && canRepost === true && (
+                    {/* Never show Repost if canDelete is true (user owns the video) */}
+                    {!canDelete && canRepost === true && (
                       <button
                         style={{
                           width: '100%',
