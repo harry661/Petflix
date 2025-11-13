@@ -116,7 +116,6 @@ export const searchVideos = async (
           created_at,
           updated_at,
           view_count,
-          youtube_published_at,
           users:user_id (
             id,
             username,
