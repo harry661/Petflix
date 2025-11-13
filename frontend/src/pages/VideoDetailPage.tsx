@@ -369,6 +369,32 @@ export default function VideoDetailPage() {
   const [showRepostError, setShowRepostError] = useState(false);
   const [repostErrorMessage, setRepostErrorMessage] = useState('');
 
+  // Cleanup effect to ensure modals close on unmount or error
+  useEffect(() => {
+    return () => {
+      // Clear any pending timeouts
+      if ((window as any).__repostSuccessTimeout) {
+        clearTimeout((window as any).__repostSuccessTimeout);
+        delete (window as any).__repostSuccessTimeout;
+      }
+      // Close modals on unmount
+      setShowRepostSuccess(false);
+      setShowRepostError(false);
+    };
+  }, []);
+
+  // Close success modal if video changes
+  useEffect(() => {
+    if (id) {
+      setShowRepostSuccess(false);
+      setShowRepostError(false);
+      if ((window as any).__repostSuccessTimeout) {
+        clearTimeout((window as any).__repostSuccessTimeout);
+        delete (window as any).__repostSuccessTimeout;
+      }
+    }
+  }, [id]);
+
   const handleRepost = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
