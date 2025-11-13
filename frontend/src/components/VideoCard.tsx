@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { MoreVertical, CheckCircle2 } from 'lucide-react';
+import { MoreVertical, CheckCircle2, Trash2 } from 'lucide-react';
 
 interface VideoCardProps {
   video: {
@@ -35,6 +35,8 @@ function VideoCard({ video }: VideoCardProps) {
   const [deleting, setDeleting] = useState(false);
   const [canRepost, setCanRepost] = useState<boolean | null>(null);
   const [showRepostSuccess, setShowRepostSuccess] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user owns this video (can delete it)
@@ -621,47 +623,15 @@ function VideoCard({ video }: VideoCardProps) {
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'transparent';
                         }}
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           if (!isAuthenticated || !user) {
                             setShowMenu(false);
                             return;
                           }
-
-                          // Confirm deletion
-                          const confirmed = window.confirm('Are you sure you want to remove this video? This action cannot be undone.');
-                          if (!confirmed) {
-                            setShowMenu(false);
-                            return;
-                          }
-
-                          setDeleting(true);
-                          try {
-                            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                            const token = localStorage.getItem('auth_token');
-                            
-                            const response = await fetch(`${API_URL}/api/v1/videos/${video.id}`, {
-                              method: 'DELETE',
-                              headers: {
-                                'Authorization': `Bearer ${token}`,
-                              },
-                            });
-
-                            const data = await response.json();
-
-                            if (response.ok) {
-                              alert('Video removed successfully!');
-                              // Reload the page to update the UI
-                              window.location.reload();
-                            } else {
-                              alert(data.error || 'Failed to remove video');
-                            }
-                          } catch (err) {
-                            alert('Failed to remove video. Please try again.');
-                          } finally {
-                            setDeleting(false);
-                            setShowMenu(false);
-                          }
+                          // Show confirmation dialog
+                          setShowDeleteConfirm(true);
+                          setShowMenu(false);
                         }}
                         disabled={deleting}
                       >
