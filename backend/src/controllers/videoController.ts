@@ -702,7 +702,8 @@ export const getVideosByUser = async (
         description,
         user_id,
         created_at,
-        updated_at
+        updated_at,
+        view_count
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
