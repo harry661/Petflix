@@ -124,9 +124,9 @@ function VideoCard({ video }: VideoCardProps) {
       return;
     }
 
-    // CRITICAL: If user owns this video (canDelete is true), they CANNOT repost it
-    // This must match the canDelete logic exactly
-    if (canDelete) {
+    // CRITICAL: If user owns this video (video.userId === user.id), they CANNOT repost it
+    // This must match the canDelete logic exactly - check directly, don't rely on canDelete variable
+    if (video.userId === user.id) {
       setCanRepost(false);
       return;
     }
@@ -155,7 +155,7 @@ function VideoCard({ video }: VideoCardProps) {
     };
 
     checkCanRepost();
-  }, [isAuthenticated, user, video.id, video.userId, canDelete]);
+  }, [isAuthenticated, user, video.id, video.userId]);
 
   // Close menu when clicking outside
   useEffect(() => {
