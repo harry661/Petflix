@@ -35,7 +35,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/home" element={<HomePage />} />
-          <Route path="/popular" element={<HomePage />} />
+          <Route path="/popular" element={<TrendingPage />} />
           <Route path="/trending" element={<TrendingPage />} />
           <Route path="/following" element={<FeedPage />} />
           <Route path="/search" element={<SearchPage />} />
