@@ -148,30 +148,38 @@ export default function UserProfilePage() {
 
       setUser(userData);
 
-      // Load user's shared videos
-      try {
-        const sharedRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=shared`, {
+      // Load user's shared videos and reposted videos in parallel
+      const [sharedRes, repostedRes] = await Promise.all([
+        fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=shared`, {
           credentials: 'include',
-        });
-        if (sharedRes.ok) {
+        }).catch(() => null),
+        fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=reposted`, {
+          credentials: 'include',
+        }).catch(() => null)
+      ]);
+
+      // Process shared videos
+      if (sharedRes?.ok) {
+        try {
           const sharedData = await sharedRes.json();
           setSharedVideos(sharedData.videos || []);
+        } catch (err) {
+          setSharedVideos([]);
         }
-      } catch (err) {
-        // Error loading shared videos
+      } else {
+        setSharedVideos([]);
       }
 
-      // Load user's reposted videos
-      try {
-        const repostedRes = await fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=reposted`, {
-          credentials: 'include',
-        });
-        if (repostedRes.ok) {
+      // Process reposted videos
+      if (repostedRes?.ok) {
+        try {
           const repostedData = await repostedRes.json();
           setRepostedVideos(repostedData.videos || []);
+        } catch (err) {
+          setRepostedVideos([]);
         }
-      } catch (err) {
-        // Error loading reposted videos
+      } else {
+        setRepostedVideos([]);
       }
 
       // Load followers
