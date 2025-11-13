@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { MoreVertical } from 'lucide-react';
 
 interface VideoCardProps {
@@ -22,7 +23,9 @@ interface VideoCardProps {
 
 function VideoCard({ video }: VideoCardProps) {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Generate YouTube thumbnail URL if not provided
@@ -381,13 +384,43 @@ function VideoCard({ video }: VideoCardProps) {
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        // TODO: Implement menu actions
-                        setShowMenu(false);
+                        if (!isAuthenticated) {
+                          alert('Please log in to share videos');
+                          setShowMenu(false);
+                          return;
+                        }
+
+                        setSharing(true);
+                        try {
+                          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                          const token = localStorage.getItem('auth_token');
+                          
+                          const response = await fetch(`${API_URL}/api/v1/videos/${video.id}/repost`, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                            },
+                          });
+
+                          const data = await response.json();
+
+                          if (response.ok) {
+                            alert('Video shared successfully!');
+                          } else {
+                            alert(data.error || 'Failed to share video');
+                          }
+                        } catch (err) {
+                          alert('Failed to share video. Please try again.');
+                        } finally {
+                          setSharing(false);
+                          setShowMenu(false);
+                        }
                       }}
+                      disabled={sharing}
                     >
-                      Share
+                      {sharing ? 'Sharing...' : 'Share'}
                     </button>
                   </div>
                 )}

@@ -1243,6 +1243,131 @@ export const refreshAllViewCounts = async (req: Request, res: Response) => {
 };
 
 /**
+ * Repost/Share a video (credits original user)
+ * POST /api/v1/videos/:id/repost
+ */
+export const repostVideo = async (
+  req: Request<{ id: string }, VideoResponse | ErrorResponse>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    // Get the original video
+    const { data: originalVideo, error: videoError } = await supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        view_count,
+        original_user_id
+      `)
+      .eq('id', id)
+      .single();
+
+    if (videoError || !originalVideo) {
+      res.status(404).json({ error: 'Video not found' });
+      return;
+    }
+
+    // Determine the original sharer (if already a repost, use original_user_id, otherwise use user_id)
+    const originalUserId = originalVideo.original_user_id || originalVideo.user_id;
+
+    // Prevent reposting your own videos
+    if (originalUserId === req.user.userId) {
+      res.status(400).json({ error: 'You cannot repost your own video' });
+      return;
+    }
+
+    // Check if user has already reposted this video
+    const { data: existingRepost } = await supabaseAdmin!
+      .from('videos')
+      .select('id')
+      .eq('youtube_video_id', originalVideo.youtube_video_id)
+      .eq('user_id', req.user.userId)
+      .single();
+
+    if (existingRepost) {
+      res.status(409).json({ error: 'You have already shared this video' });
+      return;
+    }
+
+    // Create reposted video entry
+    const { data: newVideo, error: insertError } = await supabaseAdmin!
+      .from('videos')
+      .insert({
+        youtube_video_id: originalVideo.youtube_video_id,
+        title: originalVideo.title,
+        description: originalVideo.description,
+        user_id: req.user.userId, // Current user is reposting
+        original_user_id: originalUserId, // Credit the original sharer
+        view_count: originalVideo.view_count || 0,
+      })
+      .select('id, youtube_video_id, title, description, user_id, original_user_id, created_at, updated_at, view_count')
+      .single();
+
+    if (insertError || !newVideo) {
+      console.error('Error creating repost:', insertError);
+      res.status(500).json({ error: 'Failed to repost video' });
+      return;
+    }
+
+    // Copy tags from original video
+    const { data: originalTags } = await supabaseAdmin!
+      .from('video_tags_direct')
+      .select('tag_name')
+      .eq('video_id', id);
+
+    if (originalTags && originalTags.length > 0) {
+      const tagInserts = originalTags.map(tag => ({
+        video_id: newVideo.id,
+        tag_name: tag.tag_name,
+      }));
+
+      const { error: tagsError } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .insert(tagInserts);
+
+      if (tagsError) {
+        console.error('Error copying tags:', tagsError);
+        // Don't fail the request if tags fail
+      }
+    }
+
+    // Notify followers that this user reposted a video (async, don't wait)
+    notifyFollowersOfVideoShare(
+      req.user!.userId,
+      newVideo.id,
+      originalVideo.title
+    ).catch((err: any) => {
+      console.error('Error notifying followers:', err);
+      // Non-critical error, don't affect response
+    });
+
+    res.status(201).json({
+      id: newVideo.id,
+      youtubeVideoId: newVideo.youtube_video_id,
+      title: newVideo.title,
+      description: newVideo.description,
+      userId: newVideo.user_id,
+      createdAt: newVideo.created_at,
+      updatedAt: newVideo.updated_at,
+    });
+  } catch (error) {
+    console.error('Repost video error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Report a video
  * POST /api/v1/videos/:id/report
  */

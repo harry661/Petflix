@@ -73,6 +73,9 @@ export interface VideoResponse {
 
 export interface VideoDetailsResponse extends VideoResponse {
   user?: UserProfileResponse | null;
+  originalUser?: UserProfileResponse | null; // For reposted videos, credits the original sharer
+  likeCount?: number;
+  isLiked?: boolean;
 }
 
 export interface VideoSearchResponse {

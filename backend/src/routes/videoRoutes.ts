@@ -15,6 +15,7 @@ import {
   reportVideo,
   deleteVideo,
   refreshAllViewCounts,
+  repostVideo,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 
@@ -33,6 +34,7 @@ router.get('/search-history', authenticate, getSearchHistory);
 router.delete('/search-history', authenticate, clearSearchHistory);
 router.post('/:id/like', authenticate, likeVideo);
 router.delete('/:id/like', authenticate, unlikeVideo);
+router.post('/:id/repost', authenticate, repostVideo);
 router.post('/:id/report', authenticate, reportVideo);
 router.get('/:id/like-status', optionalAuthenticate, getLikeStatus);
 router.put('/:id', authenticate, updateVideo);
