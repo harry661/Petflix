@@ -174,17 +174,17 @@ export default function HomePage() {
 
   // Only show full page loading on initial load, not filter changes
   if (authLoading || (loading && !isSearchOpen && !filterLoading)) {
-        return (
-          <div style={{
-            minHeight: '100vh',
-            backgroundColor: '#0F0F0F',
-            padding: '40px',
-            textAlign: 'center'
-          }}>
-            <p style={{ color: '#ffffff' }}>Loading...</p>
-          </div>
-        );
-      }
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0F0F0F',
+        padding: '40px',
+        textAlign: 'center'
+      }}>
+        <p style={{ color: '#ffffff' }}>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <>
