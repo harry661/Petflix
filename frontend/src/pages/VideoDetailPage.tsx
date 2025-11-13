@@ -73,6 +73,25 @@ export default function VideoDetailPage() {
         setLikeCount(data.likeCount || 0);
         setEditTitle(data.title || '');
         setEditDescription(data.description || '');
+        
+        // Check if user has reposted this video
+        if (isAuthenticated && user) {
+          const token = localStorage.getItem('auth_token');
+          if (token) {
+            try {
+              const canRepostRes = await fetch(`${API_URL}/api/v1/videos/${id}/can-repost`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (canRepostRes.ok) {
+                const canRepostData = await canRepostRes.json();
+                // If canRepost is false and reason indicates already shared, user has reposted it
+                setIsReposted(canRepostData.canRepost === false && canRepostData.reason?.includes('already shared'));
+              }
+            } catch (err) {
+              // Silently fail - repost status is non-critical
+            }
+          }
+        }
       } else {
         setError(data.error || 'Video not found');
       }
@@ -188,10 +207,17 @@ export default function VideoDetailPage() {
         setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to like video');
+        // If already liked (409), just update state - don't show error
+        if (response.status === 409 && data.error?.includes('already liked')) {
+          setIsLiked(true);
+        } else {
+          console.error('Like error:', data.error);
+          // Don't show alert for non-critical errors
+        }
       }
     } catch (err) {
-      alert('Failed to like video');
+      console.error('Like error:', err);
+      // Don't show alert for network errors
     } finally {
       setLiking(false);
     }
@@ -298,6 +324,7 @@ export default function VideoDetailPage() {
   };
 
   const [reposting, setReposting] = useState(false);
+  const [isReposted, setIsReposted] = useState(false);
   const [showRepostSuccess, setShowRepostSuccess] = useState(false);
   const [showRepostError, setShowRepostError] = useState(false);
   const [repostErrorMessage, setRepostErrorMessage] = useState('');
@@ -888,8 +915,8 @@ export default function VideoDetailPage() {
                 disabled={liking || !isAuthenticated}
                 style={{
                   padding: '14px 24px',
-                  backgroundColor: isLiked ? '#ff6b6b' : 'transparent',
-                  color: isLiked ? '#ffffff' : '#ffffff',
+                  backgroundColor: isLiked ? '#ADD8E6' : 'transparent',
+                  color: isLiked ? '#0F0F0F' : '#ffffff',
                   border: isLiked ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '6px',
                   cursor: isAuthenticated && !liking ? 'pointer' : 'not-allowed',
@@ -903,17 +930,17 @@ export default function VideoDetailPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (isAuthenticated && !liking) {
-                    e.currentTarget.style.backgroundColor = isLiked ? '#ff5252' : 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.backgroundColor = isLiked ? '#87CEEB' : 'rgba(255, 255, 255, 0.1)';
                     e.currentTarget.style.transform = 'scale(1.02)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = isLiked ? '#ff6b6b' : 'transparent';
+                  e.currentTarget.style.backgroundColor = isLiked ? '#ADD8E6' : 'transparent';
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
                 title={isAuthenticated ? (isLiked ? 'Unlike video' : 'Like video') : 'Log in to like videos'}
               >
-                <Heart size={18} fill={isLiked ? '#ffffff' : 'none'} />
+                <Heart size={18} fill={isLiked ? '#0F0F0F' : 'none'} color={isLiked ? '#0F0F0F' : '#ffffff'} />
                 {likeCount > 0 && <span>{likeCount}</span>}
               </button>
               {isAuthenticated && (
@@ -921,14 +948,14 @@ export default function VideoDetailPage() {
                   {user && video.userId !== user.id && (
                     <button
                       onClick={handleRepost}
-                      disabled={reposting || !isAuthenticated}
+                      disabled={reposting || !isAuthenticated || isReposted}
                       style={{
                         padding: '14px 24px',
-                        backgroundColor: 'transparent',
-                        color: '#ffffff',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        backgroundColor: isReposted ? '#ADD8E6' : 'transparent',
+                        color: isReposted ? '#0F0F0F' : '#ffffff',
+                        border: isReposted ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
                         borderRadius: '6px',
-                        cursor: isAuthenticated && !reposting ? 'pointer' : 'not-allowed',
+                        cursor: isAuthenticated && !reposting && !isReposted ? 'pointer' : 'not-allowed',
                         fontWeight: 'bold',
                         fontSize: '16px',
                         display: 'flex',
@@ -938,18 +965,18 @@ export default function VideoDetailPage() {
                         opacity: isAuthenticated && !reposting ? 1 : 0.6
                       }}
                       onMouseEnter={(e) => {
-                        if (isAuthenticated && !reposting) {
+                        if (isAuthenticated && !reposting && !isReposted) {
                           e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                           e.currentTarget.style.transform = 'scale(1.02)';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.backgroundColor = isReposted ? '#ADD8E6' : 'transparent';
                         e.currentTarget.style.transform = 'scale(1)';
                       }}
-                      title={isAuthenticated ? 'Repost video' : 'Log in to repost videos'}
+                      title={isReposted ? 'Video reposted' : (isAuthenticated ? 'Repost video' : 'Log in to repost videos')}
                     >
-                      <Repeat2 size={18} />
+                      <Repeat2 size={18} fill={isReposted ? '#0F0F0F' : 'none'} color={isReposted ? '#0F0F0F' : '#ffffff'} />
                     </button>
                   )}
                   {user && video.userId !== user.id && (
