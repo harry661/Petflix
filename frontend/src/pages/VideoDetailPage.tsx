@@ -206,14 +206,33 @@ export default function VideoDetailPage() {
         setIsLiked(!isLiked);
         setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
       } else {
-        const data = await response.json();
-        // If already liked (409), just update state - don't show error
-        if (response.status === 409 && data.error?.includes('already liked')) {
-          setIsLiked(true);
-        } else {
-          console.error('Like error:', data.error);
-          // Don't show alert for non-critical errors
+        // Try to parse error response
+        let errorMessage = 'Failed to like video';
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+          
+          // If already liked (409), just update state - don't show error
+          if (response.status === 409) {
+            setIsLiked(true);
+            // Refresh like count
+            try {
+              const statusRes = await fetch(`${API_URL}/api/v1/videos/${id}/like-status`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (statusRes.ok) {
+                const statusData = await statusRes.json();
+                setLikeCount(statusData.likeCount || 0);
+              }
+            } catch (statusErr) {
+              // Silently fail status check
+            }
+            return; // Exit early for 409 errors
+          }
+        } catch (parseErr) {
+          // If JSON parsing fails, use default message
         }
+        console.error('Like error:', errorMessage, 'Status:', response.status);
       }
     } catch (err) {
       console.error('Like error:', err);
