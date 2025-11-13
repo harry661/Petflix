@@ -75,23 +75,30 @@ export default function VideoDetailPage() {
         setEditDescription(data.description || '');
         
         // Check if user has reposted this video
+        // Default to false (unhighlighted) unless we confirm it's reposted
+        setIsReposted(false);
+        
         if (isAuthenticated && user) {
           const token = localStorage.getItem('auth_token');
           if (token) {
             try {
-              const canRepostRes = await fetch(`${API_URL}/api/v1/videos/${id}/can-repost`, {
+              // Check if user has already reposted this video by checking their reposted videos
+              const repostedRes = await fetch(`${API_URL}/api/v1/videos/user/${user.id}?type=reposted`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               });
-              if (canRepostRes.ok) {
-                const canRepostData = await canRepostRes.json();
-                // If canRepost is false and reason indicates already shared/reposted, user has reposted it
-                const hasReposted = canRepostData.canRepost === false && 
-                  (canRepostData.reason?.includes('already shared') || 
-                   canRepostData.reason?.includes('already reposted'));
-                setIsReposted(hasReposted);
+              
+              if (repostedRes.ok) {
+                const repostedData = await repostedRes.json();
+                // Check if any reposted video matches this video's youtube_video_id or original user
+                const hasReposted = repostedData.videos?.some((v: any) => 
+                  v.youtubeVideoId === data.youtubeVideoId ||
+                  (v.originalUser && v.originalUser.id === data.userId)
+                );
+                setIsReposted(hasReposted || false);
               }
             } catch (err) {
-              // Silently fail - repost status is non-critical
+              // Silently fail - repost status is non-critical, keep default false
+              setIsReposted(false);
             }
           }
         }
