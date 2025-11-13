@@ -42,8 +42,12 @@ function VideoCard({ video }: VideoCardProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user owns this video (can delete it)
-  // video.userId is the person who shared/reposted it - if it matches current user, they can delete
-  const canDelete = isAuthenticated && user && video.userId === user.id;
+  // User owns it if they are the one who shared/reposted it (video.userId)
+  // OR if they are the original sharer (video.originalUser?.id) - this handles reposts
+  const canDelete = isAuthenticated && user && (
+    video.userId === user.id || 
+    video.originalUser?.id === user.id
+  );
 
   // Generate YouTube thumbnail URL if not provided
   // Use hqdefault as default (more reliable than maxresdefault)
@@ -124,9 +128,10 @@ function VideoCard({ video }: VideoCardProps) {
       return;
     }
 
-    // CRITICAL: If user owns this video (video.userId === user.id), they CANNOT repost it
-    // This must match the canDelete logic exactly - check directly, don't rely on canDelete variable
-    if (video.userId === user.id) {
+    // CRITICAL: If user owns this video (as sharer OR original sharer), they CANNOT repost it
+    // This must match the backend logic: checks both video.user_id and original_user_id
+    // Also matches canDelete logic exactly
+    if (video.userId === user.id || video.originalUser?.id === user.id) {
       setCanRepost(false);
       return;
     }
@@ -155,7 +160,7 @@ function VideoCard({ video }: VideoCardProps) {
     };
 
     checkCanRepost();
-  }, [isAuthenticated, user, video.id, video.userId]);
+  }, [isAuthenticated, user, video.id, video.userId, video.originalUser?.id]);
 
   // Close menu when clicking outside
   useEffect(() => {
