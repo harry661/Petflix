@@ -167,6 +167,15 @@ export const searchVideos = async (
     
     sharedVideos = sharedVideos.slice(0, limit);
 
+    // Refresh view counts for videos with 0 views (async, don't wait)
+    sharedVideos.forEach((video: any) => {
+      if ((video.view_count || 0) === 0 && video.youtube_video_id) {
+        refreshVideoViewCount(video.id, video.youtube_video_id).catch((err: any) => {
+          // Non-critical, don't affect response
+        });
+      }
+    });
+
     // Get tags for all videos in one query
     const videoIds = sharedVideos.map((v: any) => v.id);
     let videoTagsMap: { [key: string]: string[] } = {};
@@ -622,6 +631,15 @@ export const getFeed = async (req: Request, res: Response) => {
 
     console.log(`Found ${videos?.length || 0} videos from followed users`);
 
+    // Refresh view counts for videos with 0 views (async, don't wait)
+    (videos || []).forEach((video: any) => {
+      if ((video.view_count || 0) === 0 && video.youtube_video_id) {
+        refreshVideoViewCount(video.id, video.youtube_video_id).catch((err: any) => {
+          // Non-critical, don't affect response
+        });
+      }
+    });
+
     // Format videos with thumbnails (generate directly from video IDs)
     const videosFormatted = (videos || []).map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
@@ -693,6 +711,15 @@ export const getVideosByUser = async (
       res.status(500).json({ error: 'Failed to load videos' });
       return;
     }
+
+    // Refresh view counts for videos with 0 views (async, don't wait)
+    (videos || []).forEach((video: any) => {
+      if (video.view_count === 0 && video.youtube_video_id) {
+        refreshVideoViewCount(video.id, video.youtube_video_id).catch((err: any) => {
+          // Non-critical, don't affect response
+        });
+      }
+    });
 
     // Format videos with thumbnails (generate directly from video IDs, don't use API)
     const videosFormatted = (videos || []).map((video: any) => {
@@ -847,6 +874,15 @@ export const getRecentVideos = async (
         });
       }
     }
+
+    // Refresh view counts for videos with 0 views (async, don't wait)
+    (videos || []).forEach((video: any) => {
+      if (video.view_count === 0 && video.youtube_video_id) {
+        refreshVideoViewCount(video.id, video.youtube_video_id).catch((err: any) => {
+          // Non-critical, don't affect response
+        });
+      }
+    });
 
     const videosFormatted = (videos || []).map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
