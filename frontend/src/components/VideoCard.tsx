@@ -407,9 +407,11 @@ function VideoCard({ video }: VideoCardProps) {
                           const data = await response.json();
 
                           if (response.ok) {
-                            alert('Video shared successfully!');
+                            alert('Video reposted successfully!');
+                            // Optionally reload the page or update UI
+                            window.location.reload();
                           } else {
-                            alert(data.error || 'Failed to share video');
+                            alert(data.error || 'Failed to repost video');
                           }
                         } catch (err) {
                           alert('Failed to share video. Please try again.');
