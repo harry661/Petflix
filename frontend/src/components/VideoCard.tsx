@@ -122,6 +122,9 @@ function VideoCard({ video }: VideoCardProps) {
 
   // Check if user can repost this video
   useEffect(() => {
+    // Reset canRepost state
+    setCanRepost(null);
+    
     if (!isAuthenticated || !user || !video.id) {
       setCanRepost(false);
       return;
@@ -130,16 +133,22 @@ function VideoCard({ video }: VideoCardProps) {
     // CRITICAL: If user owns this video (as sharer OR original sharer), they CANNOT repost it
     // This must match the backend logic: checks both video.user_id and original_user_id
     // Also matches canDelete logic exactly
+    // Check this FIRST before making any API calls
     if (video.userId === user.id || video.originalUser?.id === user.id) {
       setCanRepost(false);
       return;
     }
 
-    // Check with backend to see if user has already shared/reposted this video
+    // Only check with backend if user doesn't own the video
     const checkCanRepost = async () => {
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         const token = localStorage.getItem('auth_token');
+        
+        if (!token) {
+          setCanRepost(false);
+          return;
+        }
         
         const response = await fetch(`${API_URL}/api/v1/videos/${video.id}/can-repost`, {
           headers: {
@@ -149,7 +158,7 @@ function VideoCard({ video }: VideoCardProps) {
 
         if (response.ok) {
           const data = await response.json();
-          setCanRepost(data.canRepost || false);
+          setCanRepost(data.canRepost === true);
         } else {
           setCanRepost(false);
         }
@@ -159,7 +168,7 @@ function VideoCard({ video }: VideoCardProps) {
     };
 
     checkCanRepost();
-  }, [isAuthenticated, user, video.id, video.userId, video.originalUser?.id]);
+  }, [isAuthenticated, user?.id, video.id, video.userId, video.originalUser?.id]);
 
   // Close menu when clicking outside
   useEffect(() => {
