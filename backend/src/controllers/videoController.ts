@@ -10,7 +10,7 @@ import {
   ErrorResponse,
 } from '../types';
 // YouTube URL validation is handled in youtubeService
-import { searchYouTubeVideos, getYouTubeVideoDetails, getYouTubeVideoMetadata } from '../services/youtubeService';
+import { getYouTubeVideoMetadata } from '../services/youtubeService';
 
 /**
  * Search for videos (YouTube + Petflix shared videos)
@@ -269,36 +269,13 @@ export const shareVideo = async (
     let videoDescription = description;
     let videoThumbnail: string | undefined;
 
-    // Try to get video metadata and view count (prefer oEmbed - free, no quota)
-    // Fallback to Data API if available, then use provided/default values
-    let videoViewCount: number | null = null;
-    let youtubePublishedAt: string | null = null;
-    
-    // First try oEmbed API (free, no quota) - but it doesn't provide view count or publish date
+    // Use oEmbed API (free, no quota) to get basic metadata
+    // We don't use YouTube Data API - embeds work without it
     const oembedData = await getYouTubeVideoMetadata(youtubeVideoId);
     if (oembedData) {
       videoTitle = videoTitle || oembedData.title;
       videoDescription = videoDescription || oembedData.description;
       videoThumbnail = oembedData.thumbnail;
-    }
-    
-    // Try Data API to get view count and publish date (optional - may hit quota)
-    try {
-      const youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
-      videoTitle = videoTitle || youtubeData.title;
-      videoDescription = videoDescription || youtubeData.description;
-      videoThumbnail = videoThumbnail || youtubeData.thumbnail;
-      // Get view count if available
-      if (youtubeData.viewCount) {
-        videoViewCount = parseInt(youtubeData.viewCount) || 0;
-      }
-      // Get publish date from YouTube
-      if (youtubeData.publishedAt) {
-        youtubePublishedAt = youtubeData.publishedAt;
-      }
-    } catch (error: any) {
-      // Log but don't fail - we can still save the video without metadata
-      console.log('YouTube Data API not available (quota exceeded or API key missing). Using provided or default values.');
     }
 
     // Check if video already shared by this user
@@ -326,10 +303,9 @@ export const shareVideo = async (
         title: finalTitle,
         description: finalDescription,
         user_id: req.user.userId,
-        view_count: videoViewCount || 0, // Store view count if available
-        youtube_published_at: youtubePublishedAt || null, // Store YouTube publish date if available
+        view_count: 0, // Start at 0, can be updated later
       })
-      .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count, youtube_published_at')
+      .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count')
       .single();
 
     if (insertError || !newVideo) {
@@ -399,24 +375,8 @@ export const getVideoById = async (
   try {
     const { id } = req.params;
 
-    // Check if it's a YouTube video ID (starts with youtube_)
-    if (id.startsWith('youtube_')) {
-      const youtubeId = id.replace('youtube_', '');
-      const youtubeData = await getYouTubeVideoDetails(youtubeId);
-      
-      res.json({
-        id: `youtube_${youtubeData.id}`,
-        youtubeVideoId: youtubeData.id,
-        title: youtubeData.title,
-        description: youtubeData.description,
-        userId: '',
-        createdAt: youtubeData.publishedAt,
-        updatedAt: youtubeData.publishedAt,
-        user: undefined,
-      } as VideoDetailsResponse);
-      return;
-    }
-
+    // All videos should be in the database (user-shared videos only)
+    // No direct YouTube video access
     // Get from database
     // Note: like_count column may not exist if migration 007_add_likes.sql hasn't been run
     const { data: video, error } = await supabaseAdmin!
@@ -695,8 +655,7 @@ export const getVideosByUser = async (
         description,
         user_id,
         created_at,
-        updated_at,
-        youtube_published_at
+        updated_at
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
