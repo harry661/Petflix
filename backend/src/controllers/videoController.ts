@@ -198,8 +198,8 @@ export const searchVideos = async (
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
-      // Use YouTube published date if available, otherwise use created_at
-      const displayDate = (video as any).youtube_published_at || video.created_at;
+      // Use created_at as display date
+      const displayDate = video.created_at;
 
       return {
         id: video.id,
@@ -603,8 +603,8 @@ export const getFeed = async (req: Request, res: Response) => {
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
-      // Use YouTube published date if available, otherwise use created_at
-      const displayDate = (video as any).youtube_published_at || video.created_at;
+      // Use created_at as display date
+      const displayDate = video.created_at;
 
       return {
         id: video.id,
@@ -676,8 +676,8 @@ export const getVideosByUser = async (
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
-      // Use YouTube published date if available, otherwise use created_at
-      const displayDate = (video as any).youtube_published_at || video.created_at;
+      // Use created_at as display date
+      const displayDate = video.created_at;
 
       return {
         id: video.id,
