@@ -466,14 +466,35 @@ export default function HomePage() {
           )}
 
           {!displayLoading && displayVideos.length > 0 && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-              gap: '20px'
-            }}>
-              {displayVideos.map((video) => (
-                <VideoCard key={video.id} video={video} />
-              ))}
+            <div style={{ position: 'relative' }}>
+              {/* Subtle loading indicator for filter changes */}
+              {filterLoading && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-40px',
+                  left: 0,
+                  right: 0,
+                  textAlign: 'center',
+                  zIndex: 10
+                }}>
+                  <p style={{ 
+                    color: 'rgba(255, 255, 255, 0.7)', 
+                    fontSize: '14px',
+                    margin: 0
+                  }}>Loading...</p>
+                </div>
+              )}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '20px',
+                opacity: filterLoading ? 0.6 : 1,
+                transition: 'opacity 0.2s ease'
+              }}>
+                {displayVideos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </div>
             </div>
           )}
         </div>
