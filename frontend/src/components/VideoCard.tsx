@@ -134,7 +134,16 @@ function VideoCard({ video }: VideoCardProps) {
     // This must match the backend logic: checks both video.user_id and original_user_id
     // Also matches canDelete logic exactly
     // Check this FIRST before making any API calls
-    if (video.userId === user.id || video.originalUser?.id === user.id) {
+    // IMPORTANT: canDelete checks video.userId === user.id, so if canDelete is true, canRepost must be false
+    if (video.userId === user.id) {
+      // User owns this video (shared or reposted it) - cannot repost, can only delete
+      setCanRepost(false);
+      return;
+    }
+    
+    // Also check if user is the original sharer (for reposted videos)
+    if (video.originalUser?.id === user.id) {
+      // User is the original sharer - cannot repost their own content
       setCanRepost(false);
       return;
     }
