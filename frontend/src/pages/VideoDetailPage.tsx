@@ -391,6 +391,10 @@ export default function VideoDetailPage() {
     }
 
     setReposting(true);
+    // Ensure any existing modals are closed before starting
+    setShowRepostError(false);
+    setShowRepostSuccess(false);
+    
     try {
       const response = await fetch(`${API_URL}/api/v1/videos/${id}/repost`, {
         method: 'POST',
@@ -420,7 +424,13 @@ export default function VideoDetailPage() {
         return;
       }
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
+      
+      if (!data) {
+        // If we can't parse the response, still show success but log error
+        console.error('Failed to parse repost response');
+      }
+      
       // Optimistic UI update
       setIsReposted(true);
       
@@ -428,14 +438,20 @@ export default function VideoDetailPage() {
       setShowRepostError(false);
       
       // Dispatch event to notify profile page to refresh
-      window.dispatchEvent(new CustomEvent('video-reposted', { 
-        detail: { videoId: id, video: data } 
-      }));
+      if (data) {
+        window.dispatchEvent(new CustomEvent('video-reposted', { 
+          detail: { videoId: id, video: data } 
+        }));
+      }
       
       setShowRepostSuccess(true);
-      setTimeout(() => {
+      // Auto-close after 2 seconds, but also allow manual close
+      const timeoutId = setTimeout(() => {
         setShowRepostSuccess(false);
       }, 2000);
+      
+      // Store timeout ID so we can clear it if user closes manually
+      (window as any).__repostSuccessTimeout = timeoutId;
     } catch (err: any) {
       console.error('Repost error:', err);
       setRepostErrorMessage('Failed to repost video. Please try again.');
@@ -524,6 +540,11 @@ export default function VideoDetailPage() {
           onClick={(e) => {
             // Close on click outside
             if (e.target === e.currentTarget) {
+              // Clear auto-close timeout if user closes manually
+              if ((window as any).__repostSuccessTimeout) {
+                clearTimeout((window as any).__repostSuccessTimeout);
+                delete (window as any).__repostSuccessTimeout;
+              }
               setShowRepostSuccess(false);
             }
           }}
@@ -568,7 +589,14 @@ export default function VideoDetailPage() {
               The video has been added to your profile
             </p>
             <button
-              onClick={() => setShowRepostSuccess(false)}
+              onClick={() => {
+                // Clear auto-close timeout if user closes manually
+                if ((window as any).__repostSuccessTimeout) {
+                  clearTimeout((window as any).__repostSuccessTimeout);
+                  delete (window as any).__repostSuccessTimeout;
+                }
+                setShowRepostSuccess(false);
+              }}
               style={{
                 padding: '10px 20px',
                 backgroundColor: '#ADD8E6',
