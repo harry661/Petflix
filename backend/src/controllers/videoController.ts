@@ -417,10 +417,18 @@ export const getVideoById = async (
         title,
         description,
         user_id,
+        original_user_id,
         created_at,
         updated_at,
         view_count,
         users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url,
+          bio
+        ),
+        original_user:original_user_id (
           id,
           username,
           email,
@@ -459,6 +467,9 @@ export const getVideoById = async (
     }
 
     const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+    const originalUserData = video.original_user_id 
+      ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+      : null;
     
     // Get like status if user is authenticated
     let isLiked = false;
@@ -472,6 +483,18 @@ export const getVideoById = async (
       isLiked = !!like;
     }
 
+    // Get like count
+    let likeCount = 0;
+    try {
+      const { count } = await supabaseAdmin!
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('video_id', id);
+      likeCount = count || 0;
+    } catch (countError: any) {
+      console.log('Could not fetch like count:', countError.message);
+    }
+
     // Use YouTube published date if available, otherwise use created_at (when shared on Petflix)
     const displayDate = (video as any).youtube_published_at || video.created_at;
 
@@ -483,7 +506,7 @@ export const getVideoById = async (
       userId: video.user_id,
       createdAt: displayDate, // Use YouTube publish date if available
       updatedAt: video.updated_at,
-      likeCount: (video as any).like_count || 0,
+      likeCount: likeCount,
       isLiked: isLiked,
       user: userData ? {
         id: userData.id,
@@ -493,6 +516,15 @@ export const getVideoById = async (
         bio: (userData as any).bio || null,
         created_at: (userData as any).created_at || video.created_at,
         updated_at: (userData as any).updated_at || video.updated_at,
+      } : undefined,
+      originalUser: originalUserData ? {
+        id: originalUserData.id,
+        username: originalUserData.username,
+        email: originalUserData.email,
+        profile_picture_url: originalUserData.profile_picture_url || null,
+        bio: (originalUserData as any).bio || null,
+        created_at: (originalUserData as any).created_at || video.created_at,
+        updated_at: (originalUserData as any).updated_at || video.updated_at,
       } : undefined,
     } as VideoDetailsResponse);
   } catch (error: any) {
