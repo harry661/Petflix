@@ -349,10 +349,10 @@ export default function VideoDetailPage() {
 
       const data = await response.json();
       if (response.ok) {
+        setIsReposted(true);
         setShowRepostSuccess(true);
         setTimeout(() => {
           setShowRepostSuccess(false);
-          window.location.reload();
         }, 2000);
       } else {
         setRepostErrorMessage(data.error || 'Failed to repost video');
