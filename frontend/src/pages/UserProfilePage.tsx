@@ -198,7 +198,6 @@ export default function UserProfilePage() {
       // Check if viewing own profile
       const isViewingOwnProfile = currentUser?.username === username;
       setIsCurrentUser(isViewingOwnProfile);
-      setIsCurrentUser(isViewingOwnProfile);
 
       setUser(userData);
 
