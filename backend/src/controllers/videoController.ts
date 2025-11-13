@@ -499,12 +499,17 @@ export const getVideoById = async (
     // Get like status if user is authenticated
     let isLiked = false;
     if (req.user) {
-      const { data: like } = await supabaseAdmin!
+      const { data: like, error: likeError } = await supabaseAdmin!
         .from('likes')
         .select('id')
         .eq('user_id', req.user.userId)
         .eq('video_id', id)
-        .single();
+        .maybeSingle();
+      
+      // Only set isLiked if we found a like (ignore "not found" errors)
+      if (likeError && likeError.code !== 'PGRST116') {
+        console.error('Error checking like status:', likeError);
+      }
       isLiked = !!like;
     }
 

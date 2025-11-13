@@ -980,9 +980,9 @@ export default function VideoDetailPage() {
                 disabled={liking || !isAuthenticated}
                 style={{
                   padding: '14px 24px',
-                  backgroundColor: isLiked ? '#ADD8E6' : 'transparent',
-                  color: isLiked ? '#0F0F0F' : '#ffffff',
-                  border: isLiked ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                  backgroundColor: 'transparent',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '6px',
                   cursor: isAuthenticated && !liking ? 'pointer' : 'not-allowed',
                   fontWeight: 'bold',
@@ -996,17 +996,17 @@ export default function VideoDetailPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (isAuthenticated && !liking) {
-                    e.currentTarget.style.backgroundColor = isLiked ? '#87CEEB' : 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                     e.currentTarget.style.transform = 'scale(1.02)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = isLiked ? '#ADD8E6' : 'transparent';
+                  e.currentTarget.style.backgroundColor = 'transparent';
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
                 title={isAuthenticated ? (isLiked ? 'Unlike video' : 'Like video') : 'Log in to like videos'}
               >
-                <Heart size={18} fill={isLiked ? '#0F0F0F' : 'none'} color={isLiked ? '#0F0F0F' : '#ffffff'} />
+                <Heart size={18} fill={isLiked ? '#ADD8E6' : 'none'} color={isLiked ? '#ADD8E6' : '#ffffff'} />
                 {likeCount > 0 && <span>{likeCount}</span>}
               </button>
               {isAuthenticated && (
@@ -1020,9 +1020,9 @@ export default function VideoDetailPage() {
                       disabled={reposting || !isAuthenticated || isReposted}
                       style={{
                         padding: '14px 24px',
-                        backgroundColor: isReposted ? '#ADD8E6' : 'transparent',
-                        color: isReposted ? '#0F0F0F' : '#ffffff',
-                        border: isReposted ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                        backgroundColor: 'transparent',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
                         borderRadius: '6px',
                         cursor: isAuthenticated && !reposting && !isReposted ? 'pointer' : 'not-allowed',
                         fontWeight: 'bold',
@@ -1041,12 +1041,12 @@ export default function VideoDetailPage() {
                         }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = isReposted ? '#ADD8E6' : 'transparent';
+                        e.currentTarget.style.backgroundColor = 'transparent';
                         e.currentTarget.style.transform = 'scale(1)';
                       }}
                       title={isReposted ? 'Video reposted' : (isAuthenticated ? 'Repost video' : 'Log in to repost videos')}
                     >
-                      <Repeat2 size={18} fill={isReposted ? '#0F0F0F' : 'none'} color={isReposted ? '#0F0F0F' : '#ffffff'} />
+                      <Repeat2 size={18} fill={isReposted ? '#ADD8E6' : 'none'} color={isReposted ? '#ADD8E6' : '#ffffff'} />
                     </button>
                   )}
                   {user && video.userId !== user.id && (
