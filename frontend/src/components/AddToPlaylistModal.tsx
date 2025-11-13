@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { X, Plus, Check } from 'lucide-react';
+import { X, Plus, Check, ExternalLink } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -26,6 +27,7 @@ export default function AddToPlaylistModal({
   onClose,
   onSuccess,
 }: AddToPlaylistModalProps) {
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(false);
@@ -478,84 +480,118 @@ export default function AddToPlaylistModal({
               const isAdding = addingToPlaylist === playlist.id;
               
               return (
-                <button
+                <div
                   key={playlist.id}
-                  onClick={() => handleAddToPlaylist(playlist.id)}
-                  disabled={isAdding}
                   style={{
                     width: '100%',
                     padding: '12px',
                     backgroundColor: isInPlaylist ? 'rgba(173, 216, 230, 0.1)' : 'transparent',
                     border: isInPlaylist ? '1px solid #ADD8E6' : '1px solid rgba(255, 255, 255, 0.1)',
                     borderRadius: '8px',
-                    cursor: isAdding ? 'not-allowed' : 'pointer',
-                    textAlign: 'left',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
                     transition: 'all 0.2s ease',
                     opacity: isAdding ? 0.6 : 1
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isAdding) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isAdding) {
-                      e.currentTarget.style.backgroundColor = isInPlaylist ? 'rgba(173, 216, 230, 0.1)' : 'transparent';
-                    }
-                  }}
                 >
-                  <div style={{
-                    width: '24px',
-                    height: '24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    {isInPlaylist ? (
-                      <Check size={20} color="#ADD8E6" />
-                    ) : (
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
-                        borderRadius: '4px'
-                      }} />
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <button
+                    onClick={() => handleAddToPlaylist(playlist.id)}
+                    disabled={isAdding}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      background: 'none',
+                      border: 'none',
+                      cursor: isAdding ? 'not-allowed' : 'pointer',
+                      textAlign: 'left',
+                      padding: 0
+                    }}
+                  >
                     <div style={{
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      marginBottom: '2px'
+                      width: '24px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
                     }}>
-                      {playlist.name}
+                      {isInPlaylist ? (
+                        <Check size={20} color="#ADD8E6" />
+                      ) : (
+                        <div style={{
+                          width: '20px',
+                          height: '20px',
+                          border: '2px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: '4px'
+                        }} />
+                      )}
                     </div>
-                    {playlist.description && (
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontSize: '12px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        color: '#ffffff',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        marginBottom: '2px'
                       }}>
-                        {playlist.description}
+                        {playlist.name}
+                      </div>
+                      {playlist.description && (
+                        <div style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: '12px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {playlist.description}
+                        </div>
+                      )}
+                    </div>
+                    {isAdding && (
+                      <div style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: '12px',
+                        flexShrink: 0
+                      }}>
+                        {isInPlaylist ? 'Removing...' : 'Adding...'}
                       </div>
                     )}
-                  </div>
-                  {isAdding && (
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: '12px'
-                    }}>
-                      {isInPlaylist ? 'Removing...' : 'Adding...'}
-                    </div>
-                  )}
-                </button>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/playlist/${playlist.id}`);
+                      onClose();
+                    }}
+                    style={{
+                      padding: '6px',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '4px',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.color = '#ADD8E6';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                    }}
+                    title="View playlist"
+                  >
+                    <ExternalLink size={18} />
+                  </button>
+                </div>
               );
             })}
           </div>
