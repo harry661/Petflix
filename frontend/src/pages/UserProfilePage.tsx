@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Upload, Pencil, CheckCircle2, Bell, BellOff } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
+import PlaylistCard from '../components/PlaylistCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -29,7 +30,8 @@ export default function UserProfilePage() {
   const [sharedVideos, setSharedVideos] = useState<any[]>([]);
   const [repostedVideos, setRepostedVideos] = useState<any[]>([]);
   const [likedVideos, setLikedVideos] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'shared' | 'reposted' | 'liked'>('shared');
+  const [activeTab, setActiveTab] = useState<'shared' | 'reposted' | 'liked' | 'playlists'>('shared');
+  const [playlists, setPlaylists] = useState<any[]>([]);
   const [followers, setFollowers] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -253,6 +255,26 @@ export default function UserProfilePage() {
         }
       } else {
         setLikedVideos([]);
+      }
+
+      // Load playlists (only for current user)
+      if (isViewingOwnProfile && token) {
+        try {
+          const playlistsRes = await fetch(`${API_URL}/api/v1/playlists`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            credentials: 'include',
+          });
+          if (playlistsRes.ok) {
+            const playlistsData = await playlistsRes.json();
+            setPlaylists(playlistsData.playlists || []);
+          } else {
+            setPlaylists([]);
+          }
+        } catch (err) {
+          setPlaylists([]);
+        }
+      } else {
+        setPlaylists([]);
       }
 
       // Load followers
@@ -1196,33 +1218,62 @@ export default function UserProfilePage() {
               Reposted Videos ({repostedVideos.length})
             </button>
             {isCurrentUser && (
-              <button
-                onClick={() => setActiveTab('liked')}
-                style={{
-                  padding: '12px 0',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  borderBottom: activeTab === 'liked' ? '2px solid #ADD8E6' : '2px solid transparent',
-                  color: activeTab === 'liked' ? '#ADD8E6' : 'rgba(255, 255, 255, 0.7)',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: activeTab === 'liked' ? '600' : '400',
-                  transition: 'all 0.2s ease',
-                  marginBottom: '-2px'
-                }}
-                onMouseEnter={(e) => {
-                  if (activeTab !== 'liked') {
-                    e.currentTarget.style.color = '#ffffff';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (activeTab !== 'liked') {
-                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
-                  }
-                }}
-              >
-                Liked Videos ({likedVideos.length})
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('liked')}
+                  style={{
+                    padding: '12px 0',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderBottom: activeTab === 'liked' ? '2px solid #ADD8E6' : '2px solid transparent',
+                    color: activeTab === 'liked' ? '#ADD8E6' : 'rgba(255, 255, 255, 0.7)',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: activeTab === 'liked' ? '600' : '400',
+                    transition: 'all 0.2s ease',
+                    marginBottom: '-2px'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== 'liked') {
+                      e.currentTarget.style.color = '#ffffff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== 'liked') {
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                    }
+                  }}
+                >
+                  Liked Videos ({likedVideos.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('playlists')}
+                  style={{
+                    padding: '12px 0',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderBottom: activeTab === 'playlists' ? '2px solid #ADD8E6' : '2px solid transparent',
+                    color: activeTab === 'playlists' ? '#ADD8E6' : 'rgba(255, 255, 255, 0.7)',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: activeTab === 'playlists' ? '600' : '400',
+                    transition: 'all 0.2s ease',
+                    marginBottom: '-2px'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== 'playlists') {
+                      e.currentTarget.style.color = '#ffffff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== 'playlists') {
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                    }
+                  }}
+                >
+                  My Playlists ({playlists.length})
+                </button>
+              </>
             )}
           </div>
 
@@ -1292,6 +1343,32 @@ export default function UserProfilePage() {
                         } : undefined)
                       }}
                     />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* My Playlists Tab */}
+          {activeTab === 'playlists' && isCurrentUser && (
+            <>
+              {playlists.length === 0 ? (
+                <div style={{
+                  backgroundColor: 'transparent',
+                  borderRadius: '8px',
+                  padding: '40px',
+                  textAlign: 'center'
+                }}>
+                  <p style={{ color: '#ffffff' }}>No playlists yet. Create one by adding videos to playlists!</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {playlists.map((playlist) => (
+                    <PlaylistCard key={playlist.id} playlist={playlist} />
                   ))}
                 </div>
               )}

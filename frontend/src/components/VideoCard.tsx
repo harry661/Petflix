@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { MoreVertical, CheckCircle2, Trash2, XCircle } from 'lucide-react';
+import AddToPlaylistModal from './AddToPlaylistModal';
 
 interface VideoCardProps {
   video: {
@@ -39,6 +40,7 @@ function VideoCard({ video }: VideoCardProps) {
   const [repostErrorMessage, setRepostErrorMessage] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Check if current user owns this video (can delete it)
@@ -859,8 +861,8 @@ function VideoCard({ video }: VideoCardProps) {
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Implement menu actions
                         setShowMenu(false);
+                        setShowAddToPlaylistModal(true);
                       }}
                     >
                       Add to playlist
@@ -1019,6 +1021,13 @@ function VideoCard({ video }: VideoCardProps) {
         </div>
       </div>
     </div>
+    
+    {/* Add to Playlist Modal */}
+    <AddToPlaylistModal
+      videoId={video.id}
+      isOpen={showAddToPlaylistModal}
+      onClose={() => setShowAddToPlaylistModal(false)}
+    />
     </>
   );
 }
