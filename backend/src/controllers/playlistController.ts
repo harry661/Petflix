@@ -151,14 +151,71 @@ export const getPlaylistById = async (
           title,
           description,
           user_id,
+          original_user_id,
           created_at,
-          updated_at
+          updated_at,
+          view_count,
+          users:user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          ),
+          original_user:original_user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          )
         )
       `)
       .eq('playlist_id', id)
       .order('created_at', { ascending: true });
 
-    const videos = (playlistVideos || []).map((pv: any) => pv.videos).filter(Boolean);
+    // Format videos with thumbnails and user info
+    const videos = (playlistVideos || [])
+      .map((pv: any) => {
+        const video = pv.videos;
+        if (!video) return null;
+
+        // Generate thumbnail URL directly from YouTube video ID
+        let thumbnail: string | null = null;
+        if (video.youtube_video_id) {
+          if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+            thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+          }
+        }
+
+        const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+        const originalUserData = video.original_user_id 
+          ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+          : null;
+
+        return {
+          id: video.id,
+          youtubeVideoId: video.youtube_video_id,
+          title: video.title,
+          description: video.description,
+          userId: video.user_id,
+          createdAt: video.created_at,
+          updatedAt: video.updated_at,
+          viewCount: video.view_count || 0,
+          thumbnail: thumbnail,
+          user: userData ? {
+            id: userData.id,
+            username: userData.username,
+            email: userData.email,
+            profile_picture_url: userData.profile_picture_url,
+          } : null,
+          originalUser: originalUserData ? {
+            id: originalUserData.id,
+            username: originalUserData.username,
+            email: originalUserData.email,
+            profile_picture_url: originalUserData.profile_picture_url,
+          } : null,
+        };
+      })
+      .filter(Boolean);
 
     const userData = Array.isArray(playlist.users) ? playlist.users[0] : playlist.users;
     res.json({

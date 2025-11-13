@@ -13,6 +13,7 @@ const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 const FollowersFollowingPage = lazy(() => import('./pages/FollowersFollowingPage'));
 const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
+const PlaylistDetailPage = lazy(() => import('./pages/PlaylistDetailPage'));
 
 function AppContent() {
   const location = useLocation();
@@ -45,6 +46,7 @@ function AppContent() {
           <Route path="/user/:username/following" element={<FollowersFollowingPage />} />
           <Route path="/settings" element={<AccountSettingsPage />} />
           <Route path="/feed" element={<FeedPage />} />
+          <Route path="/playlist/:id" element={<PlaylistDetailPage />} />
           {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
           <Route path="/login" element={<LandingPage />} />
           <Route path="/register" element={<LandingPage />} />
