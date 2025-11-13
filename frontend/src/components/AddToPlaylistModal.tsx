@@ -596,6 +596,38 @@ export default function AddToPlaylistModal({
             })}
           </div>
         )}
+
+        {/* Confirm/Close Button */}
+        <div style={{
+          marginTop: '24px',
+          paddingTop: '20px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#ADD8E6',
+              color: '#0F0F0F',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#87CEEB';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ADD8E6';
+            }}
+          >
+            Done
+          </button>
+        </div>
       </div>
       <style>{`
         @keyframes fadeIn {
