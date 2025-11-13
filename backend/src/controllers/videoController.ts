@@ -1127,6 +1127,85 @@ export const updateVideo = async (
 };
 
 /**
+ * Helper function to refresh view count from YouTube
+ * This is called asynchronously when needed
+ */
+const refreshVideoViewCount = async (videoId: string, youtubeVideoId: string): Promise<void> => {
+  try {
+    const youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
+    if (youtubeData.viewCount) {
+      const viewCount = parseInt(youtubeData.viewCount) || 0;
+      await supabaseAdmin!
+        .from('videos')
+        .update({ view_count: viewCount })
+        .eq('id', videoId);
+      console.log(`Updated view count for video ${videoId} to ${viewCount}`);
+    }
+  } catch (error: any) {
+    // Silently fail - this is a background operation
+    console.log(`Could not refresh view count for video ${videoId}: ${error.message}`);
+  }
+};
+
+/**
+ * Refresh view counts for all videos with 0 views
+ * POST /api/v1/videos/refresh-view-counts
+ */
+export const refreshAllViewCounts = async (req: Request, res: Response) => {
+  try {
+    // Get all videos with 0 views
+    const { data: videos, error } = await supabaseAdmin!
+      .from('videos')
+      .select('id, youtube_video_id')
+      .eq('view_count', 0)
+      .not('youtube_video_id', 'is', null)
+      .limit(100); // Process in batches to avoid rate limits
+
+    if (error) {
+      res.status(500).json({ error: 'Failed to fetch videos' });
+      return;
+    }
+
+    if (!videos || videos.length === 0) {
+      res.json({ message: 'No videos with 0 views to refresh', updated: 0 });
+      return;
+    }
+
+    // Update view counts (process in background, don't wait)
+    let updated = 0;
+    const updatePromises = videos.map(async (video: any) => {
+      try {
+        const youtubeData = await getYouTubeVideoDetails(video.youtube_video_id);
+        if (youtubeData.viewCount) {
+          const viewCount = parseInt(youtubeData.viewCount) || 0;
+          await supabaseAdmin!
+            .from('videos')
+            .update({ view_count: viewCount })
+            .eq('id', video.id);
+          updated++;
+        }
+        // Add small delay to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error: any) {
+        console.log(`Failed to update view count for video ${video.id}: ${error.message}`);
+      }
+    });
+
+    // Wait for all updates to complete
+    await Promise.all(updatePromises);
+
+    res.json({ 
+      message: `Refreshed view counts for ${updated} videos`,
+      updated,
+      total: videos.length
+    });
+  } catch (error) {
+    console.error('Refresh view counts error:', error);
+    res.status(500).json({ error: 'Failed to refresh view counts' });
+  }
+};
+
+/**
  * Report a video
  * POST /api/v1/videos/:id/report
  */
