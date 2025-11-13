@@ -10,7 +10,7 @@ import {
   ErrorResponse,
 } from '../types';
 // YouTube URL validation is handled in youtubeService
-import { getYouTubeVideoMetadata } from '../services/youtubeService';
+import { getYouTubeVideoMetadata, getYouTubeVideoDetails } from '../services/youtubeService';
 
 /**
  * Search for videos (YouTube + Petflix shared videos)
@@ -270,12 +270,33 @@ export const shareVideo = async (
     let videoThumbnail: string | undefined;
 
     // Use oEmbed API (free, no quota) to get basic metadata
-    // We don't use YouTube Data API - embeds work without it
+    // We don't use YouTube Data API for embeds - embeds work without it
     const oembedData = await getYouTubeVideoMetadata(youtubeVideoId);
     if (oembedData) {
       videoTitle = videoTitle || oembedData.title;
       videoDescription = videoDescription || oembedData.description;
       videoThumbnail = oembedData.thumbnail;
+    }
+
+    // Fetch view count from YouTube Data API (optional - may hit quota)
+    // This is the only use of Data API - just for accurate view counts
+    let videoViewCount: number = 0;
+    try {
+      const youtubeData = await getYouTubeVideoDetails(youtubeVideoId);
+      if (youtubeData.viewCount) {
+        videoViewCount = parseInt(youtubeData.viewCount) || 0;
+      }
+      // Also use YouTube title/description if oEmbed didn't provide them
+      if (!videoTitle && youtubeData.title) {
+        videoTitle = youtubeData.title;
+      }
+      if (!videoDescription && youtubeData.description) {
+        videoDescription = youtubeData.description;
+      }
+    } catch (error: any) {
+      // Log but don't fail - we can still save the video without view count
+      // This is expected when quota is exceeded or API key is missing
+      console.log('YouTube Data API not available for view count (quota exceeded or API key missing). Using 0 as default.');
     }
 
     // Check if video already shared by this user
@@ -303,7 +324,7 @@ export const shareVideo = async (
         title: finalTitle,
         description: finalDescription,
         user_id: req.user.userId,
-        view_count: 0, // Start at 0, can be updated later
+        view_count: videoViewCount, // Use actual YouTube view count if available
       })
       .select('id, youtube_video_id, title, description, user_id, created_at, updated_at, view_count')
       .single();
