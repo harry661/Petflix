@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Edit2, Trash2, Save, X, Heart, Flag } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -296,38 +297,45 @@ export default function VideoDetailPage() {
     }
   };
 
-  const handleShare = async () => {
+  const [reposting, setReposting] = useState(false);
+  const [showRepostSuccess, setShowRepostSuccess] = useState(false);
+  const [showRepostError, setShowRepostError] = useState(false);
+  const [repostErrorMessage, setRepostErrorMessage] = useState('');
+
+  const handleRepost = async () => {
     if (!isAuthenticated) {
-      alert('Please log in to share videos');
+      alert('Please log in to repost videos');
       return;
     }
 
     const token = localStorage.getItem('auth_token');
     if (!token) return;
 
+    setReposting(true);
     try {
-      const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
-      const response = await fetch(`${API_URL}/api/v1/videos`, {
+      const response = await fetch(`${API_URL}/api/v1/videos/${id}/repost`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          youtubeVideoId,
-          title: video.title,
-          description: video.description,
-        }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        alert('Video shared successfully!');
+        setShowRepostSuccess(true);
+        setTimeout(() => {
+          setShowRepostSuccess(false);
+          window.location.reload();
+        }, 2000);
       } else {
-        alert(data.error || 'Failed to share video');
+        setRepostErrorMessage(data.error || 'Failed to repost video');
+        setShowRepostError(true);
       }
     } catch (err) {
-      alert('Failed to share video');
+      setRepostErrorMessage('Failed to repost video. Please try again.');
+      setShowRepostError(true);
+    } finally {
+      setReposting(false);
     }
   };
 
@@ -386,10 +394,205 @@ export default function VideoDetailPage() {
     );
   }
 
-  const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
-  const embedUrl = `https://www.youtube.com/embed/${youtubeVideoId}`;
-
   return (
+    <>
+      {/* Repost Success Animation Overlay */}
+      {showRepostSuccess && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100000,
+            animation: 'fadeIn 0.3s ease'
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '40px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '16px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'scaleIn 0.4s ease',
+              minWidth: '300px'
+            }}
+          >
+            <CheckCircle2 
+              size={64} 
+              color="#4CAF50" 
+              style={{ animation: 'checkmark 0.5s ease' }} 
+            />
+            <p style={{ 
+              color: '#fff', 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              Video reposted successfully!
+            </p>
+            <p style={{ 
+              color: 'rgba(255, 255, 255, 0.7)', 
+              fontSize: '14px', 
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              The video has been added to your profile
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Repost Error Modal */}
+      {showRepostError && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100001,
+            animation: 'fadeIn 0.3s ease'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowRepostError(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'scaleIn 0.4s ease'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <XCircle size={24} color="#ff6b6b" />
+              </div>
+              <h3 style={{
+                color: '#ffffff',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: 0
+              }}>
+                Cannot Repost Video
+              </h3>
+            </div>
+            
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              marginBottom: '24px'
+            }}>
+              {repostErrorMessage}
+            </p>
+
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setShowRepostError(false)}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#ff6b6b',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ff5252';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ff6b6b';
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { 
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          to { 
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes checkmark {
+          0% {
+            opacity: 0;
+            transform: scale(0) rotate(-45deg);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.2) rotate(-45deg);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+          }
+        }
+      `}</style>
+      
+      {(() => {
+        const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
+        const embedUrl = `https://www.youtube.com/embed/${youtubeVideoId}`;
+        
+        return (
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#0F0F0F',
@@ -609,11 +812,60 @@ export default function VideoDetailPage() {
                   )}
                 </div>
 
-                {video.user && (
-                  <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '16px', fontSize: '14px' }}>
-                    Shared by <strong style={{ color: '#ffffff' }}>{video.user.username}</strong>
-                  </p>
-                )}
+                {(video.user || video.originalUser) && (() => {
+                  const displayUser = video.originalUser || video.user;
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                      <Link
+                        to={`/user/${displayUser.username}`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          textDecoration: 'none',
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          fontSize: '14px',
+                          transition: 'opacity 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        {displayUser.profile_picture_url ? (
+                          <img
+                            src={displayUser.profile_picture_url}
+                            alt={displayUser.username}
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              cursor: 'pointer'
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            backgroundColor: '#ADD8E6',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            cursor: 'pointer'
+                          }}>
+                            {displayUser.username?.charAt(0).toUpperCase() || 'U'}
+                          </div>
+                        )}
+                        <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                          Shared by <strong style={{ color: '#ffffff' }}>{displayUser.username}</strong>
+                        </span>
+                      </Link>
+                    </div>
+                  );
+                })()}
 
                 {video.description && (
                   <div style={{
@@ -666,32 +918,40 @@ export default function VideoDetailPage() {
               </button>
               {isAuthenticated && (
                 <>
-                  <button
-                    onClick={handleShare}
-                    style={{
-                      padding: '14px 32px',
-                      backgroundColor: '#ADD8E6',
-                      color: '#0F0F0F',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '16px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#87CEEB';
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#ADD8E6';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    Share This Video
-                  </button>
+                  {user && video.userId !== user.id && (
+                    <button
+                      onClick={handleRepost}
+                      disabled={reposting || !isAuthenticated}
+                      style={{
+                        padding: '14px 24px',
+                        backgroundColor: 'transparent',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '6px',
+                        cursor: isAuthenticated && !reposting ? 'pointer' : 'not-allowed',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                        opacity: isAuthenticated && !reposting ? 1 : 0.6
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isAuthenticated && !reposting) {
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                          e.currentTarget.style.transform = 'scale(1.02)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                      title={isAuthenticated ? 'Repost video' : 'Log in to repost videos'}
+                    >
+                      <Repeat2 size={18} />
+                    </button>
+                  )}
                   {user && video.userId !== user.id && (
                     <button
                       onClick={() => setShowReportModal(true)}
@@ -989,5 +1249,8 @@ export default function VideoDetailPage() {
         </div>
       </div>
     </div>
+        );
+      })()}
+    </>
   );
 }

@@ -17,6 +17,7 @@ import {
   refreshAllViewCounts,
   repostVideo,
   canRepostVideo,
+  getLikedVideos,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 
@@ -26,6 +27,7 @@ const router = Router();
 router.get('/search', optionalAuthenticate, searchVideos);
 router.get('/recent', optionalAuthenticate, getRecentVideos);
 router.get('/user/:userId', optionalAuthenticate, getVideosByUser);
+router.get('/liked/:userId', optionalAuthenticate, getLikedVideos);
 
 // Protected routes
 router.post('/', authenticate, shareVideo);

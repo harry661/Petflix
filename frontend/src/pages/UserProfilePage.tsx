@@ -28,7 +28,8 @@ export default function UserProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [sharedVideos, setSharedVideos] = useState<any[]>([]);
   const [repostedVideos, setRepostedVideos] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'shared' | 'reposted'>('shared');
+  const [likedVideos, setLikedVideos] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'shared' | 'reposted' | 'liked'>('shared');
   const [followers, setFollowers] = useState<any[]>([]);
   const [following, setFollowing] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -148,12 +149,15 @@ export default function UserProfilePage() {
 
       setUser(userData);
 
-      // Load user's shared videos and reposted videos in parallel
-      const [sharedRes, repostedRes] = await Promise.all([
+      // Load user's shared videos, reposted videos, and liked videos in parallel
+      const [sharedRes, repostedRes, likedRes] = await Promise.all([
         fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=shared`, {
           credentials: 'include',
         }).catch(() => null),
         fetch(`${API_URL}/api/v1/videos/user/${userData.id}?type=reposted`, {
+          credentials: 'include',
+        }).catch(() => null),
+        fetch(`${API_URL}/api/v1/videos/liked/${userData.id}`, {
           credentials: 'include',
         }).catch(() => null)
       ]);
@@ -180,6 +184,18 @@ export default function UserProfilePage() {
         }
       } else {
         setRepostedVideos([]);
+      }
+
+      // Process liked videos (only show on own profile)
+      if (isViewingOwnProfile && likedRes?.ok) {
+        try {
+          const likedData = await likedRes.json();
+          setLikedVideos(likedData.videos || []);
+        } catch (err) {
+          setLikedVideos([]);
+        }
+      } else {
+        setLikedVideos([]);
       }
 
       // Load followers

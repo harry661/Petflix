@@ -1545,6 +1545,126 @@ export const canRepostVideo = async (
 };
 
 /**
+ * Get videos liked by a user
+ * GET /api/v1/videos/liked/:userId
+ */
+export const getLikedVideos = async (
+  req: Request<{ userId: string }, any, {}, {}>,
+  res: Response
+) => {
+  try {
+    const { userId } = req.params;
+
+    // Get all video IDs that this user has liked
+    const { data: likes, error: likesError } = await supabaseAdmin!
+      .from('likes')
+      .select('video_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (likesError) {
+      res.status(500).json({ error: 'Failed to load liked videos' });
+      return;
+    }
+
+    if (!likes || likes.length === 0) {
+      res.json({ videos: [] });
+      return;
+    }
+
+    const videoIds = likes.map(like => like.video_id);
+
+    // Get the actual video data
+    const { data: videos, error: videosError } = await supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        original_user_id,
+        created_at,
+        updated_at,
+        view_count,
+        users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        ),
+        original_user:original_user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        )
+      `)
+      .in('id', videoIds)
+      .order('created_at', { ascending: false });
+
+    if (videosError) {
+      res.status(500).json({ error: 'Failed to load liked videos' });
+      return;
+    }
+
+    // Refresh view counts for videos with 0 views (async, don't wait)
+    (videos || []).forEach((video: any) => {
+      if (video.view_count === 0 && video.youtube_video_id) {
+        refreshVideoViewCount(video.id, video.youtube_video_id).catch((err: any) => {
+          // Non-critical, don't affect response
+        });
+      }
+    });
+
+    // Format videos with thumbnails
+    const videosFormatted = (videos || []).map((video: any) => {
+      let thumbnail: string | null = null;
+      if (video.youtube_video_id) {
+        if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+          thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+        }
+      }
+      const displayDate = video.created_at;
+
+      const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      const originalUserData = video.original_user_id 
+        ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+        : null;
+
+      return {
+        id: video.id,
+        youtubeVideoId: video.youtube_video_id,
+        title: video.title,
+        description: video.description,
+        userId: video.user_id,
+        createdAt: displayDate,
+        updatedAt: video.updated_at,
+        viewCount: video.view_count || 0,
+        thumbnail: thumbnail,
+        user: userData ? {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          profile_picture_url: userData.profile_picture_url,
+        } : null,
+        originalUser: originalUserData ? {
+          id: originalUserData.id,
+          username: originalUserData.username,
+          email: originalUserData.email,
+          profile_picture_url: originalUserData.profile_picture_url,
+        } : null,
+      };
+    });
+
+    res.json({ videos: videosFormatted });
+  } catch (error) {
+    console.error('Get liked videos error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Report a video
  * POST /api/v1/videos/:id/report
  */
