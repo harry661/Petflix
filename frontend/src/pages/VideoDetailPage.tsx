@@ -972,7 +972,8 @@ export default function VideoDetailPage() {
                   alignItems: 'center',
                   gap: '8px',
                   transition: 'all 0.2s ease',
-                  opacity: isAuthenticated && !liking ? 1 : 0.6
+                  opacity: isAuthenticated && !liking ? 1 : 0.6,
+                  willChange: 'background-color, transform' // Optimize for smooth transitions
                 }}
                 onMouseEnter={(e) => {
                   if (isAuthenticated && !liking) {
