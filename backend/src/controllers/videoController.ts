@@ -87,7 +87,6 @@ export const searchVideos = async (
         created_at,
         updated_at,
         view_count,
-        youtube_published_at,
         users:user_id (
           id,
           username,
@@ -615,7 +614,6 @@ export const getFeed = async (req: Request, res: Response) => {
         created_at,
         updated_at,
         view_count,
-        youtube_published_at,
         users:user_id (
           id,
           username,
@@ -765,7 +763,6 @@ export const getRecentVideos = async (
         created_at,
         updated_at,
         view_count,
-        youtube_published_at,
         users:user_id (
           id,
           username,
