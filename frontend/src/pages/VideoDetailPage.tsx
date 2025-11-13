@@ -180,7 +180,11 @@ export default function VideoDetailPage() {
 
   const handleLike = async () => {
     if (!isAuthenticated) {
-      alert('Please log in to like videos');
+      // Graceful prompt for unauthenticated users
+      const shouldLogin = window.confirm('Please log in to like videos. Would you like to go to the login page?');
+      if (shouldLogin) {
+        window.location.href = '/';
+      }
       return;
     }
 
@@ -203,8 +207,14 @@ export default function VideoDetailPage() {
       });
 
       if (response.ok) {
+        // Optimistic UI update
         setIsLiked(!isLiked);
         setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+        
+        // Dispatch event to notify profile page to refresh
+        window.dispatchEvent(new CustomEvent('video-liked', { 
+          detail: { videoId: id, isLiked: !isLiked } 
+        }));
       } else {
         // Try to parse error response
         let errorMessage = 'Failed to like video';
@@ -350,7 +360,11 @@ export default function VideoDetailPage() {
 
   const handleRepost = async () => {
     if (!isAuthenticated) {
-      alert('Please log in to repost videos');
+      // Graceful prompt for unauthenticated users
+      const shouldLogin = window.confirm('Please log in to repost videos. Would you like to go to the login page?');
+      if (shouldLogin) {
+        window.location.href = '/';
+      }
       return;
     }
 
@@ -375,7 +389,14 @@ export default function VideoDetailPage() {
       }
 
       const data = await response.json();
+      // Optimistic UI update
       setIsReposted(true);
+      
+      // Dispatch event to notify profile page to refresh
+      window.dispatchEvent(new CustomEvent('video-reposted', { 
+        detail: { videoId: id, video: data } 
+      }));
+      
       setShowRepostSuccess(true);
       setTimeout(() => {
         setShowRepostSuccess(false);
@@ -987,7 +1008,8 @@ export default function VideoDetailPage() {
                         alignItems: 'center',
                         gap: '8px',
                         transition: 'all 0.2s ease',
-                        opacity: isAuthenticated && !reposting ? 1 : 0.6
+                        opacity: isAuthenticated && !reposting ? 1 : 0.6,
+                        willChange: 'background-color, transform' // Optimize for smooth transitions
                       }}
                       onMouseEnter={(e) => {
                         if (isAuthenticated && !reposting && !isReposted) {

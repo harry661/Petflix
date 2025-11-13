@@ -89,7 +89,58 @@ export default function UserProfilePage() {
     if (username) {
       loadUserProfile();
     }
-  }, [username]);
+
+    // Listen for video liked/reposted events to refresh profile tabs
+    const handleVideoLiked = () => {
+      if (isCurrentUser) {
+        // Reload liked videos tab
+        const loadLikedVideos = async () => {
+          if (!user) return;
+          try {
+            const likedRes = await fetch(`${API_URL}/api/v1/videos/liked/${user.id}`, {
+              credentials: 'include',
+            });
+            if (likedRes?.ok) {
+              const likedData = await likedRes.json();
+              setLikedVideos(likedData.videos || []);
+            }
+          } catch (err) {
+            // Silently fail
+          }
+        };
+        loadLikedVideos();
+      }
+    };
+
+    const handleVideoReposted = () => {
+      if (isCurrentUser) {
+        // Reload reposted videos tab
+        const loadRepostedVideos = async () => {
+          if (!user) return;
+          try {
+            const repostedRes = await fetch(`${API_URL}/api/v1/videos/user/${user.id}?type=reposted`, {
+              credentials: 'include',
+            });
+            if (repostedRes?.ok) {
+              const repostedData = await repostedRes.json();
+              setRepostedVideos(repostedData.videos || []);
+            }
+          } catch (err) {
+            // Silently fail
+          }
+        };
+        loadRepostedVideos();
+      }
+    };
+
+    window.addEventListener('video-liked', handleVideoLiked);
+    window.addEventListener('video-reposted', handleVideoReposted);
+
+    return () => {
+      window.removeEventListener('video-liked', handleVideoLiked);
+      window.removeEventListener('video-reposted', handleVideoReposted);
+    };
+  }, [username, isCurrentUser, user]);
 
   const loadUserProfile = async () => {
     try {
