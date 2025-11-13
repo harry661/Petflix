@@ -1073,13 +1073,18 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
       return;
     }
 
-    // Check if already liked
-    const { data: existingLike } = await supabaseAdmin!
+    // Check if already liked (use maybeSingle to avoid error if not found)
+    const { data: existingLike, error: checkError } = await supabaseAdmin!
       .from('likes')
       .select('id')
       .eq('user_id', userId)
       .eq('video_id', id)
-      .single();
+      .maybeSingle();
+
+    // If there's an error other than "not found", log it but continue
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking existing like:', checkError);
+    }
 
     if (existingLike) {
       res.status(409).json({ error: 'Video already liked' });

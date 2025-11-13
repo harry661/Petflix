@@ -347,18 +347,22 @@ export default function VideoDetailPage() {
         },
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        setIsReposted(true);
-        setShowRepostSuccess(true);
-        setTimeout(() => {
-          setShowRepostSuccess(false);
-        }, 2000);
-      } else {
-        setRepostErrorMessage(data.error || 'Failed to repost video');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to repost video' }));
+        setRepostErrorMessage(errorData.error || 'Failed to repost video');
         setShowRepostError(true);
+        setReposting(false);
+        return;
       }
-    } catch (err) {
+
+      const data = await response.json();
+      setIsReposted(true);
+      setShowRepostSuccess(true);
+      setTimeout(() => {
+        setShowRepostSuccess(false);
+      }, 2000);
+    } catch (err: any) {
+      console.error('Repost error:', err);
       setRepostErrorMessage('Failed to repost video. Please try again.');
       setShowRepostError(true);
     } finally {
@@ -439,6 +443,7 @@ export default function VideoDetailPage() {
             zIndex: 100000,
             animation: 'fadeIn 0.3s ease'
           }}
+          onClick={() => setShowRepostSuccess(false)}
         >
           <div
             style={{
@@ -454,6 +459,7 @@ export default function VideoDetailPage() {
               animation: 'scaleIn 0.4s ease',
               minWidth: '300px'
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <CheckCircle2 
               size={64} 
