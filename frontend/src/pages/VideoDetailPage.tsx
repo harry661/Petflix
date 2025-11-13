@@ -369,58 +369,22 @@ export default function VideoDetailPage() {
   const [showRepostError, setShowRepostError] = useState(false);
   const [repostErrorMessage, setRepostErrorMessage] = useState('');
 
-  // Cleanup effect to ensure modals close on unmount or error
-  useEffect(() => {
-    return () => {
-      // Clear any pending timeouts
-      if ((window as any).__repostSuccessTimeout) {
-        clearTimeout((window as any).__repostSuccessTimeout);
-        delete (window as any).__repostSuccessTimeout;
-      }
-      // Close modals on unmount
-      setShowRepostSuccess(false);
-      setShowRepostError(false);
-    };
-  }, []);
-
-  // Close success modal if video changes
-  useEffect(() => {
-    if (id) {
-      setShowRepostSuccess(false);
-      setShowRepostError(false);
-      if ((window as any).__repostSuccessTimeout) {
-        clearTimeout((window as any).__repostSuccessTimeout);
-        delete (window as any).__repostSuccessTimeout;
-      }
-    }
-  }, [id]);
 
   const handleRepost = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
     
-    console.log('Repost button clicked', { isAuthenticated, id, isReposted });
-    
     if (!isAuthenticated) {
-      // Graceful prompt for unauthenticated users
-      const shouldLogin = window.confirm('Please log in to repost videos. Would you like to go to the login page?');
-      if (shouldLogin) {
-        window.location.href = '/';
-      }
+      alert('Please log in to repost videos');
       return;
     }
 
     const token = localStorage.getItem('auth_token');
     if (!token) {
-      console.error('No auth token');
       return;
     }
 
     setReposting(true);
-    // Ensure any existing modals are closed before starting
-    setShowRepostError(false);
-    setShowRepostSuccess(false);
-    
     try {
       const response = await fetch(`${API_URL}/api/v1/videos/${id}/repost`, {
         method: 'POST',
@@ -429,61 +393,32 @@ export default function VideoDetailPage() {
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to repost video' }));
-        
-        // If already reposted (409), just update state silently - don't show error or overlay
-        if (response.status === 409) {
-          setIsReposted(true);
-          setReposting(false);
-          // Ensure modals are closed
-          setShowRepostError(false);
-          setShowRepostSuccess(false);
-          return;
-        }
-        
-        setRepostErrorMessage(errorData.error || 'Failed to repost video');
-        setShowRepostError(true);
-        setReposting(false);
-        // Ensure success overlay is closed when showing error
-        setShowRepostSuccess(false);
-        return;
-      }
+      const data = await response.json();
 
-      const data = await response.json().catch(() => null);
-      
-      if (!data) {
-        // If we can't parse the response, still show success but log error
-        console.error('Failed to parse repost response');
-      }
-      
-      // Optimistic UI update
-      setIsReposted(true);
-      
-      // Ensure error modal is closed
-      setShowRepostError(false);
-      
-      // Dispatch event to notify profile page to refresh
-      if (data) {
+      if (response.ok) {
+        // Optimistic UI update
+        setIsReposted(true);
+        
+        // Dispatch event to notify profile page to refresh
         window.dispatchEvent(new CustomEvent('video-reposted', { 
           detail: { videoId: id, video: data } 
         }));
+        
+        // Show success animation
+        setShowRepostSuccess(true);
+        // Auto-hide after 2 seconds
+        setTimeout(() => {
+          setShowRepostSuccess(false);
+        }, 2000);
+      } else {
+        // Show styled error modal
+        setRepostErrorMessage(data.error || 'Failed to repost video');
+        setShowRepostError(true);
       }
-      
-      setShowRepostSuccess(true);
-      // Auto-close after 2 seconds, but also allow manual close
-      const timeoutId = setTimeout(() => {
-        setShowRepostSuccess(false);
-      }, 2000);
-      
-      // Store timeout ID so we can clear it if user closes manually
-      (window as any).__repostSuccessTimeout = timeoutId;
-    } catch (err: any) {
-      console.error('Repost error:', err);
+    } catch (err) {
+      // Show styled error modal
       setRepostErrorMessage('Failed to repost video. Please try again.');
       setShowRepostError(true);
-      // Ensure success overlay is closed on error
-      setShowRepostSuccess(false);
     } finally {
       setReposting(false);
     }
@@ -566,11 +501,6 @@ export default function VideoDetailPage() {
           onClick={(e) => {
             // Close on click outside
             if (e.target === e.currentTarget) {
-              // Clear auto-close timeout if user closes manually
-              if ((window as any).__repostSuccessTimeout) {
-                clearTimeout((window as any).__repostSuccessTimeout);
-                delete (window as any).__repostSuccessTimeout;
-              }
               setShowRepostSuccess(false);
             }
           }}
@@ -615,14 +545,7 @@ export default function VideoDetailPage() {
               The video has been added to your profile
             </p>
             <button
-              onClick={() => {
-                // Clear auto-close timeout if user closes manually
-                if ((window as any).__repostSuccessTimeout) {
-                  clearTimeout((window as any).__repostSuccessTimeout);
-                  delete (window as any).__repostSuccessTimeout;
-                }
-                setShowRepostSuccess(false);
-              }}
+              onClick={() => setShowRepostSuccess(false)}
               style={{
                 padding: '10px 20px',
                 backgroundColor: '#ADD8E6',
