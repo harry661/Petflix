@@ -10,6 +10,7 @@ interface VideoCardProps {
     title: string;
     description?: string;
     thumbnail?: string;
+    userId?: string; // User who shared/reposted this video
     user?: {
       id: string;
       username: string;
@@ -31,8 +32,12 @@ function VideoCard({ video }: VideoCardProps) {
   const { isAuthenticated, user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [canRepost, setCanRepost] = useState<boolean | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Check if current user owns this video (can delete it)
+  const canDelete = isAuthenticated && user && (video.userId === user.id);
 
   // Generate YouTube thumbnail URL if not provided
   // Use hqdefault as default (more reliable than maxresdefault)
