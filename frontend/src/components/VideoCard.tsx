@@ -764,8 +764,9 @@ function VideoCard({ video }: VideoCardProps) {
                     >
                       Add to playlist
                     </button>
-                    {/* Show Repost button only if user doesn't own the video and can repost */}
-                    {!canDelete && canRepost === true && (
+                    {/* Show Repost button ONLY if user doesn't own the video AND can repost */}
+                    {/* IMPORTANT: canDelete must be false AND canRepost must be true */}
+                    {canDelete === false && canRepost === true && (
                       <button
                         style={{
                           width: '100%',
@@ -836,8 +837,9 @@ function VideoCard({ video }: VideoCardProps) {
                         {sharing ? 'Reposting...' : 'Repost'}
                       </button>
                     )}
-                    {/* Show Remove button if user owns the video (shared or reposted it) */}
-                    {canDelete && (
+                    {/* Show Remove button ONLY if user owns the video (shared or reposted it) */}
+                    {/* IMPORTANT: canDelete must be true */}
+                    {canDelete === true && (
                       <button
                         style={{
                           width: '100%',
