@@ -68,7 +68,9 @@ export const searchVideos = async (
       orderBy = 'view_count';
       ascending = false;
     } else if (sort === 'engagement') {
-      orderBy = 'like_count';
+      // Note: like_count column may not exist if migration 007_add_likes.sql hasn't been run
+      // For now, fall back to view_count for engagement sorting
+      orderBy = 'view_count';
       ascending = false;
     }
     // 'relevance' keeps default (tag matches first, then by created_at)
@@ -115,7 +117,6 @@ export const searchVideos = async (
           created_at,
           updated_at,
           view_count,
-          like_count,
           youtube_published_at,
           users:user_id (
             id,
@@ -158,7 +159,8 @@ export const searchVideos = async (
         } else if (sort === 'views') {
           return (b.view_count || 0) - (a.view_count || 0);
         } else if (sort === 'engagement') {
-          return (b.like_count || 0) - (a.like_count || 0);
+          // Note: like_count may not exist - use view_count as fallback
+          return (b.view_count || 0) - (a.view_count || 0);
         }
         return 0;
       });
