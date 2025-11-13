@@ -402,22 +402,30 @@ export default function VideoDetailPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to repost video' }));
         
-        // If already reposted (409), just update state silently - don't show error
+        // If already reposted (409), just update state silently - don't show error or overlay
         if (response.status === 409) {
           setIsReposted(true);
           setReposting(false);
+          // Ensure modals are closed
+          setShowRepostError(false);
+          setShowRepostSuccess(false);
           return;
         }
         
         setRepostErrorMessage(errorData.error || 'Failed to repost video');
         setShowRepostError(true);
         setReposting(false);
+        // Ensure success overlay is closed when showing error
+        setShowRepostSuccess(false);
         return;
       }
 
       const data = await response.json();
       // Optimistic UI update
       setIsReposted(true);
+      
+      // Ensure error modal is closed
+      setShowRepostError(false);
       
       // Dispatch event to notify profile page to refresh
       window.dispatchEvent(new CustomEvent('video-reposted', { 
@@ -508,9 +516,15 @@ export default function VideoDetailPage() {
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 100000,
-            animation: 'fadeIn 0.3s ease'
+            animation: 'fadeIn 0.3s ease',
+            pointerEvents: 'auto'
           }}
-          onClick={() => setShowRepostSuccess(false)}
+          onClick={(e) => {
+            // Close on click outside
+            if (e.target === e.currentTarget) {
+              setShowRepostSuccess(false);
+            }
+          }}
         >
           <div
             style={{
