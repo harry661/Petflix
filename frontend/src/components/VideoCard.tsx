@@ -699,6 +699,7 @@ function VideoCard({ video }: VideoCardProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
