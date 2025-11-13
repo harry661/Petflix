@@ -238,11 +238,17 @@ export default function UserProfilePage() {
       }
 
       // Process liked videos (only show on own profile)
-      if (isViewingOwnProfile && likedRes?.ok) {
-        try {
-          const likedData = await likedRes.json();
-          setLikedVideos(likedData.videos || []);
-        } catch (err) {
+      if (isViewingOwnProfile) {
+        if (likedRes?.ok) {
+          try {
+            const likedData = await likedRes.json();
+            setLikedVideos(likedData.videos || []);
+          } catch (err) {
+            console.error('Error parsing liked videos:', err);
+            setLikedVideos([]);
+          }
+        } else {
+          // Even if API call fails, initialize empty array so tab shows
           setLikedVideos([]);
         }
       } else {
