@@ -205,6 +205,9 @@ export const searchVideos = async (
 
     const sharedVideosFormatted = sharedVideos.map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      const originalUserData = video.original_user_id 
+        ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+        : null;
       // Generate thumbnail URL - YouTube thumbnails are generally available for valid video IDs
       // Use hqdefault as it's more reliable than maxresdefault (which may not exist for all videos)
       let thumbnail: string | null = null;
@@ -232,6 +235,12 @@ export const searchVideos = async (
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
+        } : null,
+        originalUser: originalUserData ? {
+          id: originalUserData.id,
+          username: originalUserData.username,
+          email: originalUserData.email,
+          profile_picture_url: originalUserData.profile_picture_url,
         } : null,
         thumbnail: thumbnail,
         source: 'petflix',
@@ -683,6 +692,9 @@ export const getFeed = async (req: Request, res: Response) => {
     // Format videos with thumbnails (generate directly from video IDs)
     const videosFormatted = (videos || []).map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      const originalUserData = video.original_user_id 
+        ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+        : null;
       // Generate thumbnail URL directly from YouTube video ID
       let thumbnail: string | null = null;
       if (video.youtube_video_id) {
@@ -708,6 +720,12 @@ export const getFeed = async (req: Request, res: Response) => {
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
+        } : null,
+        originalUser: originalUserData ? {
+          id: originalUserData.id,
+          username: originalUserData.username,
+          email: originalUserData.email,
+          profile_picture_url: originalUserData.profile_picture_url,
         } : null,
       };
     });
