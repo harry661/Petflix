@@ -1422,13 +1422,18 @@ export const repostVideo = async (
       return;
     }
 
-    // Check if user has already reposted this video
-    const { data: existingRepost } = await supabaseAdmin!
+    // Check if user has already reposted this video (use maybeSingle to avoid error if not found)
+    const { data: existingRepost, error: existingError } = await supabaseAdmin!
       .from('videos')
       .select('id')
       .eq('youtube_video_id', originalVideo.youtube_video_id)
       .eq('user_id', req.user.userId)
-      .single();
+      .maybeSingle();
+
+    // Only log errors other than "not found"
+    if (existingError && existingError.code !== 'PGRST116') {
+      console.error('Error checking existing repost:', existingError);
+    }
 
     if (existingRepost) {
       res.status(409).json({ error: 'You have already shared this video' });
