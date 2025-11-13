@@ -186,8 +186,241 @@ function VideoCard({ video }: VideoCardProps) {
     navigate(`/video/${video.id}`);
   };
 
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    setShowDeleteConfirm(false);
+    setDeleting(true);
+    
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const token = localStorage.getItem('auth_token');
+      
+      const response = await fetch(`${API_URL}/api/v1/videos/${video.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Show success animation
+        setShowDeleteSuccess(true);
+        // Auto-hide after 2 seconds and reload
+        setTimeout(() => {
+          setShowDeleteSuccess(false);
+          window.location.reload();
+        }, 2000);
+      } else {
+        alert(data.error || 'Failed to remove video');
+        setDeleting(false);
+      }
+    } catch (err) {
+      alert('Failed to remove video. Please try again.');
+      setDeleting(false);
+    }
+  };
+
   return (
     <>
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100001,
+            animation: 'fadeIn 0.3s ease'
+          }}
+          onClick={(e) => {
+            // Close on click outside
+            if (e.target === e.currentTarget) {
+              setShowDeleteConfirm(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'scaleIn 0.4s ease'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Trash2 size={24} color="#ff6b6b" />
+              </div>
+              <h3 style={{
+                color: '#ffffff',
+                fontSize: '20px',
+                fontWeight: '600',
+                margin: 0
+              }}>
+                Remove Video
+              </h3>
+            </div>
+            
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              marginBottom: '24px'
+            }}>
+              Are you sure you want to remove this video? This action cannot be undone.
+            </p>
+
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'transparent',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: deleting ? 'rgba(255, 107, 107, 0.5)' : '#ff6b6b',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!deleting) {
+                    e.currentTarget.style.backgroundColor = '#ff5252';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!deleting) {
+                    e.currentTarget.style.backgroundColor = '#ff6b6b';
+                  }
+                }}
+              >
+                {deleting ? 'Removing...' : 'Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Success Animation Overlay */}
+      {showDeleteSuccess && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100000,
+            animation: 'fadeIn 0.3s ease'
+          }}
+          onClick={(e) => {
+            // Close on click outside
+            if (e.target === e.currentTarget) {
+              setShowDeleteSuccess(false);
+            }
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '40px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '16px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'scaleIn 0.4s ease',
+              minWidth: '300px'
+            }}
+          >
+            <CheckCircle2 
+              size={64} 
+              color="#4CAF50" 
+              style={{ animation: 'checkmark 0.5s ease' }} 
+            />
+            <p style={{ 
+              color: '#fff', 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              Video removed successfully!
+            </p>
+            <p style={{ 
+              color: 'rgba(255, 255, 255, 0.7)', 
+              fontSize: '14px', 
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              The video has been removed from your profile
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Repost Success Animation Overlay */}
       {showRepostSuccess && (
         <div
