@@ -51,32 +51,32 @@ export default function HomePage() {
       return;
     }
     
-    // Load videos only if authenticated and not searching
-    if (isAuthenticated && user && !isSearchOpen) {
-      loadTrendingVideos();
-    }
-    
-    return () => {
-      if (carouselIntervalRef.current) {
-        clearInterval(carouselIntervalRef.current);
-      }
-    };
-  }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
-  
-  // Auto-rotate banner carousel
-  useEffect(() => {
-    if (bannerItems.length > 1 && !isSearchOpen) {
-      carouselIntervalRef.current = setInterval(() => {
-        setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
-      }, 5000); // Change every 5 seconds
-      
-      return () => {
-        if (carouselIntervalRef.current) {
-          clearInterval(carouselIntervalRef.current);
+        // Load videos only if authenticated and not searching
+        if (isAuthenticated && user && !isSearchOpen) {
+          loadTrendingVideos();
         }
-      };
-    }
-  }, [bannerItems.length, isSearchOpen]);
+        
+        return () => {
+          if (carouselIntervalRef.current) {
+            clearInterval(carouselIntervalRef.current);
+          }
+        };
+      }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
+      
+      // Auto-rotate banner carousel
+      useEffect(() => {
+        if (bannerItems.length > 1 && !isSearchOpen) {
+          carouselIntervalRef.current = setInterval(() => {
+            setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
+          }, 5000); // Change every 5 seconds
+          
+          return () => {
+            if (carouselIntervalRef.current) {
+              clearInterval(carouselIntervalRef.current);
+            }
+          };
+        }
+      }, [bannerItems.length, isSearchOpen]);
 
 
   const loadTrendingVideos = async (filter?: string | null, isFilterChange: boolean = false) => {
@@ -171,20 +171,21 @@ export default function HomePage() {
     'Small and fluffy': '/smalls-filter.png',
     'Underwater': '/aquatic-filter.png'
   };
+  
 
-  // Only show full page loading on initial load, not filter changes
-  if (authLoading || (loading && !isSearchOpen && !filterLoading)) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#0F0F0F',
-        padding: '40px',
-        textAlign: 'center'
-      }}>
-        <p style={{ color: '#ffffff' }}>Loading...</p>
-      </div>
-    );
-  }
+      // Only show full page loading on initial load, not filter changes
+      if (authLoading || (loading && !isSearchOpen && !filterLoading)) {
+        return (
+          <div style={{
+            minHeight: '100vh',
+            backgroundColor: '#0F0F0F',
+            padding: '40px',
+            textAlign: 'center'
+          }}>
+            <p style={{ color: '#ffffff' }}>Loading...</p>
+          </div>
+        );
+      }
 
   return (
     <>

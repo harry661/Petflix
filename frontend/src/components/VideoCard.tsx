@@ -45,9 +45,7 @@ function VideoCard({ video }: VideoCardProps) {
 
   // Check if current user owns this video (can delete it)
   // video.userId is the person who shared/reposted it - if it matches current user, they can delete
-  // Also check originalUser.id - if user originally shared it and someone reposted it, they can delete their original
-  // But for reposted videos, only the person who reposted it can delete it (not the original sharer)
-  // So we only check video.userId (the person who shared/reposted this specific instance)
+  // Note: We only check video.userId, not originalUser, because you can only delete videos YOU shared/reposted
   const canDelete = isAuthenticated && user && video.userId === user.id;
 
   // Generate YouTube thumbnail URL if not provided
@@ -863,8 +861,13 @@ function VideoCard({ video }: VideoCardProps) {
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setShowMenu(false);
+                        if (!isAuthenticated) {
+                          alert('Please log in to add videos to playlists');
+                          setShowMenu(false);
+                          return;
+                        }
                         setShowAddToPlaylistModal(true);
+                        setShowMenu(false);
                       }}
                     >
                       Add to playlist
@@ -1023,13 +1026,6 @@ function VideoCard({ video }: VideoCardProps) {
         </div>
       </div>
     </div>
-    
-    {/* Add to Playlist Modal */}
-    <AddToPlaylistModal
-      videoId={video.id}
-      isOpen={showAddToPlaylistModal}
-      onClose={() => setShowAddToPlaylistModal(false)}
-    />
     </>
   );
 }

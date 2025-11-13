@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Upload, Pencil, CheckCircle2, Bell, BellOff } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
-import PlaylistCard from '../components/PlaylistCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -1349,32 +1348,6 @@ export default function UserProfilePage() {
             </>
           )}
 
-          {/* My Playlists Tab */}
-          {activeTab === 'playlists' && isCurrentUser && (
-            <>
-              {playlists.length === 0 ? (
-                <div style={{
-                  backgroundColor: 'transparent',
-                  borderRadius: '8px',
-                  padding: '40px',
-                  textAlign: 'center'
-                }}>
-                  <p style={{ color: '#ffffff' }}>No playlists yet. Create one by adding videos to playlists!</p>
-                </div>
-              ) : (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                  gap: '20px'
-                }}>
-                  {playlists.map((playlist) => (
-                    <PlaylistCard key={playlist.id} playlist={playlist} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
           {/* Reposted Videos Tab */}
           {activeTab === 'reposted' && (
             <>
@@ -1405,6 +1378,68 @@ export default function UserProfilePage() {
                         } : undefined)
                       }}
                     />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* My Playlists Tab */}
+          {activeTab === 'playlists' && isCurrentUser && (
+            <>
+              {playlists.length === 0 ? (
+                <div style={{
+                  backgroundColor: 'transparent',
+                  borderRadius: '8px',
+                  padding: '40px',
+                  textAlign: 'center'
+                }}>
+                  <p style={{ color: '#ffffff' }}>No playlists yet. Create one by adding videos to a playlist!</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '20px'
+                }}>
+                  {playlists.map((playlist) => (
+                    <div
+                      key={playlist.id}
+                      onClick={() => navigate(`/playlist/${playlist.id}`)}
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: '8px',
+                        padding: '20px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <h3 style={{ color: '#ffffff', margin: '0 0 8px 0', fontSize: '18px' }}>
+                        {playlist.name}
+                      </h3>
+                      {playlist.description && (
+                        <p style={{ color: 'rgba(255, 255, 255, 0.7)', margin: '0 0 12px 0', fontSize: '14px' }}>
+                          {playlist.description}
+                        </p>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px' }}>
+                          {playlist.visibility === 'public' ? 'Public' : 'Private'}
+                        </span>
+                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px' }}>
+                          Updated {new Date(playlist.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
