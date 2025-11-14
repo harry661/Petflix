@@ -1,59 +1,57 @@
-# Backend Deployment to Render (FREE)
+# Backend Deployment to Vercel (FREE)
 
-## Render Free Tier
-- **750 hours/month** (enough for 24/7 operation)
-- **512MB RAM**
+## Vercel Free Tier
+- **100GB bandwidth/month**
+- **100 serverless function invocations/day** (unlimited on Hobby plan)
 - **Free SSL**
 - **Auto-deploy from GitHub**
+- **Perfect for Express backends as serverless functions**
 
 ## Quick Setup Steps
 
-1. **Go to Render**: https://render.com
-2. **Sign up** with your GitHub account (FREE)
-3. **Create New Web Service**:
-   - Click "New +" → "Web Service"
-   - Connect your GitHub account
-   - Select repository: `harry661/Petflix`
-   - Click "Connect"
+1. **Go to Vercel**: https://vercel.com
+2. **Sign up/Login** with your GitHub account
+3. **Create New Project**:
+   - Click "Add New..." → "Project"
+   - Import your GitHub repository: `harry661/Petflix`
+   - Click "Import"
 
-4. **Configure Service**:
-   - **Name**: `petflix-backend` (or any name you like)
-   - **Region**: Choose closest to you (US/EU)
-   - **Branch**: `main`
-   - **Root Directory**: `backend`
-   - **Runtime**: `Node`
-   - **Build Command**: `npm install && npm run build`
-   - **Start Command**: `npm start`
-   - **Instance Type**: **Free** (select this!)
+4. **Configure Backend Project**:
+   - **Project Name**: `petflix-backend` (or any name)
+   - **Framework Preset**: Other (or leave as auto-detected)
+   - **Root Directory**: `backend` (IMPORTANT: Click "Edit" and set to `backend`)
+   - **Build Command**: `npm run build` (or leave empty, Vercel will auto-detect)
+   - **Output Directory**: Leave empty (not needed for serverless)
+   - **Install Command**: `npm install`
 
 5. **Add Environment Variables**:
-   Click "Advanced" → "Add Environment Variable" and add:
+   Click "Environment Variables" and add:
    - `NODE_ENV` = `production`
    - `SUPABASE_URL` = Your Supabase project URL
    - `SUPABASE_SERVICE_ROLE_KEY` = Your Supabase service role key
    - `JWT_SECRET` = Generate a random string (see below)
    - `YOUTUBE_API_KEY` = Your YouTube API key
-   - `CORS_ORIGIN` = Your Vercel frontend URL (e.g., `https://petflix.vercel.app`)
-   - `PORT` = `10000` (Render sets this automatically, but include it)
+   - `CORS_ORIGIN` = Your frontend Vercel URL (e.g., `https://petflix.vercel.app`)
+   - `PORT` = Leave empty (Vercel handles this automatically)
 
 6. **Deploy**:
-   - Click "Create Web Service"
-   - Render will build and deploy automatically
-   - Wait 5-10 minutes for first deployment
+   - Click "Deploy"
+   - Vercel will build and deploy automatically
+   - Wait 2-3 minutes for first deployment
 
 7. **Get Your Backend URL**:
-   - After deployment, Render gives you a URL like: `https://petflix-backend.onrender.com`
+   - After deployment, Vercel gives you a URL like: `https://petflix-backend.vercel.app`
    - Copy this URL
 
-8. **Update Vercel Environment Variable**:
-   - Go to Vercel → Your Project → Settings → Environment Variables
-   - Update `VITE_API_URL_PROD` with your Render backend URL
+8. **Update Frontend Environment Variable**:
+   - Go to your **frontend** Vercel project → Settings → Environment Variables
+   - Update `VITE_API_URL_PROD` with your backend Vercel URL
    - Make sure it's set for **Production** environment
-   - Redeploy your Vercel frontend
+   - Redeploy your frontend
 
 ## Generate JWT Secret
 
-Run this in your terminal:
+Run this command to generate a secure JWT secret:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -63,27 +61,28 @@ Copy the output and use it as your `JWT_SECRET`.
 ## CORS Configuration
 
 Your `CORS_ORIGIN` should include:
-- Your Vercel production URL: `https://petflix.vercel.app`
-- Your Vercel preview URLs: `https://petflix-*.vercel.app` (wildcard)
+- Your frontend Vercel production URL: `https://petflix.vercel.app`
+- Your frontend Vercel preview URLs: `https://petflix-*.vercel.app` (wildcard)
 
 Or set it to: `https://petflix.vercel.app,https://petflix-*.vercel.app`
 
 ## Important Notes
 
-- **Free tier spins down after 15 minutes of inactivity** - first request after spin-down takes ~30 seconds
-- For production, consider upgrading to paid tier ($7/month) for always-on
-- Render free tier is perfect for development and testing
+- **Serverless Functions**: Vercel converts your Express app to serverless functions
+- **Cold Starts**: First request after inactivity may take 1-2 seconds (normal for serverless)
+- **Free Tier Limits**: 100 function invocations/day on free tier (unlimited on Hobby plan)
+- **Both Frontend and Backend**: You can host both on Vercel for free!
 
 ## After Deployment
 
-1. Test backend: Visit `https://your-backend.onrender.com` (should show error or API response)
-2. Update Vercel `VITE_API_URL_PROD` with Render URL
+1. Test backend: Visit `https://your-backend.vercel.app/api/v1/health` (or any API endpoint)
+2. Update frontend `VITE_API_URL_PROD` with backend Vercel URL
 3. Redeploy frontend
 4. Test login/registration
 
 ## Troubleshooting
 
-- **Build fails**: Check build logs in Render dashboard
-- **App crashes**: Check runtime logs in Render dashboard
-- **CORS errors**: Make sure `CORS_ORIGIN` includes your Vercel URL
-- **Slow first request**: Normal on free tier (15 min spin-down)
+- **Build fails**: Check build logs in Vercel dashboard
+- **Function errors**: Check function logs in Vercel dashboard
+- **CORS errors**: Make sure `CORS_ORIGIN` includes your frontend Vercel URL
+- **Cold start delay**: Normal for serverless (1-2 seconds on first request)
