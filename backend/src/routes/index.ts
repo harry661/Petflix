@@ -5,12 +5,33 @@ const router = Router();
 
 // Root route
 router.get('/', (req, res) => {
-  res.json({ message: 'Petflix API v1', endpoints: '/api/v1' });
+  res.json({ 
+    message: 'Petflix API v1', 
+    endpoints: '/api/v1',
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: req.path,
+  });
 });
 
 // Health check
 router.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Petflix API is running' });
+  res.json({ 
+    status: 'ok', 
+    message: 'Petflix API is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Simple test endpoint - responds to ALL methods
+router.all('/test-simple', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Function is working!',
+    method: req.method,
+    path: req.path,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Debug route to check routing
