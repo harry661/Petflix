@@ -62,7 +62,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
   }
 });
 
-export const supabaseAdmin = new Proxy({} as SupabaseClient | null, {
+export const supabaseAdmin = new Proxy({} as any, {
   get(_target, prop) {
     const admin = getSupabaseAdminClient();
     if (!admin) return null;
