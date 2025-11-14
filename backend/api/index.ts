@@ -47,20 +47,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Routes
 app.use('/', routes);
 
-// Catch-all handler for unmatched routes (before error handler)
-// This ensures all methods are handled, not just specific routes
-app.all('*', (req: Request, res: Response, next: NextFunction) => {
-  // If we get here, the route wasn't matched
-  // Let the 404 handler deal with it
-  next();
-});
-
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
 // Export handler for Vercel serverless
-// Vercel automatically detects Express apps in the api/ directory
-// and converts them to serverless functions
-// Export the app - this is the standard pattern for Express on Vercel
+// For Vercel, we can export the Express app directly
+// Vercel automatically converts it to a serverless function handler
+// This is the standard and recommended pattern for Express on Vercel
 module.exports = app;
 
