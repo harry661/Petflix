@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Upload, Pencil, CheckCircle2, Bell, BellOff } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../config/api';
 
 // Utility function to extract YouTube video ID from URL (supports regular videos and Shorts)
 const extractYouTubeVideoId = (url: string): string | null => {

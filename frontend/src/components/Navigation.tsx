@@ -5,6 +5,7 @@ import { useSearch } from '../context/SearchContext';
 import { Search, Bell, ChevronDown, X, UserPlus, Video, Heart, MessageCircle } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
 import PetflixLogo from '../assets/PETFLIX.svg';
+import { API_URL } from '../config/api';
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -157,7 +158,6 @@ export default function Navigation() {
     const searchTimer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         const response = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(searchQuery)}&limit=20`);
         const data = await response.json();
         

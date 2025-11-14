@@ -14,6 +14,7 @@ const FollowersFollowingPage = lazy(() => import('./pages/FollowersFollowingPage
 const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
 const PlaylistDetailPage = lazy(() => import('./pages/PlaylistDetailPage'));
+// LoginPage and RegisterPage are not used - routes redirect to LandingPage
 
 function AppContent() {
   const location = useLocation();

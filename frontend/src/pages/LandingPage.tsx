@@ -5,7 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
 import PetflixLogo from '../assets/PETFLIX.svg';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../config/api';
 
 export default function LandingPage() {
   const navigate = useNavigate();

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { MoreVertical, CheckCircle2, Trash2, XCircle } from 'lucide-react';
 import AddToPlaylistModal from './AddToPlaylistModal';
+import { API_URL } from '../config/api';
 
 interface VideoCardProps {
   video: {
@@ -152,7 +153,6 @@ function VideoCard({ video }: VideoCardProps) {
     // Only check with backend if user doesn't own the video
     const checkCanRepost = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         const token = localStorage.getItem('auth_token');
         
         if (!token) {
@@ -211,7 +211,6 @@ function VideoCard({ video }: VideoCardProps) {
     setDeleting(true);
     
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       const token = localStorage.getItem('auth_token');
       
       const response = await fetch(`${API_URL}/api/v1/videos/${video.id}`, {
@@ -942,7 +941,6 @@ function VideoCard({ video }: VideoCardProps) {
 
                           setSharing(true);
                           try {
-                            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
                             const token = localStorage.getItem('auth_token');
                             
                             const response = await fetch(`${API_URL}/api/v1/videos/${video.id}/repost`, {

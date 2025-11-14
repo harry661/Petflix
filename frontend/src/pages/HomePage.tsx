@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
 import VideoCard from '../components/VideoCard';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../config/api';
 
 export default function HomePage() {
   const navigate = useNavigate();

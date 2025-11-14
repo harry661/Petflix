@@ -5,7 +5,7 @@ import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../config/api';
 
 export default function VideoDetailPage() {
   const { id } = useParams<{ id: string }>();
