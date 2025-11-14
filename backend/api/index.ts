@@ -22,13 +22,14 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware (development only)
-if (process.env.NODE_ENV === 'development') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
+// Request logging middleware (always log for debugging)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    query: req.query,
+    body: req.method === 'POST' ? '***' : undefined, // Don't log passwords
   });
-}
+  next();
+});
 
 // Routes
 app.use('/', routes);
@@ -37,7 +38,6 @@ app.use('/', routes);
 app.use(errorHandler);
 
 // Export handler for Vercel serverless
-export default (req: Request, res: Response) => {
-  return app(req, res);
-};
+// For CommonJS compilation, we need to use module.exports
+module.exports = app;
 
