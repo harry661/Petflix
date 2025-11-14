@@ -1,8 +1,8 @@
 // Vercel serverless function entry point
 import express from 'express';
 import cors from 'cors';
-import routes from '../routes';
-import { errorHandler } from '../middleware/errorHandler';
+import routes from '../src/routes';
+import { errorHandler } from '../src/middleware/errorHandler';
 
 const app = express();
 
