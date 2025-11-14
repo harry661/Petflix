@@ -43,6 +43,18 @@ import notificationRoutes from './notificationRoutes';
 router.use('/api/v1/notifications', notificationRoutes);
 // router.use('/api/v1/push_notifications', pushNotificationRoutes);
 
+// Debug: Log all unmatched routes before 404
+router.use((req, res, next) => {
+  console.log('⚠️ Unmatched route:', {
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    url: req.url,
+    baseUrl: req.baseUrl,
+  });
+  next();
+});
+
 // 404 handler for API routes
 router.use(notFoundHandler);
 
