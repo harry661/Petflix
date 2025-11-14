@@ -1,6 +1,11 @@
 // Vercel serverless function entry point
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
 import routes from '../src/routes';
 import { errorHandler } from '../src/middleware/errorHandler';
 
