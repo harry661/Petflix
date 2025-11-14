@@ -13,6 +13,18 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Petflix API is running' });
 });
 
+// Debug route to check routing
+router.all('/debug-route', (req, res) => {
+  res.json({
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    url: req.url,
+    baseUrl: req.baseUrl,
+    route: req.route?.path,
+  });
+});
+
 // Test routes (development only)
 import testRoutes from './testRoutes';
 router.use('/test', testRoutes);

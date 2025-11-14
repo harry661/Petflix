@@ -1,5 +1,5 @@
 // Vercel serverless function entry point
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
@@ -19,14 +19,27 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Handle OPTIONS preflight requests explicitly
+app.options('*', (req: Request, res: Response) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(200);
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware (always log for debugging)
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
     query: req.query,
     body: req.method === 'POST' ? '***' : undefined, // Don't log passwords
+    headers: {
+      'content-type': req.headers['content-type'],
+      'origin': req.headers.origin,
+    },
   });
   next();
 });
@@ -38,6 +51,11 @@ app.use('/', routes);
 app.use(errorHandler);
 
 // Export handler for Vercel serverless
-// For CommonJS compilation, we need to use module.exports
-module.exports = app;
+// Vercel can use the Express app directly, but we'll also export a handler function
+// to ensure compatibility
+const handler = app;
+
+// Export both as default and named export for maximum compatibility
+module.exports = handler;
+module.exports.default = handler;
 
