@@ -51,11 +51,7 @@ app.use('/', routes);
 app.use(errorHandler);
 
 // Export handler for Vercel serverless
-// Vercel can use the Express app directly, but we'll also export a handler function
-// to ensure compatibility
-const handler = app;
-
-// Export both as default and named export for maximum compatibility
-module.exports = handler;
-module.exports.default = handler;
+// Vercel can use the Express app directly with CommonJS export
+// The app will handle all incoming requests through the rewrite rule
+module.exports = app;
 
