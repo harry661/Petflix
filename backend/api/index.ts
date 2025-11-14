@@ -1,5 +1,5 @@
 // Vercel serverless function entry point
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
@@ -36,6 +36,8 @@ app.use('/', routes);
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Export for Vercel serverless
-export default app;
+// Export handler for Vercel serverless
+export default (req: Request, res: Response) => {
+  return app(req, res);
+};
 
