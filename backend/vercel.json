@@ -1,8 +1,8 @@
 {
-  "buildCommand": "cd backend && npm run build",
+  "buildCommand": "npm run build",
   "functions": {
     "api/index.ts": {
-      "runtime": "@vercel/node@3.0.7"
+      "runtime": "@vercel/node"
     }
   },
   "rewrites": [
