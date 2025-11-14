@@ -1,19 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2, CheckCircle2, XCircle } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-const REPORT_REASONS = [
-  'Inappropriate content',
-  'Spam or misleading',
-  'Violence or harmful content',
-  'Copyright infringement',
-  'Other'
-];
 
 export default function VideoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -400,6 +392,8 @@ export default function VideoDetailPage() {
       if (isReposted) {
         // If already reposted, find and delete the reposted video
         // We need to find the video entry where user_id = current user and youtube_video_id matches
+        if (!user) return;
+        
         const response = await fetch(`${API_URL}/api/v1/videos/user/${user.id}?type=reposted`, {
           headers: {
             'Authorization': `Bearer ${token}`,

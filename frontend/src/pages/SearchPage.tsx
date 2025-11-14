@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, X, Clock } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
+import { useAuth } from '../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
 export default function SearchPage() {
+  const { isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'relevance');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   const handleSearch = async (e?: React.FormEvent, newSort?: string) => {
     e?.preventDefault();
@@ -120,7 +123,6 @@ export default function SearchPage() {
                 placeholder="Search for pet videos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setShowHistory(true)}
                 style={{
                   width: '100%',
                   padding: '16px',
@@ -191,10 +193,10 @@ export default function SearchPage() {
                       <X size={14} />
                     </button>
                   </div>
-                  {searchHistory.map((item) => (
+                  {searchHistory.map((item, idx) => (
                     <div
-                      key={item.id}
-                      onClick={() => handleHistoryClick(item.query)}
+                      key={idx}
+                      onClick={() => handleHistoryClick(item)}
                       style={{
                         padding: '12px 16px',
                         cursor: 'pointer',
@@ -213,7 +215,7 @@ export default function SearchPage() {
                     >
                       <Clock size={16} color="rgba(255, 255, 255, 0.5)" />
                       <span style={{ color: '#ffffff', fontSize: '14px', flex: 1 }}>
-                        {item.query}
+                        {item}
                       </span>
                     </div>
                   ))}

@@ -500,7 +500,7 @@ export default function LandingPage() {
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = loading ? 0.6 : 1;
+              e.currentTarget.style.opacity = loading ? '0.6' : '1';
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Play, Shuffle, MoreVertical, Trash2, X } from 'lucide-react';
-import VideoCard from '../components/VideoCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -530,7 +529,7 @@ export default function PlaylistDetailPage() {
             </div>
           ) : (
             <div>
-              {videos.map((video, index) => (
+              {videos.map((video) => (
                 <div
                   key={video.id}
                   style={{

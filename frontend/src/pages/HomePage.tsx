@@ -9,13 +9,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 export default function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
-  const { isSearchOpen, searchQuery, searchResults, isLoading: searchLoading, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
+  const { isSearchOpen, searchQuery, searchResults, isLoading: searchLoading } = useSearch();
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterLoading, setFilterLoading] = useState(false); // Separate loading state for filter changes
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const carouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const carouselIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Banner carousel items
   const bannerItems = [

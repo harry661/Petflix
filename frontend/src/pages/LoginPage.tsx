@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
