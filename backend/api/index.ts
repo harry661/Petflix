@@ -51,11 +51,8 @@ app.use('/', routes);
 app.use(errorHandler);
 
 // Export handler for Vercel serverless
-// Vercel automatically detects Express apps and converts them to serverless functions
-// Export the app - Vercel will wrap it as a serverless function handler
-const handler = app;
-
-// Export as both default and named for maximum compatibility
-module.exports = handler;
-module.exports.default = handler;
+// Vercel automatically detects Express apps in the api/ directory
+// and converts them to serverless functions
+// Export the app - this is the standard pattern for Express on Vercel
+module.exports = app;
 
