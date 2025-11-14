@@ -25,10 +25,10 @@ export default function VideoDetailPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
+  const [_showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDescription, setReportDescription] = useState('');
-  const [reporting, setReporting] = useState(false);
+  const [_reporting, setReporting] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
@@ -312,55 +312,8 @@ export default function VideoDetailPage() {
     }
   };
 
-  const handleReportVideo = async () => {
-    if (!isAuthenticated) {
-      alert('Please log in to report videos');
-      return;
-    }
-
-    if (!reportReason) {
-      alert('Please select a reason for reporting');
-      return;
-    }
-
-    if (!id) return;
-
-    setReporting(true);
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      setReporting(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/api/v1/videos/${id}/report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          reason: reportReason,
-          description: reportDescription.trim() || null,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message || 'Video reported successfully');
-        setShowReportModal(false);
-        setReportReason('');
-        setReportDescription('');
-      } else {
-        alert(data.error || 'Failed to report video');
-      }
-    } catch (err) {
-      alert('Failed to report video');
-    } finally {
-      setReporting(false);
-    }
-  };
+  // Report video functionality - modal UI not yet implemented
+  // const handleReportVideo = async () => { ... }
 
   const [reposting, setReposting] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
