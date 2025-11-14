@@ -26,9 +26,6 @@ export default function VideoDetailPage() {
   const [editDescription, setEditDescription] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
   const [_showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState('');
-  const [reportDescription, setReportDescription] = useState('');
-  const [_reporting, setReporting] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
