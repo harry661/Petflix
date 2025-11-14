@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: petflix-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Add these in Render dashboard:
+      # SUPABASE_URL
+      # SUPABASE_SERVICE_ROLE_KEY
+      # JWT_SECRET
+      # YOUTUBE_API_KEY
+      # CORS_ORIGIN
+

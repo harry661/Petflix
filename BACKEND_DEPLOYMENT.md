@@ -1,53 +1,89 @@
-# Backend Deployment to Railway
+# Backend Deployment to Render (FREE)
+
+## Render Free Tier
+- **750 hours/month** (enough for 24/7 operation)
+- **512MB RAM**
+- **Free SSL**
+- **Auto-deploy from GitHub**
 
 ## Quick Setup Steps
 
-1. **Go to Railway**: https://railway.app
-2. **Sign up/Login** with your GitHub account
-3. **Create New Project** → "Deploy from GitHub repo"
-4. **Select Repository**: `harry661/Petflix`
-5. **Configure Service**:
-   - **Root Directory**: Set to `backend`
-   - Railway will auto-detect Node.js
+1. **Go to Render**: https://render.com
+2. **Sign up** with your GitHub account (FREE)
+3. **Create New Web Service**:
+   - Click "New +" → "Web Service"
+   - Connect your GitHub account
+   - Select repository: `harry661/Petflix`
+   - Click "Connect"
 
-6. **Add Environment Variables** in Railway:
-   - `SUPABASE_URL` - Your Supabase project URL
-   - `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
-   - `JWT_SECRET` - A random secret string (generate one)
-   - `YOUTUBE_API_KEY` - Your YouTube API key
-   - `CORS_ORIGIN` - Your Vercel frontend URL (e.g., `https://petflix.vercel.app`)
-   - `NODE_ENV` - Set to `production`
-   - `PORT` - Railway sets this automatically, don't override
+4. **Configure Service**:
+   - **Name**: `petflix-backend` (or any name you like)
+   - **Region**: Choose closest to you (US/EU)
+   - **Branch**: `main`
+   - **Root Directory**: `backend`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+   - **Instance Type**: **Free** (select this!)
 
-7. **Deploy**: Railway will automatically build and deploy
+5. **Add Environment Variables**:
+   Click "Advanced" → "Add Environment Variable" and add:
+   - `NODE_ENV` = `production`
+   - `SUPABASE_URL` = Your Supabase project URL
+   - `SUPABASE_SERVICE_ROLE_KEY` = Your Supabase service role key
+   - `JWT_SECRET` = Generate a random string (see below)
+   - `YOUTUBE_API_KEY` = Your YouTube API key
+   - `CORS_ORIGIN` = Your Vercel frontend URL (e.g., `https://petflix.vercel.app`)
+   - `PORT` = `10000` (Render sets this automatically, but include it)
 
-8. **Get Your Backend URL**: 
-   - After deployment, Railway will give you a URL like `https://your-app-name.up.railway.app`
+6. **Deploy**:
+   - Click "Create Web Service"
+   - Render will build and deploy automatically
+   - Wait 5-10 minutes for first deployment
+
+7. **Get Your Backend URL**:
+   - After deployment, Render gives you a URL like: `https://petflix-backend.onrender.com`
    - Copy this URL
 
-9. **Update Vercel Environment Variable**:
+8. **Update Vercel Environment Variable**:
    - Go to Vercel → Your Project → Settings → Environment Variables
-   - Update `VITE_API_URL_PROD` with your Railway backend URL
+   - Update `VITE_API_URL_PROD` with your Render backend URL
+   - Make sure it's set for **Production** environment
    - Redeploy your Vercel frontend
 
 ## Generate JWT Secret
 
-Run this command to generate a secure JWT secret:
+Run this in your terminal:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
+Copy the output and use it as your `JWT_SECRET`.
+
 ## CORS Configuration
 
-Make sure `CORS_ORIGIN` in Railway includes:
-- Your Vercel production URL
-- Your Vercel preview URLs (if using staging)
-- Format: `https://petflix.vercel.app,https://petflix-git-*.vercel.app`
+Your `CORS_ORIGIN` should include:
+- Your Vercel production URL: `https://petflix.vercel.app`
+- Your Vercel preview URLs: `https://petflix-*.vercel.app` (wildcard)
+
+Or set it to: `https://petflix.vercel.app,https://petflix-*.vercel.app`
+
+## Important Notes
+
+- **Free tier spins down after 15 minutes of inactivity** - first request after spin-down takes ~30 seconds
+- For production, consider upgrading to paid tier ($7/month) for always-on
+- Render free tier is perfect for development and testing
 
 ## After Deployment
 
-1. Test the backend: Visit `https://your-backend-url.up.railway.app/health` (if you have a health endpoint)
-2. Update Vercel `VITE_API_URL_PROD` with the Railway URL
+1. Test backend: Visit `https://your-backend.onrender.com` (should show error or API response)
+2. Update Vercel `VITE_API_URL_PROD` with Render URL
 3. Redeploy frontend
 4. Test login/registration
 
+## Troubleshooting
+
+- **Build fails**: Check build logs in Render dashboard
+- **App crashes**: Check runtime logs in Render dashboard
+- **CORS errors**: Make sure `CORS_ORIGIN` includes your Vercel URL
+- **Slow first request**: Normal on free tier (15 min spin-down)
