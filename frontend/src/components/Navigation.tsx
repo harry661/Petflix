@@ -62,7 +62,7 @@ export default function Navigation() {
     if (!token) return;
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/v1/notifications?limit=10`, {
+      const response = await fetch(`${API_URL}/api/v1/notifications?limit=10`, {
         headers: { 'Authorization': `Bearer ${token}` },
         credentials: 'include',
       });
@@ -509,7 +509,7 @@ export default function Navigation() {
                         const token = localStorage.getItem('auth_token');
                         if (token) {
                           try {
-                            await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/v1/notifications/read-all`, {
+                            await fetch(`${API_URL}/api/v1/notifications/read-all`, {
                               method: 'PUT',
                               headers: { 'Authorization': `Bearer ${token}` },
                             });
@@ -564,7 +564,7 @@ export default function Navigation() {
                             const token = localStorage.getItem('auth_token');
                             if (token) {
                               try {
-                                await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/v1/notifications/${notification.id}/read`, {
+                                await fetch(`${API_URL}/api/v1/notifications/${notification.id}/read`, {
                                   method: 'PUT',
                                   headers: { 'Authorization': `Bearer ${token}` },
                                 });

@@ -7,7 +7,7 @@ This guide will walk you through setting up environment variables in Vercel for 
 ### Step 1: Go to Your Project Settings
 
 1. Log in to [Vercel](https://vercel.com)
-2. Click on your **Petflix project** (or create a new project if you haven't yet)
+2. Click on your **Petflix Frontend project**
 3. Click on the **Settings** tab at the top
 4. In the left sidebar, click on **Environment Variables**
 
@@ -18,54 +18,43 @@ You'll see a form with:
 - **Value**: The actual value
 - **Environment**: Which environments this applies to (Development, Preview, Production)
 
-#### Required Environment Variable
+#### Required Environment Variables for Frontend
 
-**VITE_API_URL** - Your backend API URL
+**VITE_API_URL_PROD** - Your production backend API URL
+**VITE_API_URL_STAGING** - Your staging backend API URL (optional, for preview deployments)
+**VITE_API_URL_DEV** - Your development backend API URL (optional, for local dev)
 
 1. Click **Add New**
 2. Enter:
-   - **Key**: `VITE_API_URL`
-   - **Value**: Your backend URL (see examples below)
-   - **Environment**: Select the appropriate environment(s)
-
-#### Optional Environment Variable
-
-**VITE_YOUTUBE_API_KEY** - Your YouTube API key (if you're using it)
-
-1. Click **Add New** again
-2. Enter:
-   - **Key**: `VITE_YOUTUBE_API_KEY`
-   - **Value**: Your YouTube API key
-   - **Environment**: Select all environments that need it
-
-### Step 3: Set Values for Each Environment
-
-You'll need to add the same variable **multiple times** for different environments with different values:
-
-#### For Development Environment:
-1. Add `VITE_API_URL`
-   - **Value**: `http://localhost:3000` (or your dev backend URL)
+   - **Key**: `VITE_API_URL_PROD`
+   - **Value**: Your production backend URL (e.g., `https://petflix-backend.vercel.app`)
+   - **Environment**: ✅ Production only
+3. Click **Add New** again
+4. Enter:
+   - **Key**: `VITE_API_URL_STAGING`
+   - **Value**: Your staging backend URL (can be same as production, or a separate deployment)
+   - **Environment**: ✅ Preview only
+5. Click **Add New** again
+6. Enter:
+   - **Key**: `VITE_API_URL_DEV`
+   - **Value**: `http://localhost:3000` (for local development)
    - **Environment**: ✅ Development only
 
-#### For Staging Environment:
-1. Add `VITE_API_URL` again (it's a separate entry)
-   - **Value**: `https://your-staging-backend.railway.app` (or your staging backend URL)
-   - **Environment**: ✅ Preview only (or create a custom staging environment)
+### Step 3: Get Your Backend URL
 
-#### For Production Environment:
-1. Add `VITE_API_URL` again
-   - **Value**: `https://your-production-backend.railway.app` (or your production backend URL)
-   - **Environment**: ✅ Production only
+1. Go to your **Backend Vercel project**
+2. In the **Deployments** tab, find your latest successful deployment
+3. Copy the deployment URL (e.g., `https://petflix-backend-xxxxx.vercel.app`)
+4. Or use your custom domain if you've set one up
 
-### Step 4: Understanding Environment Types
+**Note**: The backend URL should be the full URL without a trailing slash, like:
+- ✅ `https://petflix-backend.vercel.app`
+- ❌ `https://petflix-backend.vercel.app/`
+- ❌ `petflix-backend.vercel.app`
 
-- **Development**: Used when you run `vercel dev` locally
-- **Preview**: Used for preview deployments (pull requests, branches)
-- **Production**: Used for production deployments (main branch)
+### Step 4: After Adding Variables
 
-### Step 5: After Adding Variables
-
-1. **Redeploy your project** for changes to take effect:
+1. **Redeploy your frontend project** for changes to take effect:
    - Go to the **Deployments** tab
    - Click the **⋯** (three dots) on your latest deployment
    - Click **Redeploy**
@@ -73,27 +62,24 @@ You'll need to add the same variable **multiple times** for different environmen
 
 ## Example Setup
 
-Here's what your environment variables might look like:
+Here's what your environment variables should look like:
 
 ```
-Development:
-  VITE_API_URL = http://localhost:3000
-  VITE_YOUTUBE_API_KEY = your-dev-key (optional)
-
-Staging (Preview):
-  VITE_API_URL = https://petflix-backend-staging.railway.app
-  VITE_YOUTUBE_API_KEY = your-staging-key (optional)
-
 Production:
-  VITE_API_URL = https://petflix-backend.railway.app
-  VITE_YOUTUBE_API_KEY = your-production-key (optional)
+  VITE_API_URL_PROD = https://petflix-backend.vercel.app
+
+Preview/Staging:
+  VITE_API_URL_STAGING = https://petflix-backend.vercel.app
+
+Development:
+  VITE_API_URL_DEV = http://localhost:3000
 ```
 
 ## Important Notes
 
 1. **VITE_ Prefix**: All environment variables that should be accessible in your React/Vite app MUST start with `VITE_`. This is a Vite security feature.
 
-2. **Case Sensitive**: Variable names are case-sensitive. Use exactly `VITE_API_URL`, not `vite_api_url`.
+2. **Case Sensitive**: Variable names are case-sensitive. Use exactly `VITE_API_URL_PROD`, not `vite_api_url_prod`.
 
 3. **No Quotes Needed**: Don't put quotes around the values in Vercel. Just enter the value directly.
 
@@ -101,38 +87,48 @@ Production:
 
 5. **Redeploy Required**: After adding/changing environment variables, you MUST redeploy for changes to take effect.
 
+6. **Fallback Order**: The frontend checks variables in this order:
+   - `VITE_API_URL_PROD` (for production)
+   - `VITE_API_URL_STAGING` (for preview/staging)
+   - `VITE_API_URL_DEV` (for development)
+   - Falls back to `http://localhost:3000` if none are set
+
 ## Troubleshooting
 
 ### Variable Not Working?
 - ✅ Make sure it starts with `VITE_`
 - ✅ Redeploy after adding/changing
 - ✅ Check the correct environment is selected
-- ✅ Verify the value is correct (no extra spaces)
+- ✅ Verify the value is correct (no extra spaces, no trailing slash)
+- ✅ Make sure your backend URL is accessible (test it in a browser)
 
 ### How to Check if Variables Are Loaded
 1. In your deployed app, open browser DevTools (F12)
 2. Go to Console
-3. Type: `console.log(import.meta.env.VITE_API_URL)`
+3. Type: `console.log(import.meta.env.VITE_API_URL_PROD)`
 4. You should see your API URL (or undefined if not set)
 
-### Can't See Variables in Code?
-Remember: Only variables starting with `VITE_` are exposed to your frontend code. This is intentional for security.
+### Can't Connect to Backend?
+1. Check that your backend is deployed and running
+2. Test the backend URL directly: `https://your-backend.vercel.app/api/v1/health`
+3. Check CORS settings in your backend (should allow your frontend domain)
+4. Check browser console for CORS errors
 
 ## Quick Checklist
 
-- [ ] Added `VITE_API_URL` for Development
-- [ ] Added `VITE_API_URL` for Preview/Staging
-- [ ] Added `VITE_API_URL` for Production
-- [ ] Added `VITE_YOUTUBE_API_KEY` (if needed) for each environment
-- [ ] Redeployed the project
+- [ ] Deployed backend to Vercel
+- [ ] Got backend URL from Vercel
+- [ ] Added `VITE_API_URL_PROD` for Production
+- [ ] Added `VITE_API_URL_STAGING` for Preview/Staging
+- [ ] Added `VITE_API_URL_DEV` for Development
+- [ ] Redeployed the frontend project
 - [ ] Tested that the app can connect to the backend
 
 ## Next Steps
 
 After setting up environment variables:
-1. Deploy your backend (Railway, Render, etc.)
-2. Get your backend URLs
-3. Add them to Vercel environment variables
-4. Redeploy frontend
-5. Test each environment
-
+1. ✅ Backend is deployed on Vercel
+2. ✅ Frontend environment variables are set
+3. ✅ Redeploy frontend
+4. ✅ Test login and API calls
+5. ✅ Verify everything works end-to-end
