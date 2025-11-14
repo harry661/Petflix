@@ -1,33 +1,74 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let supabaseInstance: SupabaseClient | null = null;
+let supabaseAdminInstance: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables:', {
-    hasUrl: !!supabaseUrl,
-    hasAnonKey: !!supabaseAnonKey,
-    hasServiceKey: !!supabaseServiceRoleKey,
-  });
-  throw new Error('Missing Supabase environment variables. Please check your Vercel environment variables.');
+function getSupabaseClient(): SupabaseClient {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables:', {
+      hasUrl: !!supabaseUrl,
+      hasAnonKey: !!supabaseAnonKey,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      allEnvKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE')),
+    });
+    throw new Error('Missing Supabase environment variables. Please check your Vercel environment variables.');
+  }
+
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  return supabaseInstance;
 }
 
-// Client for public operations (uses anon key)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabaseAdminClient(): SupabaseClient | null {
+  if (supabaseAdminInstance) {
+    return supabaseAdminInstance;
+  }
 
-// Admin client for server-side operations (uses service role key)
-export const supabaseAdmin = supabaseServiceRoleKey
-  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl) {
+    return null;
+  }
+
+  if (supabaseServiceRoleKey) {
+    supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
       },
-    })
-  : null;
+    });
+    return supabaseAdminInstance;
+  }
+
+  return null;
+}
+
+// Lazy exports using Proxy - only initializes when first accessed
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getSupabaseClient();
+    const value = (client as any)[prop];
+    return typeof value === 'function' ? value.bind(client) : value;
+  }
+});
+
+export const supabaseAdmin = new Proxy({} as SupabaseClient | null, {
+  get(_target, prop) {
+    const admin = getSupabaseAdminClient();
+    if (!admin) return null;
+    const value = (admin as any)[prop];
+    return typeof value === 'function' ? value.bind(admin) : value;
+  }
+}) as SupabaseClient | null;
 
 export default supabase;
-
