@@ -89,7 +89,47 @@ export const getUserPlaylists = async (req: Request, res: Response) => {
       return;
     }
 
-    res.json({ playlists: playlists || [] });
+    // Get video counts and first video thumbnails for each playlist
+    const playlistsWithDetails = await Promise.all(
+      (playlists || []).map(async (playlist) => {
+        // Get video count
+        const { count: videoCount } = await supabaseAdmin!
+          .from('playlist_videos')
+          .select('*', { count: 'exact', head: true })
+          .eq('playlist_id', playlist.id);
+
+        // Get first 4 videos for thumbnail preview
+        const { data: firstVideos } = await supabaseAdmin!
+          .from('playlist_videos')
+          .select(`
+            videos:video_id (
+              youtube_video_id
+            )
+          `)
+          .eq('playlist_id', playlist.id)
+          .order('created_at', { ascending: true })
+          .limit(4);
+
+        // Extract thumbnails from first videos
+        const thumbnails: string[] = [];
+        if (firstVideos) {
+          firstVideos.forEach((pv: any) => {
+            const video = Array.isArray(pv.videos) ? pv.videos[0] : pv.videos;
+            if (video?.youtube_video_id && /^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+              thumbnails.push(`https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`);
+            }
+          });
+        }
+
+        return {
+          ...playlist,
+          videoCount: videoCount || 0,
+          thumbnails: thumbnails.slice(0, 4), // Max 4 thumbnails
+        };
+      })
+    );
+
+    res.json({ playlists: playlistsWithDetails });
   } catch (error) {
     console.error('Get playlists error:', error);
     res.status(500).json({ error: 'Internal server error' });

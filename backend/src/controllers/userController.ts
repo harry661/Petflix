@@ -528,7 +528,23 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
     const updates: any = {};
 
     if (profile_picture_url !== undefined) {
-      updates.profile_picture_url = profile_picture_url || null;
+      // Validate URL if provided
+      if (profile_picture_url && profile_picture_url.trim() !== '') {
+        try {
+          const url = new URL(profile_picture_url.trim());
+          // Only allow http and https protocols
+          if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            res.status(400).json({ error: 'Profile picture URL must use http:// or https://' });
+            return;
+          }
+          updates.profile_picture_url = profile_picture_url.trim();
+        } catch (error) {
+          res.status(400).json({ error: 'Invalid profile picture URL format' });
+          return;
+        }
+      } else {
+        updates.profile_picture_url = null;
+      }
     }
 
     if (bio !== undefined) {

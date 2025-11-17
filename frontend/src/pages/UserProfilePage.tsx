@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Upload, Pencil, CheckCircle2, Bell, BellOff } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
+import ProfilePicture from '../components/ProfilePicture';
+import PlaylistCard from '../components/PlaylistCard';
 
 import { API_URL } from '../config/api';
 
@@ -543,32 +545,12 @@ export default function UserProfilePage() {
           marginBottom: '30px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginBottom: '20px' }}>
-            {user.profile_picture_url ? (
-              <img
-                src={user.profile_picture_url}
-                alt={user.username}
-                style={{
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-            ) : (
-              <div style={{
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                backgroundColor: '#ADD8E6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '48px',
-                color: '#ffffff'
-              }}>
-                {user.username.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <ProfilePicture
+              src={user.profile_picture_url}
+              alt={user.username}
+              size={120}
+              fallbackChar={user.username.charAt(0).toUpperCase()}
+            />
             <div style={{ flex: 1 }}>
               <h1 style={{ color: '#ffffff', marginTop: 0, marginBottom: '10px' }}>
                 {user.username}
@@ -1424,49 +1406,19 @@ export default function UserProfilePage() {
                   <p style={{ color: '#ffffff' }}>No playlists yet. Create one by adding videos to a playlist!</p>
                 </div>
               ) : (
-                <div style={{
+                <div className="video-grid" style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                   gap: '20px'
                 }}>
                   {playlists.map((playlist) => (
-                    <div
+                    <PlaylistCard
                       key={playlist.id}
-                      onClick={() => navigate(`/playlist/${playlist.id}`)}
-                      style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        borderRadius: '8px',
-                        padding: '20px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      playlist={{
+                        ...playlist,
+                        updated_at: playlist.updated_at || playlist.updatedAt || playlist.created_at || new Date().toISOString()
                       }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      <h3 style={{ color: '#ffffff', margin: '0 0 8px 0', fontSize: '18px' }}>
-                        {playlist.name}
-                      </h3>
-                      {playlist.description && (
-                        <p style={{ color: 'rgba(255, 255, 255, 0.7)', margin: '0 0 12px 0', fontSize: '14px' }}>
-                          {playlist.description}
-                        </p>
-                      )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px' }}>
-                          {playlist.visibility === 'public' ? 'Public' : 'Private'}
-                        </span>
-                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px' }}>
-                          Updated {new Date(playlist.updatedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
+                    />
                   ))}
                 </div>
               )}

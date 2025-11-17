@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Save, LogOut, User, Mail, Lock, Bell, Trash2, Eye, EyeOff, Camera, Edit, X } from 'lucide-react';
+import ProfilePicture from '../components/ProfilePicture';
 
 import { API_URL } from '../config/api';
 
@@ -309,7 +310,7 @@ export default function AccountSettingsPage() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          profile_picture_url: formData.profile_picture_url || null,
+          profile_picture_url: formData.profile_picture_url?.trim() || null,
           bio: formData.bio || null,
         }),
       });
@@ -342,9 +343,28 @@ export default function AccountSettingsPage() {
     setEditValues({});
   };
 
+  const validateUrl = (url: string): boolean => {
+    if (!url || url.trim() === '') return true; // Empty is valid (will be null)
+    try {
+      const urlObj = new URL(url);
+      // Check if it's http or https
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const handleSaveField = async (field: string) => {
     if (field === 'profile_picture_url') {
-      setFormData({ ...formData, profile_picture_url: editValues[field] || '' });
+      const urlValue = editValues[field] || '';
+      
+      // Validate URL if provided
+      if (urlValue.trim() && !validateUrl(urlValue.trim())) {
+        setError('Please enter a valid URL (must start with http:// or https://)');
+        return;
+      }
+      
+      setFormData({ ...formData, profile_picture_url: urlValue.trim() || '' });
       await handleSaveProfile();
     } else if (field === 'bio') {
       setFormData({ ...formData, bio: editValues[field] || '' });
@@ -763,35 +783,13 @@ export default function AccountSettingsPage() {
                 gap: '16px'
               }}>
                 <div style={{ position: 'relative' }}>
-                  {user.profile_picture_url ? (
-                    <img
-                      src={user.profile_picture_url}
-                      alt={user.username}
-                      style={{
-                        width: '120px',
-                        height: '120px',
-                        borderRadius: '50%',
-                        objectFit: 'cover',
-                        border: '3px solid rgba(255, 255, 255, 0.2)'
-                      }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '50%',
-                      backgroundColor: '#ADD8E6',
-                      color: '#0F0F0F',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '48px',
-                      fontWeight: 'bold',
-                      border: '3px solid rgba(255, 255, 255, 0.2)'
-                    }}>
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <ProfilePicture
+                    src={user.profile_picture_url}
+                    alt={user.username}
+                    size={120}
+                    style={{ border: '3px solid rgba(255, 255, 255, 0.2)' }}
+                    fallbackChar={user.username.charAt(0).toUpperCase()}
+                  />
                   <button
                     onClick={() => handleEditField('profile_picture_url', formData.profile_picture_url)}
                     style={{

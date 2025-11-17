@@ -89,8 +89,8 @@ export default function HomePage() {
       }
       
       // Build URL with tag filter if selected
-      // Limit to 8 videos for 2 rows on home page
-      let url = `${API_URL}/api/v1/videos/recent?limit=8`;
+      // Limit to 10 videos for 2 rows on home page (5 per row on larger screens)
+      let url = `${API_URL}/api/v1/videos/recent?limit=10`;
       if (filter) {
         url += `&tag=${encodeURIComponent(filter)}`;
       }
