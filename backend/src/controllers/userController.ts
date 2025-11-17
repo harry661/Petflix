@@ -135,29 +135,61 @@ export const login = async (req: Request<{}, AuthenticationResponse | ErrorRespo
   try {
     const { email, password } = req.body;
 
+    console.log('[LOGIN] Attempting login for email:', email ? email.substring(0, 5) + '***' : 'MISSING');
+
     if (!email || !password) {
+      console.log('[LOGIN] Missing email or password');
       res.status(400).json({ error: 'Email and password are required' });
       return;
     }
 
+    // Check if supabaseAdmin is initialized
+    if (!supabaseAdmin) {
+      console.error('[LOGIN] Supabase admin client not initialized');
+      res.status(500).json({ error: 'Database connection error. Please try again later.' });
+      return;
+    }
+
     // Find user by email
-    const { data: user, error: userError } = await supabaseAdmin!
+    console.log('[LOGIN] Querying database for user with email:', email);
+    const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, username, email, password_hash')
-      .eq('email', email)
+      .eq('email', email.toLowerCase().trim())
       .single();
 
-    if (userError || !user) {
+    if (userError) {
+      console.error('[LOGIN] Database error:', userError);
+      // Don't reveal if user exists or not for security
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
 
-    // Verify password
-    const isValidPassword = await comparePassword(password, user.password_hash);
-    if (!isValidPassword) {
+    if (!user) {
+      console.log('[LOGIN] User not found for email:', email);
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
+
+    console.log('[LOGIN] User found:', { id: user.id, username: user.username, hasPasswordHash: !!user.password_hash });
+
+    // Verify password
+    if (!user.password_hash) {
+      console.error('[LOGIN] User has no password hash');
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    console.log('[LOGIN] Comparing password...');
+    const isValidPassword = await comparePassword(password, user.password_hash);
+    
+    if (!isValidPassword) {
+      console.log('[LOGIN] Password comparison failed');
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    console.log('[LOGIN] Password valid, generating token...');
 
     // Generate token
     const token = generateToken({
@@ -165,6 +197,8 @@ export const login = async (req: Request<{}, AuthenticationResponse | ErrorRespo
       email: user.email,
       username: user.username,
     });
+
+    console.log('[LOGIN] Login successful for user:', user.username);
 
     res.json({
       token,
@@ -175,7 +209,7 @@ export const login = async (req: Request<{}, AuthenticationResponse | ErrorRespo
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[LOGIN] Unexpected error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
