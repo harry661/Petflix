@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
 import VideoCard from '../components/VideoCard';
+import { Dog, Cat, Bird, Rabbit, Fish } from 'lucide-react';
 
 import { API_URL } from '../config/api';
 
@@ -163,13 +164,13 @@ export default function HomePage() {
   
   const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
   
-  // Map filter names to image filenames
-  const filterImages: { [key: string]: string } = {
-    'Dogs': '/dogs-filter.png',
-    'Cats': '/cats-filter.png',
-    'Birds': '/birds-filter.png',
-    'Small and fluffy': '/smalls-filter.png',
-    'Underwater': '/aquatic-filter.png'
+  // Map filter names to icons
+  const filterIcons: { [key: string]: React.ReactNode } = {
+    'Dogs': <Dog size={24} />,
+    'Cats': <Cat size={24} />,
+    'Birds': <Bird size={24} />,
+    'Small and fluffy': <Rabbit size={24} />,
+    'Underwater': <Fish size={24} />
   };
   
 
@@ -233,7 +234,8 @@ export default function HomePage() {
             flex: 1 1 0% !important;
             min-width: 0 !important;
             max-width: none !important;
-            height: auto !important;
+            height: 80px !important;
+            min-height: 80px !important;
           }
         }
         @media (min-width: 1600px) {
@@ -428,57 +430,100 @@ export default function HomePage() {
             zIndex: 2 // Above banner
           }}>
             {filters.map((filter) => {
-              const imageUrl = filterImages[filter];
+              const icon = filterIcons[filter];
+              const isSelected = selectedFilter === filter;
               return (
                 <button
                   key={filter}
                   className="filter-button"
-                  onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
+                  onClick={() => setSelectedFilter(isSelected ? null : filter)}
                   style={{
                     flexGrow: 1,
                     flexShrink: 1,
                     flexBasis: 0,
-                    padding: 0,
+                    padding: '16px 20px',
                     borderRadius: '8px',
-                    border: selectedFilter === filter ? '3px solid #ADD8E6' : '3px solid transparent',
-                    backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
-                    backgroundColor: imageUrl ? 'transparent' : (selectedFilter === filter ? '#ADD8E6' : '#f5f5f5'),
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
+                    border: isSelected ? '2px solid #ADD8E6' : '2px solid rgba(255, 255, 255, 0.2)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: selectedFilter === filter ? '0 4px 12px rgba(173, 216, 230, 0.5)' : '0 2px 8px rgba(0,0,0,0.2)',
+                    transition: 'all 0.3s ease',
+                    boxShadow: isSelected 
+                      ? '0 4px 16px rgba(173, 216, 230, 0.4), inset 0 0 0 1px rgba(173, 216, 230, 0.2)' 
+                      : '0 2px 8px rgba(0, 0, 0, 0.3)',
                     minWidth: 0,
-                    aspectRatio: '298 / 166',
                     position: 'relative',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    color: '#ffffff'
                   }}
                   onMouseEnter={(e) => {
-                    if (selectedFilter !== filter) {
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.4)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (selectedFilter !== filter) {
-                      e.currentTarget.style.transform = 'scale(1)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+                    if (!isSelected) {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
                     }
                   }}
                 >
-                  {/* Subtle overlay when selected */}
-                  {selectedFilter === filter && (
+                  {/* Background blur effect layer */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: isSelected ? 'rgba(173, 216, 230, 0.1)' : 'transparent',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    transition: 'all 0.3s ease',
+                    pointerEvents: 'none'
+                  }} />
+                  
+                  {/* Content */}
+                  <div style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    width: '100%'
+                  }}>
                     <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      backgroundColor: 'rgba(173, 216, 230, 0.15)',
-                      pointerEvents: 'none'
-                    }} />
-                  )}
+                      color: isSelected ? '#ADD8E6' : '#ffffff',
+                      transition: 'color 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {icon}
+                    </div>
+                    <span style={{
+                      fontSize: '14px',
+                      fontWeight: isSelected ? '600' : '500',
+                      color: isSelected ? '#ADD8E6' : '#ffffff',
+                      transition: 'all 0.3s ease',
+                      textAlign: 'center',
+                      lineHeight: '1.2'
+                    }}>
+                      {filter}
+                    </span>
+                  </div>
                 </button>
               );
             })}
