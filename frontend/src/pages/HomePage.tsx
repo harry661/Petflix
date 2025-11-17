@@ -233,8 +233,8 @@ export default function HomePage() {
             flex: 1 1 0% !important;
             min-width: 0 !important;
             max-width: none !important;
-            height: 80px !important;
-            min-height: 80px !important;
+            height: 120px !important;
+            min-height: 120px !important;
           }
         }
         @media (min-width: 1600px) {
@@ -441,7 +441,7 @@ export default function HomePage() {
                     flexGrow: 1,
                     flexShrink: 1,
                     flexBasis: 0,
-                    padding: '16px 20px',
+                    padding: '24px 20px',
                     borderRadius: '8px',
                     border: isSelected ? '2px solid #ADD8E6' : '2px solid rgba(255, 255, 255, 0.2)',
                     backgroundColor: 'rgba(0, 0, 0, 0.4)',

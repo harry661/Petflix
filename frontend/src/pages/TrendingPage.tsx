@@ -166,7 +166,7 @@ export default function TrendingPage() {
                   flexGrow: 1,
                   flexShrink: 1,
                   flexBasis: 0,
-                  padding: '16px 20px',
+                  padding: '24px 20px',
                   borderRadius: '8px',
                   border: isSelected ? '2px solid #ADD8E6' : '2px solid rgba(255, 255, 255, 0.2)',
                   backgroundColor: 'rgba(0, 0, 0, 0.4)',
@@ -178,7 +178,7 @@ export default function TrendingPage() {
                     ? '0 4px 16px rgba(173, 216, 230, 0.4), inset 0 0 0 1px rgba(173, 216, 230, 0.2)' 
                     : '0 2px 8px rgba(0, 0, 0, 0.3)',
                   minWidth: 0,
-                  height: '80px',
+                  height: '120px',
                   position: 'relative',
                   overflow: 'hidden',
                   display: 'flex',
