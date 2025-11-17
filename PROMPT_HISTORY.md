@@ -134,10 +134,48 @@ This document records all prompts and instructions given during the development 
 - ✅ Paw.svg logo integrated
 - ✅ All feature groups from PRD implemented (onboarding, search, video sharing, social features, playlists, profiles)
 
+## UI/UX Improvements & Bug Fixes (November 2025)
+
+### Search Page & Dropdown Styling
+- "Now on the search page the relevance dropdown doesnt look nice, lets change this to match our styling. There is a similar issue on the report modal"
+- "The report modal now doesnt appear and i get a black screen"
+- "On teh searched for page lets have a similar layout to every other page(5 videos a row at appropriate screen size)"
+
+### Playlist Features
+- "We need an added to playlist success screen similar to the repost one"
+- "Can we add better playlist card elements to the profile page? This would provide a better preview of the content"
+
+### Home Page Content
+- "Trending pet videos currently doesnt fill the 2 rows of content. This should show currently popular videos on the platform"
+
+### Profile Picture Upload Issues
+- "Good, also profile picture link uploads doesnt seem to funciton correclty. SmallFurry's profile photo appears as a quesiton mark"
+- "https://unsplash.com/s/photos/hamster I just tried using this URL to add a proilfe photo to smallfurry but this isnt being picked up once added"
+- "https://plus.unsplash.com/premium_photo-1723541849330-cab9c6ed74d4?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aGFtc3RlcnxlbnwwfHwwfHx8MA%3D%3D I tried to sue this image address but this still isnt wokring. Im getting this error"
+- "https://supertails.com/cdn/shop/articles/360_f_681163919_71bp2aiyziip3l4j5mbphdxtipdtm2zh_e2c1dbbd-e3b0-4c7d-bc09-1ebff39513ef.jpg?v=1747293323 I also tried this one which also doesnt work"
+- "https://images.unsplash.com/photo-1721327900409-2393c686bc48?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGhhbXN0ZXJ8ZW58MHx8MHx8fDA%3D Im trying to upload https images but they wont appear. iM SEEING A QUESTON MARK"
+- "Whenever i try to upload a new image it defaults back to this image link"
+- "The add image layout seems slightly broken after addng guidance text"
+- "give me a working image link for a hamster"
+- "I cant remove or replace the text in the image upload field. I remove all teh characters then this comes back endlessly"
+
+### Testing & Deployment
+- "start the backend"
+- "Looks liek we didnt finish your last task"
+- "start the local backend"
+- "deploy our progress please"
+- "Push and deploy our changes"
+- "@Browser Test my Petflix app at https://petflix-weld.vercel.app/ - create 2 accounts, test all major features, verify notifications work between accounts, and report any console errors or issues"
+- "Add this and then continue your testing"
+- "Lets fix those issues and errors"
+- "Great. Now push our changes and deploy. Have you 100% tested end to end?"
+- "Update the prompt hstory document with every single prompt ive given you. Then continue testing until 100% complete."
+
 ## Notes
 
 - User prefers to provide designs later for visual improvements
 - Focus is on functionality first
 - User wants to be consulted before complex changes
 - All infrastructure should be in place for full PRD scope
+- User emphasizes thorough testing and fixing all issues before deployment
 
