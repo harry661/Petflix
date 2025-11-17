@@ -4,7 +4,18 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 // Load environment variables
+// On Vercel, environment variables are already in process.env
+// dotenv.config() only loads from .env file if it exists (for local dev)
 dotenv.config();
+
+// Log environment variable status (without exposing values)
+console.log('[API] Environment check:', {
+  hasSupabaseUrl: !!process.env.SUPABASE_URL,
+  hasSupabaseAnonKey: !!process.env.SUPABASE_ANON_KEY,
+  hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  hasJwtSecret: !!process.env.JWT_SECRET,
+  nodeEnv: process.env.NODE_ENV || 'not set',
+});
 
 import routes from '../backend/src/routes';
 import { errorHandler } from '../backend/src/middleware/errorHandler';

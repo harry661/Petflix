@@ -36,21 +36,31 @@ function getSupabaseAdminClient(): SupabaseClient | null {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+  console.log('[SUPABASE] Initializing admin client:', {
+    hasUrl: !!supabaseUrl,
+    hasServiceKey: !!supabaseServiceRoleKey,
+    urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 20) + '...' : 'MISSING',
+    serviceKeyPrefix: supabaseServiceRoleKey ? supabaseServiceRoleKey.substring(0, 20) + '...' : 'MISSING',
+  });
+
   if (!supabaseUrl) {
+    console.error('[SUPABASE] Missing SUPABASE_URL environment variable');
     return null;
   }
 
-  if (supabaseServiceRoleKey) {
-    supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-    return supabaseAdminInstance;
+  if (!supabaseServiceRoleKey) {
+    console.error('[SUPABASE] Missing SUPABASE_SERVICE_ROLE_KEY environment variable');
+    return null;
   }
 
-  return null;
+  supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+  console.log('[SUPABASE] Admin client initialized successfully');
+  return supabaseAdminInstance;
 }
 
 // Lazy exports using Proxy - only initializes when first accessed
