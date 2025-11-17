@@ -10,6 +10,8 @@ import {
   deleteAccount,
   getGlobalNotificationPreference,
   updateGlobalNotificationPreference,
+  forgotPassword,
+  resetPassword,
 } from '../controllers/userController';
 import {
   followUser,
@@ -29,6 +31,8 @@ const router = Router();
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.get('/search', searchUsers);
 
 // Protected routes - must come before /:userId to avoid route conflicts

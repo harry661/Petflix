@@ -195,36 +195,45 @@ export default function HomePage() {
             height: 700px !important;
           }
           .content-container {
-            max-width: 80vw !important;
+            max-width: 90vw !important;
             margin-left: auto !important;
             margin-right: auto !important;
             padding-left: 40px !important;
             padding-right: 40px !important;
           }
           .filter-container {
-            max-width: 100% !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            justify-content: space-between !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            margin-left: calc(-50vw + 50%) !important;
+            margin-right: calc(-50vw + 50%) !important;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+            padding-left: calc((100vw - 90vw) / 2 + 40px) !important;
+            padding-right: calc((100vw - 90vw) / 2 + 40px) !important;
+            box-sizing: border-box !important;
           }
           .banner-content {
-            max-width: 80vw !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            padding-left: 40px !important;
-            padding-right: 40px !important;
+            left: 0 !important;
+            right: 0 !important;
+            transform: none !important;
+            padding-left: 5vw !important;
             box-sizing: border-box !important;
           }
           .banner-indicators {
-            max-width: 80vw !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            padding-left: 40px !important;
-            padding-right: 40px !important;
+            left: 0 !important;
+            right: 0 !important;
+            transform: none !important;
+            padding-right: 5vw !important;
             box-sizing: border-box !important;
           }
           .filter-button {
-            max-width: 250px !important;
+            flex: 1 1 0% !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            height: auto !important;
           }
         }
         @media (min-width: 1600px) {
@@ -232,7 +241,7 @@ export default function HomePage() {
             height: 800px !important;
           }
           .filter-button {
-            max-width: 280px !important;
+            max-width: none !important;
           }
         }
         @media (min-width: 1920px) {
@@ -303,15 +312,16 @@ export default function HomePage() {
                   WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)'
                 }} />
                 
-                {/* Title and CTA Button - Aligned to 80vw container */}
+                {/* Title and CTA Button - Fills viewport with padding */}
                 <div className="banner-content" style={{
                   position: 'absolute',
                   bottom: '200px', // Positioned above the fade area
-                  left: '50%',
-                  transform: 'translateX(-50%)',
+                  left: 0,
+                  right: 0,
                   zIndex: 2,
-                  maxWidth: '600px',
-                  width: '100%'
+                  maxWidth: 'none',
+                  width: '100%',
+                  paddingLeft: '5vw'
                 }}>
                   <h1 style={{
                     color: '#fff',
@@ -324,10 +334,10 @@ export default function HomePage() {
                     {item.title}
                   </h1>
                   <button
-                    onClick={() => {
-                      // TODO: Navigate to appropriate page based on item.id
-                      console.log(`Navigate to ${item.id}`);
-                    }}
+                      onClick={() => {
+                        // Navigate to trending page for featured content
+                        navigate('/trending');
+                      }}
                     style={{
                       padding: '14px 32px',
                       backgroundColor: '#ADD8E6',
@@ -357,18 +367,19 @@ export default function HomePage() {
               </div>
             ))}
             
-            {/* Carousel indicators - Aligned to 80vw container */}
+            {/* Carousel indicators - Fills viewport with padding */}
             <div className="banner-indicators" style={{
               position: 'absolute',
               bottom: '200px', // Aligned with button level
-              left: '50%',
-              transform: 'translateX(-50%)',
+              left: 0,
+              right: 0,
               display: 'flex',
               gap: '8px',
               zIndex: 3,
               alignItems: 'center',
+              justifyContent: 'flex-end',
               width: '100%',
-              justifyContent: 'flex-end'
+              paddingRight: '5vw'
             }}>
               {bannerItems.map((_, index) => (
                 <button
@@ -413,10 +424,8 @@ export default function HomePage() {
             marginTop: '-100px', // Pull up to overlap with banner fade area
             display: 'flex',
             gap: '8px',
-            width: '100%',
             position: 'relative',
-            zIndex: 2, // Above banner
-            justifyContent: 'space-between'
+            zIndex: 2 // Above banner
           }}>
             {filters.map((filter) => {
               const imageUrl = filterImages[filter];
@@ -426,7 +435,9 @@ export default function HomePage() {
                   className="filter-button"
                   onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
                   style={{
-                    flex: 1, // Fill available space
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    flexBasis: 0,
                     padding: 0,
                     borderRadius: '8px',
                     border: selectedFilter === filter ? '3px solid #ADD8E6' : '3px solid transparent',

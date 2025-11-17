@@ -1,8 +1,9 @@
 // Petflix Service Worker
-// Version 1.0.0
+// Version 2.0.0 - Enhanced with better caching
 
-const CACHE_NAME = 'petflix-v1';
+const CACHE_NAME = 'petflix-v2';
 const OFFLINE_PAGE = '/offline.html';
+const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -10,16 +11,25 @@ const STATIC_ASSETS = [
   '/index.html',
   '/offline.html',
   '/vite.svg',
-  '/manifest.json'
+  '/manifest.json',
+  '/dogs-filter.png',
+  '/cats-filter.png',
+  '/birds-filter.png',
+  '/smalls-filter.png',
+  '/aquatic-filter.png',
+  '/pet-of-the-week.png',
+  '/clip-of-the-week.png',
+  '/rising-star.png'
 ];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching static assets');
-      return cache.addAll(STATIC_ASSETS);
+      return cache.addAll(STATIC_ASSETS).catch((err) => {
+        // If some assets fail to cache, continue anyway
+        console.log('[Service Worker] Some assets failed to cache:', err);
+      });
     })
   );
   self.skipWaiting(); // Activate immediately
@@ -27,14 +37,12 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((cacheName) => cacheName !== CACHE_NAME)
           .map((cacheName) => {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           })
       );
@@ -58,16 +66,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip external requests
+  // Skip external requests (YouTube, etc.)
   if (url.origin !== location.origin) {
     return;
   }
 
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      // Return cached version if available
+      // Return cached version if available and not expired
       if (cachedResponse) {
-        return cachedResponse;
+        const cachedDate = cachedResponse.headers.get('sw-cached-date');
+        if (cachedDate) {
+          const cacheAge = Date.now() - parseInt(cachedDate);
+          if (cacheAge < CACHE_DURATION) {
+            return cachedResponse;
+          }
+        } else {
+          // No date header, assume valid
+          return cachedResponse;
+        }
       }
 
       // Otherwise, fetch from network
@@ -81,9 +98,20 @@ self.addEventListener('fetch', (event) => {
           // Clone the response (stream can only be consumed once)
           const responseToCache = response.clone();
 
+          // Add cache date header
+          const headers = new Headers(responseToCache.headers);
+          headers.set('sw-cached-date', Date.now().toString());
+
+          // Create new response with cache date
+          const modifiedResponse = new Response(responseToCache.body, {
+            status: responseToCache.status,
+            statusText: responseToCache.statusText,
+            headers: headers
+          });
+
           // Cache the response
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
+            cache.put(request, modifiedResponse);
           });
 
           return response;
@@ -108,13 +136,36 @@ self.addEventListener('fetch', (event) => {
 
 // Background sync for offline actions (future enhancement)
 self.addEventListener('sync', (event) => {
-  console.log('[Service Worker] Background sync:', event.tag);
   // Future: sync offline actions when back online
+  // Example: sync likes, comments, etc. that were made offline
 });
 
 // Push notifications (future enhancement)
 self.addEventListener('push', (event) => {
-  console.log('[Service Worker] Push notification received');
-  // Future: handle push notifications
+  if (event.data) {
+    const data = event.data.json();
+    const title = data.title || 'Petflix';
+    const options = {
+      body: data.body || 'You have a new notification',
+      icon: '/vite.svg',
+      badge: '/vite.svg',
+      tag: data.tag || 'default',
+      data: data.data || {}
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  }
 });
 
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  if (event.notification.data && event.notification.data.url) {
+    event.waitUntil(
+      clients.openWindow(event.notification.data.url)
+    );
+  }
+});

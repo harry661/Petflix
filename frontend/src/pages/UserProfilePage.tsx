@@ -250,7 +250,7 @@ export default function UserProfilePage() {
             const likedData = await likedRes.json();
             setLikedVideos(likedData.videos || []);
           } catch (err) {
-            console.error('Error parsing liked videos:', err);
+            // Error parsing liked videos - silently fail
             setLikedVideos([]);
           }
         } else {
@@ -503,12 +503,24 @@ export default function UserProfilePage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0F0F0F',
-      padding: 0
-    }}>
-      <div style={{ 
+    <>
+      <style>{`
+        @media (min-width: 1200px) {
+          .page-content-container {
+            max-width: 90vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+          }
+        }
+      `}</style>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0F0F0F',
+        padding: 0
+      }}>
+      <div className="page-content-container" style={{ 
         maxWidth: '100%',
         margin: '0 auto',
         padding: '0 40px'
@@ -1452,6 +1464,7 @@ export default function UserProfilePage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

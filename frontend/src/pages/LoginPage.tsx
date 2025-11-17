@@ -66,7 +66,7 @@ export default function LoginPage() {
 
       // Store token
       localStorage.setItem('auth_token', data.token);
-      console.log('✅ Token stored, redirecting to home...');
+      // Token stored, redirecting
       
       // Force full page reload to ensure all state resets and useAuth runs
       window.location.href = '/home';

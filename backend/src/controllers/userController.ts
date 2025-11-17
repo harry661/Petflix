@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase';
-import { hashPassword, comparePassword, generateToken } from '../utils/auth';
+import { hashPassword, comparePassword, generateToken, generateTokenWithExpiration } from '../utils/auth';
 import {
   UserRegistrationRequest,
   UserLoginRequest,
@@ -563,6 +563,125 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
     });
   } catch (error) {
     console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Request password reset
+ * POST /api/v1/users/forgot-password
+ */
+export const forgotPassword = async (
+  req: Request<{}, { message: string } | ErrorResponse, { email: string }>,
+  res: Response
+) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || !validateEmail(email)) {
+      res.status(400).json({ error: 'Valid email is required' });
+      return;
+    }
+
+    // Find user by email (normalized)
+    const normalizedEmail = email.toLowerCase().trim();
+    const { data: user, error: userError } = await supabaseAdmin!
+      .from('users')
+      .select('id, email, username')
+      .eq('email', normalizedEmail)
+      .single();
+
+    // Always return success message to prevent email enumeration
+    // But only send email if user exists
+    if (!userError && user) {
+      // Generate reset token (JWT with 1 hour expiration)
+      const resetToken = generateTokenWithExpiration(
+        { userId: user.id, type: 'password_reset' },
+        '1h'
+      );
+
+      // Store reset token in database (or use a password_reset_tokens table)
+      // For simplicity, we'll use a JWT that expires in 1 hour
+      // In production, you'd want to store this in a separate table with expiration
+
+      // Send email with reset link
+      // TODO: Integrate with email service (SendGrid, AWS SES, etc.)
+      // For now, we'll log the token (in production, send email)
+      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+      
+      console.log('[Password Reset] Token generated for user:', user.email);
+      console.log('[Password Reset] Reset URL:', resetUrl);
+      // In production, send email here:
+      // await sendPasswordResetEmail(user.email, resetUrl);
+
+      // For development/testing, you can check the console for the reset URL
+    }
+
+    // Always return success to prevent email enumeration
+    res.json({
+      message: 'If an account with that email exists, a password reset link has been sent.',
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Reset password with token
+ * POST /api/v1/users/reset-password
+ */
+export const resetPassword = async (
+  req: Request<{}, { success: boolean } | ErrorResponse, { token: string; newPassword: string }>,
+  res: Response
+) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      res.status(400).json({ error: 'Token and new password are required' });
+      return;
+    }
+
+    if (!validatePassword(newPassword)) {
+      res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase, and number' });
+      return;
+    }
+
+    // Verify token
+    let decoded: any;
+    try {
+      const jwt = require('jsonwebtoken');
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      
+      // Check if token is for password reset
+      if (decoded.type !== 'password_reset') {
+        res.status(400).json({ error: 'Invalid token type' });
+        return;
+      }
+    } catch (tokenError) {
+      res.status(400).json({ error: 'Invalid or expired reset token' });
+      return;
+    }
+
+    // Hash new password
+    const newPasswordHash = await hashPassword(newPassword);
+
+    // Update password
+    const { error: updateError } = await supabaseAdmin!
+      .from('users')
+      .update({ password_hash: newPasswordHash })
+      .eq('id', decoded.userId);
+
+    if (updateError) {
+      console.error('Error updating password:', updateError);
+      res.status(500).json({ error: 'Failed to reset password' });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

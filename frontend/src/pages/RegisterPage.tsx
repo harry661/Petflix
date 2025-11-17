@@ -78,7 +78,7 @@ export default function RegisterPage() {
 
       // Store token
       localStorage.setItem('auth_token', data.token);
-      console.log('✅ Token stored, redirecting to home...');
+      // Token stored, redirecting
       
       // Show welcome message
       alert('Welcome to Petflix! Your account has been created successfully.');

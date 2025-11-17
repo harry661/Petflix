@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { lazy, Suspense } from 'react';
 import { SearchProvider } from './context/SearchContext';
 import Navigation from './components/Navigation';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 // Lazy load pages for better performance
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -14,15 +15,22 @@ const FollowersFollowingPage = lazy(() => import('./pages/FollowersFollowingPage
 const AccountSettingsPage = lazy(() => import('./pages/AccountSettingsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
 const PlaylistDetailPage = lazy(() => import('./pages/PlaylistDetailPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 // LoginPage and RegisterPage are not used - routes redirect to LandingPage
 
 function AppContent() {
   const location = useLocation();
-  const showNavigation = location.pathname !== '/' && location.pathname !== '/login' && location.pathname !== '/register';
+  const showNavigation = location.pathname !== '/' && 
+    location.pathname !== '/login' && 
+    location.pathname !== '/register' &&
+    location.pathname !== '/forgot-password' &&
+    location.pathname !== '/reset-password';
 
   return (
     <>
       {showNavigation && <Navigation />}
+      <PWAInstallPrompt />
       <Suspense fallback={
         <div style={{
           minHeight: '100vh',
@@ -48,6 +56,8 @@ function AppContent() {
           <Route path="/settings" element={<AccountSettingsPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/playlist/:id" element={<PlaylistDetailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
           <Route path="/login" element={<LandingPage />} />
           <Route path="/register" element={<LandingPage />} />

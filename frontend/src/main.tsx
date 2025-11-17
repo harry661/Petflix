@@ -15,10 +15,17 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
-        console.log('Service Worker registered:', registration.scope);
+        // Service Worker registered successfully
+        // Check for updates periodically
+        setInterval(() => {
+          registration.update();
+        }, 60 * 60 * 1000); // Check every hour
       })
       .catch((error) => {
-        console.log('Service Worker registration failed:', error);
+        // Service Worker registration failed - silently fail in production
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Service Worker registration failed:', error);
+        }
       });
   });
 }

@@ -110,7 +110,7 @@ export default function SearchPage() {
       <style>{`
         @media (min-width: 1200px) {
           .page-content-container {
-            max-width: 80vw !important;
+            max-width: 90vw !important;
             margin-left: auto !important;
             margin-right: auto !important;
             padding-left: 40px !important;

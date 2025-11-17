@@ -62,7 +62,8 @@ import playlistRoutes from './playlistRoutes';
 router.use('/api/v1/playlists', playlistRoutes);
 import notificationRoutes from './notificationRoutes';
 router.use('/api/v1/notifications', notificationRoutes);
-// router.use('/api/v1/push_notifications', pushNotificationRoutes);
+import pushNotificationRoutes from './pushNotificationRoutes';
+router.use('/api/v1/push_notifications', pushNotificationRoutes);
 
 // Debug: Log all unmatched routes before 404
 router.use((req, res, next) => {

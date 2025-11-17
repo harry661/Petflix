@@ -257,13 +257,25 @@ export default function PlaylistDetailPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0F0F0F',
-      padding: '40px 0',
-      color: '#ffffff'
-    }}>
+    <>
+      <style>{`
+        @media (min-width: 1200px) {
+          .page-content-container {
+            max-width: 90vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+          }
+        }
+      `}</style>
       <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0F0F0F',
+        padding: '40px 0',
+        color: '#ffffff'
+      }}>
+      <div className="page-content-container" style={{
         maxWidth: '1400px',
         margin: '0 auto',
         padding: '0 40px',
@@ -758,7 +770,8 @@ export default function PlaylistDetailPage() {
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 }
 

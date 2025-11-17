@@ -32,6 +32,13 @@ export const generateToken = (payload: JWTPayload): string => {
 };
 
 /**
+ * Generate a JWT token with custom expiration
+ */
+export const generateTokenWithExpiration = (payload: any, expiresIn: string): string => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn } as jwt.SignOptions);
+};
+
+/**
  * Verify and decode a JWT token
  */
 export const verifyToken = (token: string): JWTPayload => {

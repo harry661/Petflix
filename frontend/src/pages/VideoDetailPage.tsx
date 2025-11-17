@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useMetaTags } from '../hooks/useMetaTags';
 import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
+import ShareButtons from '../components/ShareButtons';
 
 import { API_URL } from '../config/api';
 
@@ -25,7 +27,11 @@ export default function VideoDetailPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
-  const [_showReportModal, setShowReportModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
+  const [reporting, setReporting] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
@@ -35,6 +41,14 @@ export default function VideoDetailPage() {
       loadRecommendedVideos();
     }
   }, [id]);
+
+  // Update meta tags for video page
+  useMetaTags({
+    title: video?.title,
+    description: video?.description || `Watch ${video?.title} on Petflix`,
+    image: video?.thumbnail || (video?.youtubeVideoId ? `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg` : undefined),
+    url: video ? `/video/${id}` : undefined
+  });
 
   const loadRecommendedVideos = async () => {
     try {
@@ -181,7 +195,7 @@ export default function VideoDetailPage() {
     e?.stopPropagation();
     e?.preventDefault();
     
-    console.log('Like button clicked', { isAuthenticated, id, isLiked });
+    // Handle like/unlike action
     
     if (!isAuthenticated) {
       // Graceful prompt for unauthenticated users
@@ -193,7 +207,7 @@ export default function VideoDetailPage() {
     }
 
     if (!id) {
-      console.error('No video ID');
+      // No video ID available
       return;
     }
 
@@ -249,10 +263,10 @@ export default function VideoDetailPage() {
         } catch (parseErr) {
           // If JSON parsing fails, use default message
         }
-        console.error('Like error:', errorMessage, 'Status:', response.status);
+        // Like error handled below
       }
     } catch (err) {
-      console.error('Like error:', err);
+      // Error handled by UI state
       // Don't show alert for network errors
     } finally {
       setLiking(false);
@@ -309,8 +323,48 @@ export default function VideoDetailPage() {
     }
   };
 
-  // Report video functionality - modal UI not yet implemented
-  // const handleReportVideo = async () => { ... }
+  const handleReportVideo = async () => {
+    if (!id || !reportReason.trim()) {
+      return;
+    }
+
+    setReporting(true);
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setReporting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/videos/${id}/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          reason: reportReason.trim(),
+          description: reportDescription.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setReportSuccess(true);
+        setShowReportModal(false);
+        setReportReason('');
+        setReportDescription('');
+        setTimeout(() => setReportSuccess(false), 3000);
+      } else {
+        alert(data.error || 'Failed to report video');
+      }
+    } catch (err) {
+      alert('Failed to report video. Please try again.');
+    } finally {
+      setReporting(false);
+    }
+  };
 
   const [reposting, setReposting] = useState(false);
   const [isReposted, setIsReposted] = useState(false);
@@ -395,7 +449,7 @@ export default function VideoDetailPage() {
         }
       }
     } catch (err) {
-      console.error('Repost error:', err);
+      // Repost error handled by UI
     } finally {
       setReposting(false);
     }
@@ -488,6 +542,25 @@ export default function VideoDetailPage() {
             transform: scale(1) rotate(0deg);
           }
         }
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @media (min-width: 1200px) {
+          .page-content-container {
+            max-width: 90vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+          }
+        }
       `}</style>
       
       {(() => {
@@ -500,7 +573,7 @@ export default function VideoDetailPage() {
       backgroundColor: '#0F0F0F',
       padding: 0
     }}>
-      <div style={{ 
+      <div className="page-content-container" style={{ 
         maxWidth: '100%',
         margin: '0 auto',
         padding: '40px',
@@ -736,6 +809,7 @@ export default function VideoDetailPage() {
                           <img
                             src={displayUser.profile_picture_url}
                             alt={displayUser.username}
+                            loading="lazy"
                             style={{
                               width: '24px',
                               height: '24px',
@@ -862,6 +936,12 @@ export default function VideoDetailPage() {
                       <Repeat2 size={18} fill={isReposted ? '#ADD8E6' : 'none'} color={isReposted ? '#ADD8E6' : '#ffffff'} />
                     </button>
                   )}
+                  <ShareButtons
+                    url={`/video/${id}`}
+                    title={video.title}
+                    description={video.description}
+                    imageUrl={video.thumbnail || (video.youtubeVideoId ? `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg` : undefined)}
+                  />
                   {user && video.userId !== user.id && (
                     <button
                       onClick={() => setShowReportModal(true)}
@@ -1161,6 +1241,236 @@ export default function VideoDetailPage() {
     </div>
         );
       })()}
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100002,
+            animation: 'fadeIn 0.3s ease'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowReportModal(false);
+              setReportReason('');
+              setReportDescription('');
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#1a1a1a',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '500px',
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'scaleIn 0.4s ease'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ color: '#ffffff', margin: 0, fontSize: '20px', fontWeight: '600' }}>
+                Report Video
+              </h2>
+              <button
+                onClick={() => {
+                  setShowReportModal(false);
+                  setReportReason('');
+                  setReportDescription('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '20px', fontSize: '14px' }}>
+              Help us keep Petflix safe by reporting content that violates our community guidelines.
+            </p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                Reason for reporting *
+              </label>
+              <select
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  color: '#fff',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ADD8E6';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                }}
+              >
+                <option value="">Select a reason</option>
+                <option value="Inappropriate content">Inappropriate content</option>
+                <option value="Spam or misleading">Spam or misleading</option>
+                <option value="Harassment or bullying">Harassment or bullying</option>
+                <option value="Violence or dangerous acts">Violence or dangerous acts</option>
+                <option value="Copyright infringement">Copyright infringement</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}>
+                Additional details (optional)
+              </label>
+              <textarea
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                placeholder="Provide more information about why you're reporting this video..."
+                maxLength={500}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  minHeight: '100px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  color: '#fff',
+                  outline: 'none',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#ADD8E6';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                }}
+              />
+              <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '4px', marginBottom: 0 }}>
+                {reportDescription.length}/500 characters
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowReportModal(false);
+                  setReportReason('');
+                  setReportDescription('');
+                }}
+                disabled={reporting}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'transparent',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: reporting ? 'not-allowed' : 'pointer',
+                  opacity: reporting ? 0.6 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReportVideo}
+                disabled={reporting || !reportReason.trim()}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#ff6b6b',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: (reporting || !reportReason.trim()) ? 'not-allowed' : 'pointer',
+                  opacity: (reporting || !reportReason.trim()) ? 0.6 : 1,
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (!reporting && reportReason.trim()) {
+                    e.currentTarget.style.backgroundColor = '#ff5252';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!reporting && reportReason.trim()) {
+                    e.currentTarget.style.backgroundColor = '#ff6b6b';
+                  }
+                }}
+              >
+                {reporting ? 'Submitting...' : 'Submit Report'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Success Message */}
+      {reportSuccess && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            backgroundColor: 'rgba(76, 175, 80, 0.9)',
+            color: '#ffffff',
+            padding: '16px 24px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+            zIndex: 100003,
+            animation: 'slideIn 0.3s ease',
+            maxWidth: '400px'
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '14px', fontWeight: '500' }}>
+            Thank you for your report. We'll review it shortly.
+          </p>
+        </div>
+      )}
     </>
   );
 }

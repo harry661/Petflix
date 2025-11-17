@@ -275,7 +275,7 @@ export default function Navigation() {
       <style>{`
         @media (min-width: 1200px) {
           .nav-container {
-            max-width: 80vw !important;
+            max-width: 90vw !important;
             margin-left: auto !important;
             margin-right: auto !important;
           }

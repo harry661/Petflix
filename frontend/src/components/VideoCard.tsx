@@ -759,6 +759,7 @@ function VideoCard({ video }: VideoCardProps) {
                   <img
                     src={displayUser.profile_picture_url}
                     alt={displayUser.username}
+                    loading="lazy"
                     style={{
                       width: '36px',
                       height: '36px',
@@ -798,6 +799,7 @@ function VideoCard({ video }: VideoCardProps) {
                 <img
                   src={displayUser.profile_picture_url}
                   alt={displayUser.username || 'User'}
+                  loading="lazy"
                   style={{
                     width: '36px',
                     height: '36px',

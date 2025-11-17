@@ -49,17 +49,8 @@ export default function FeedPage() {
       }
 
       const data = await response.json();
-      console.log('Feed response:', data);
-      console.log('Videos count:', data.videos?.length || 0);
-      console.log('Videos array:', data.videos);
-      
-      if (data.videos && data.videos.length > 0) {
-        console.log('First video:', data.videos[0]);
-      }
-      
       setVideos(data.videos || []);
     } catch (err: any) {
-      console.error('Error loading feed:', err);
       setError('Failed to load feed. Please try again.');
     } finally {
       setLoading(false);
@@ -106,7 +97,7 @@ export default function FeedPage() {
       <style>{`
         @media (min-width: 1200px) {
           .page-content-container {
-            max-width: 80vw !important;
+            max-width: 90vw !important;
             margin-left: auto !important;
             margin-right: auto !important;
             padding-left: 40px !important;

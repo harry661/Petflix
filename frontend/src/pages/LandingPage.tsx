@@ -81,18 +81,14 @@ export default function LandingPage() {
           return;
         }
 
-        console.log('✅ Login successful, token received:', data.token.substring(0, 20) + '...');
-        console.log('👤 User data:', data.user);
+        // Login successful
         localStorage.setItem('auth_token', data.token);
-        console.log('💾 Token stored in localStorage');
         
         // Dispatch event to notify auth state change
         window.dispatchEvent(new Event('auth-changed'));
-        console.log('📢 Auth-changed event dispatched');
         
         // Give auth hook a moment to update, then navigate
         setTimeout(() => {
-          console.log('🚀 Navigating to /home');
           navigate('/home', { replace: true });
         }, 200);
       } catch (err: any) {
@@ -162,20 +158,16 @@ export default function LandingPage() {
           return;
         }
 
-        console.log('✅ Registration successful, token received:', data.token.substring(0, 20) + '...');
-        console.log('👤 User data:', data.user);
+        // Registration successful
         localStorage.setItem('auth_token', data.token);
-        console.log('💾 Token stored in localStorage');
         
         // Dispatch event to notify auth state change
         window.dispatchEvent(new Event('auth-changed'));
-        console.log('📢 Auth-changed event dispatched');
         
         alert('Welcome to Petflix! Your account has been created successfully.');
         
         // Give auth hook a moment to update, then navigate
         setTimeout(() => {
-          console.log('🚀 Navigating to /home');
           navigate('/home', { replace: true });
         }, 200);
       } catch (err: any) {
@@ -532,19 +524,21 @@ export default function LandingPage() {
                   Remember me
                 </label>
                 <Link
-                  to="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    // TODO: Implement forgot password
-                    alert('Forgot password feature coming soon');
-                  }}
+                  to="/forgot-password"
                   style={{
                     color: '#ADD8E6',
                     textDecoration: 'none',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    transition: 'opacity 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                  onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = '0.8';
+                    e.currentTarget.style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.style.textDecoration = 'none';
+                  }}
                 >
                   Forgot password?
                 </Link>
@@ -577,6 +571,24 @@ export default function LandingPage() {
                 >
                   Sign up now
                 </button>
+              </div>
+              <div style={{
+                textAlign: 'right',
+                marginTop: '8px'
+              }}>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    color: '#ADD8E6',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  Forgot password?
+                </Link>
               </div>
             </>
           )}
