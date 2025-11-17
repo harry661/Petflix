@@ -2,7 +2,9 @@
   "extends": "../backend/tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".."
+    "rootDir": "..",
+    "moduleResolution": "node",
+    "skipLibCheck": true
   },
   "include": [
     "index.ts",

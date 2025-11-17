@@ -23,7 +23,7 @@ router.get('/debug-env', (req, res) => {
 router.get('/test-db', async (req, res) => {
   try {
     // Import at runtime to avoid module load errors
-    const { supabaseAdmin } = await import('../config/supabase');
+    const { supabaseAdmin } = await import('../config/supabase.js');
     
     if (!supabaseAdmin) {
       return res.status(500).json({ 
