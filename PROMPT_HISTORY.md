@@ -170,6 +170,68 @@ This document records all prompts and instructions given during the development 
 - "Lets fix those issues and errors"
 - "Great. Now push our changes and deploy. Have you 100% tested end to end?"
 - "Update the prompt hstory document with every single prompt ive given you. Then continue testing until 100% complete."
+- "So no changes needed?"
+- "Add 'add to playlist' as an additional button on the video details page"
+- "push and deploy this"
+- "Not all prompts have been recorded from past sessions"
+
+## Inferred Prompts from Implemented Features
+
+Based on the codebase and documentation, the following prompts were likely given but not explicitly recorded:
+
+### PWA & Service Worker Features
+- Request to implement PWA install prompt functionality
+- Request to enhance service worker with better caching
+- Request to add service worker auto-update functionality
+- Request to improve offline support
+
+### Social Media & Sharing
+- Request to add social media sharing buttons (Facebook, Twitter, Copy Link)
+- Request to implement native Web Share API support for mobile
+- Request to add share functionality to video detail pages
+
+### SEO & Meta Tags
+- Request to add Open Graph meta tags for better link previews
+- Request to add Twitter Card meta tags
+- Request to implement dynamic meta tags for video pages
+
+### Performance Optimizations
+- Request to implement lazy loading for images
+- Request to optimize image loading performance
+- Request to reduce initial page load time
+
+### Video Features
+- Request to implement video report modal with dropdown for report reasons
+- Request to add report functionality to video detail pages
+
+### Backend Features
+- Request to implement web push notifications backend
+- Request to implement password recovery/forgot password functionality
+- Request to add push notification subscription endpoints
+- Request to add password reset endpoints
+
+### Frontend Features
+- Request to add push notification UI in account settings
+- Request to implement forgot password page
+- Request to implement reset password page
+- Request to add "Forgot password?" link to landing page
+
+### Deployment & Infrastructure
+- Request to fix 405 errors on Vercel deployment
+- Request to fix CORS issues
+- Request to simplify vercel.json configuration
+- Request to improve request logging for debugging
+
+### Code Quality
+- Request to remove debug console.log statements
+- Request to clean up unused code
+- Request to fix TODO comments
+- Request to ensure all files pass linting
+
+### Manifest & PWA Configuration
+- Request to enhance manifest.json with multiple icon sizes
+- Request to improve PWA support
+- Request to configure app shortcuts
 
 ## Notes
 
