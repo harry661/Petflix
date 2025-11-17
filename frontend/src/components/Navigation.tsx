@@ -112,7 +112,7 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close search when clicking outside (only if search query is empty)
+  // Close search when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -120,12 +120,8 @@ export default function Navigation() {
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
-        // Check the ref value (always current) - only close if search query is empty
-        const currentQuery = searchQueryRef.current;
-        if (!currentQuery || currentQuery.trim().length === 0) {
-          handleCloseSearch();
-        }
-        // If there's text, do nothing - search stays open
+        // Always close when clicking outside, regardless of search query
+        handleCloseSearch();
       }
     };
 
@@ -146,7 +142,7 @@ export default function Navigation() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isSearchOpen, closeSearch]); // Removed searchQuery from deps - using ref instead
+  }, [isSearchOpen, handleCloseSearch]);
 
   // Auto-search with debounce when search is open and query changes
   useEffect(() => {
@@ -179,7 +175,12 @@ export default function Navigation() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Search is handled automatically by useEffect with debounce
+    if (searchQuery.trim()) {
+      // Navigate to search results page
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      closeSearch();
+      setPreviousLocation(null);
+    }
   };
 
   const handleCloseSearch = () => {
