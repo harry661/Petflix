@@ -514,6 +514,16 @@ export default function UserProfilePage() {
             padding-right: 40px !important;
           }
         }
+        .video-grid {
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+        }
+        @media (min-width: 1400px) {
+          .video-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+          }
+        }
       `}</style>
       <div style={{
         minHeight: '100vh',
@@ -1306,9 +1316,9 @@ export default function UserProfilePage() {
                   <p style={{ color: '#ffffff' }}>No videos shared yet</p>
                 </div>
               ) : (
-                <div style={{
+                <div className="video-grid" style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                   gap: '20px'
                 }}>
                   {sharedVideos.map((video) => (
@@ -1342,9 +1352,9 @@ export default function UserProfilePage() {
                   <p style={{ color: '#ffffff' }}>No liked videos yet</p>
                 </div>
               ) : (
-                <div style={{
+                <div className="video-grid" style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                   gap: '20px'
                 }}>
                   {likedVideos.map((video) => (
@@ -1378,9 +1388,9 @@ export default function UserProfilePage() {
                   <p style={{ color: '#ffffff' }}>No videos reposted yet</p>
                 </div>
               ) : (
-                <div style={{
+                <div className="video-grid" style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                   gap: '20px'
                 }}>
                   {repostedVideos.map((video) => (
