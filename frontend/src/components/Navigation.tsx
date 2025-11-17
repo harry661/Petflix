@@ -112,6 +112,15 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleCloseSearch = () => {
+    closeSearch();
+    // Navigate back to previous location if it exists
+    if (previousLocation && previousLocation !== location.pathname) {
+      navigate(previousLocation);
+    }
+    setPreviousLocation(null);
+  };
+
   // Close search when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -142,7 +151,7 @@ export default function Navigation() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isSearchOpen, handleCloseSearch]);
+  }, [isSearchOpen, previousLocation, location.pathname, navigate, closeSearch, setPreviousLocation]);
 
   // Auto-search with debounce when search is open and query changes
   useEffect(() => {
@@ -181,15 +190,6 @@ export default function Navigation() {
       closeSearch();
       setPreviousLocation(null);
     }
-  };
-
-  const handleCloseSearch = () => {
-    closeSearch();
-    // Navigate back to previous location if it exists
-    if (previousLocation && previousLocation !== location.pathname) {
-      navigate(previousLocation);
-    }
-    setPreviousLocation(null);
   };
 
   // Focus search input when opened and handle Escape key
