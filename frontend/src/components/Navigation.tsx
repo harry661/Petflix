@@ -453,6 +453,101 @@ export default function Navigation() {
                 </div>
               </form>
             )}
+            {/* Search Results Dropdown */}
+            {isSearchOpen && (searchQuery.trim() || searchResults.length > 0) && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '8px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                  borderRadius: '8px',
+                  minWidth: '400px',
+                  maxWidth: '600px',
+                  maxHeight: '500px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  overflow: 'hidden',
+                  zIndex: 1001,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {searchLoading ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>
+                    Searching...
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
+                    {searchResults.map((video) => (
+                      <div
+                        key={video.id}
+                        onClick={() => {
+                          navigate(`/video/${video.id}`);
+                          handleCloseSearch();
+                        }}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s',
+                          display: 'flex',
+                          gap: '12px',
+                          alignItems: 'center'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        {video.thumbnail && (
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            style={{
+                              width: '80px',
+                              height: '45px',
+                              objectFit: 'cover',
+                              borderRadius: '4px'
+                            }}
+                          />
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{
+                            color: '#fff',
+                            margin: 0,
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            marginBottom: '4px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {video.title}
+                          </p>
+                          {video.user && (
+                            <p style={{
+                              color: 'rgba(255, 255, 255, 0.7)',
+                              margin: 0,
+                              fontSize: '12px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {video.user.username}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : searchQuery.trim() ? (
+                  <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.7)' }}>
+                    <p style={{ margin: 0 }}>No results found for "{searchQuery}"</p>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {/* Notification Bell Icon with Dropdown */}
