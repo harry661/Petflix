@@ -1,4 +1,4 @@
-import { Facebook, Twitter, Link2, Share2 } from 'lucide-react';
+import { Facebook, Link2, Share2 } from 'lucide-react';
 
 interface ShareButtonsProps {
   url: string;
@@ -16,9 +16,9 @@ export default function ShareButtons({ url, title, description, imageUrl }: Shar
     window.open(facebookUrl, '_blank', 'width=600,height=400');
   };
 
-  const handleTwitterShare = () => {
-    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(title)}`;
-    window.open(twitterUrl, '_blank', 'width=600,height=400');
+  const handleXShare = () => {
+    const xUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(title)}`;
+    window.open(xUrl, '_blank', 'width=600,height=400');
   };
 
   const handleCopyLink = async () => {
@@ -127,10 +127,10 @@ export default function ShareButtons({ url, title, description, imageUrl }: Shar
       </button>
       
       <button
-        onClick={handleTwitterShare}
+        onClick={handleXShare}
         style={{
           padding: '8px 16px',
-          backgroundColor: '#1DA1F2',
+          backgroundColor: '#000000',
           color: '#ffffff',
           border: 'none',
           borderRadius: '6px',
@@ -143,16 +143,27 @@ export default function ShareButtons({ url, title, description, imageUrl }: Shar
           transition: 'all 0.2s'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#1A91DA';
+          e.currentTarget.style.backgroundColor = '#1a1a1a';
           e.currentTarget.style.transform = 'scale(1.05)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#1DA1F2';
+          e.currentTarget.style.backgroundColor = '#000000';
           e.currentTarget.style.transform = 'scale(1)';
         }}
       >
-        <Twitter size={16} />
-        Twitter
+        <span style={{
+          fontSize: '16px',
+          fontWeight: 'bold',
+          color: '#ffffff',
+          width: '16px',
+          height: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          𝕏
+        </span>
+        X
       </button>
       
       <button
