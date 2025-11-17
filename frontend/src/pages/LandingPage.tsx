@@ -331,6 +331,7 @@ export default function LandingPage() {
               placeholder="Email address"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              autoComplete="email"
               required
               style={{
                 width: '100%',
@@ -362,6 +363,7 @@ export default function LandingPage() {
               placeholder="Password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
               required
               style={{
                 width: '100%',
@@ -418,6 +420,7 @@ export default function LandingPage() {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                autoComplete="new-password"
                 required
                 style={{
                   width: '100%',

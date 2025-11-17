@@ -143,6 +143,7 @@ export default function RegisterPage() {
               placeholder="Choose a username (3-20 characters)"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              autoComplete="username"
               required
               minLength={3}
               maxLength={20}
@@ -166,6 +167,7 @@ export default function RegisterPage() {
               placeholder="your@email.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              autoComplete="email"
               required
               style={{
                 width: '100%',
@@ -187,6 +189,7 @@ export default function RegisterPage() {
               placeholder="At least 8 characters"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              autoComplete="new-password"
               required
               minLength={8}
               style={{
@@ -212,6 +215,7 @@ export default function RegisterPage() {
               placeholder="Confirm your password"
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              autoComplete="new-password"
               required
               style={{
                 width: '100%',

@@ -604,7 +604,7 @@ export default function AccountSettingsPage() {
             <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
               {type === 'textarea' ? (
                 <textarea
-                  value={editValues[field] || value}
+                  value={editValues[field] !== undefined ? editValues[field] : value}
                   onChange={(e) => setEditValues({ ...editValues, [field]: e.target.value })}
                   maxLength={255}
                   style={{
@@ -625,7 +625,7 @@ export default function AccountSettingsPage() {
               ) : (
                 <input
                   type="text"
-                  value={editValues[field] || value}
+                  value={editValues[field] !== undefined ? editValues[field] : value}
                   onChange={(e) => setEditValues({ ...editValues, [field]: e.target.value })}
                   style={{
                     flex: 1,
@@ -893,69 +893,77 @@ export default function AccountSettingsPage() {
                     width: '100%',
                     maxWidth: '500px',
                     display: 'flex',
-                    gap: '8px',
-                    alignItems: 'center'
+                    flexDirection: 'column',
+                    gap: '12px'
                   }}>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <input
-                        type="url"
-                        placeholder="https://images.unsplash.com/photo-..."
-                        value={editValues['profile_picture_url'] || formData.profile_picture_url}
-                        onChange={(e) => setEditValues({ ...editValues, profile_picture_url: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          border: '1px solid rgba(255, 255, 255, 0.3)',
-                          borderRadius: '4px',
-                          fontSize: '14px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                          color: '#fff',
-                          outline: 'none'
-                        }}
-                        autoFocus
-                      />
-                      <p style={{
-                        margin: 0,
-                        fontSize: '11px',
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        fontStyle: 'italic'
-                      }}>
-                        Tip: Use image hosting services that allow hotlinking (imgur.com, imgbb.com, postimg.cc) or Unsplash (images.unsplash.com). Some CDN URLs may be blocked.
-                      </p>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <input
+                          type="url"
+                          placeholder="https://images.unsplash.com/photo-..."
+                          value={editValues['profile_picture_url'] !== undefined ? editValues['profile_picture_url'] : formData.profile_picture_url}
+                          onChange={(e) => setEditValues({ ...editValues, profile_picture_url: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            color: '#fff',
+                            outline: 'none'
+                          }}
+                          autoFocus
+                        />
+                        <p style={{
+                          margin: 0,
+                          fontSize: '11px',
+                          color: 'rgba(255, 255, 255, 0.5)',
+                          fontStyle: 'italic',
+                          lineHeight: '1.4'
+                        }}>
+                          Tip: Use image hosting services that allow hotlinking (imgur.com, imgbb.com, postimg.cc) or Unsplash (images.unsplash.com). Some CDN URLs may be blocked.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', paddingTop: '12px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveField('profile_picture_url')}
+                          disabled={saving}
+                          style={{
+                            padding: '12px 20px',
+                            backgroundColor: '#ADD8E6',
+                            color: '#0F0F0F',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: saving ? 'not-allowed' : 'pointer',
+                            opacity: saving ? 0.6 : 1,
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          style={{
+                            padding: '12px 20px',
+                            backgroundColor: 'transparent',
+                            color: '#fff',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleSaveField('profile_picture_url')}
-                      disabled={saving}
-                      style={{
-                        padding: '12px 20px',
-                        backgroundColor: '#ADD8E6',
-                        color: '#0F0F0F',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        cursor: saving ? 'not-allowed' : 'pointer',
-                        opacity: saving ? 0.6 : 1
-                      }}
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelEdit}
-                      style={{
-                        padding: '12px 20px',
-                        backgroundColor: 'transparent',
-                        color: '#fff',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        borderRadius: '4px',
-                        fontSize: '14px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Cancel
-                    </button>
                   </div>
                 )}
               </div>
@@ -1037,6 +1045,7 @@ export default function AccountSettingsPage() {
                         placeholder="Enter current password"
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                        autoComplete="current-password"
                         required
                         style={{
                           width: '100%',
@@ -1094,6 +1103,7 @@ export default function AccountSettingsPage() {
                         placeholder="Enter new password"
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        autoComplete="new-password"
                         required
                         minLength={8}
                         style={{
@@ -1152,6 +1162,7 @@ export default function AccountSettingsPage() {
                         placeholder="Confirm new password"
                         value={passwordData.confirmPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                        autoComplete="new-password"
                         required
                         minLength={8}
                         style={{

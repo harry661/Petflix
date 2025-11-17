@@ -128,6 +128,7 @@ export default function LoginPage() {
               placeholder="your@email.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              autoComplete="email"
               required
               style={{
                 width: '100%',
@@ -149,6 +150,7 @@ export default function LoginPage() {
               placeholder="Enter your password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              autoComplete="current-password"
               required
               style={{
                 width: '100%',
