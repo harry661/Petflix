@@ -104,6 +104,16 @@ export default function FeedPage() {
             padding-right: 40px !important;
           }
         }
+        .video-grid {
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+        }
+        @media (min-width: 1400px) {
+          .video-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+          }
+        }
       `}</style>
       <div style={{
         minHeight: '100vh',
@@ -161,9 +171,9 @@ export default function FeedPage() {
             </div>
           </div>
         ) : (
-          <div style={{
+          <div className="video-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: '20px'
           }}>
             {videos.map((video) => (
