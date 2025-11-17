@@ -53,10 +53,13 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
       .eq('username', username)
       .limit(1);
 
+    // Normalize email for comparison (lowercase and trim)
+    const normalizedEmail = email.toLowerCase().trim();
+    
     const { data: existingUsersByEmail, error: emailError } = await supabaseAdmin
       .from('users')
       .select('id')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .limit(1);
 
     if (usernameError) {
@@ -81,12 +84,12 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user
+    // Create user (store normalized email)
     const { data: newUser, error: insertError } = await supabaseAdmin!
       .from('users')
       .insert({
         username,
-        email,
+        email: normalizedEmail, // Store normalized email
         password_hash: passwordHash,
       })
       .select('id, username, email')
