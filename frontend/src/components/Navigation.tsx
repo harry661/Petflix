@@ -271,23 +271,34 @@ export default function Navigation() {
     : 'rgba(0, 0, 0, 1)'; // Fully opaque black when scrolled or on other pages
 
   return (
-    <nav style={{
-      backgroundColor: navbarBackground,
-      padding: '15px 40px',
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-      backdropFilter: (isHomePage && scrollY > 50) || !isHomePage ? 'blur(10px)' : 'none',
-      transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease',
-      marginBottom: 0
-    }}>
+    <>
+      <style>{`
+        @media (min-width: 1200px) {
+          .nav-container {
+            max-width: 80vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+        }
+      `}</style>
+      <nav style={{
+        backgroundColor: navbarBackground,
+        padding: '15px 40px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        backdropFilter: (isHomePage && scrollY > 50) || !isHomePage ? 'blur(10px)' : 'none',
+        transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease',
+        marginBottom: 0
+      }}>
       <div style={{
         maxWidth: '100%',
         margin: '0 auto',
         display: 'flex',
         alignItems: 'center',
-        gap: '40px'
-      }}>
+        gap: '40px',
+        width: '100%'
+      }} className="nav-container">
         {/* Logo */}
         <Link to="/home" style={{ ...logoStyle, marginRight: '20px' }}>
           <img src={PawLogo} alt="" style={{ width: '32px', height: '28px', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'auto' }} />
@@ -826,6 +837,7 @@ export default function Navigation() {
         </div>
       </div>
     </nav>
+    </>
   );
 }
 

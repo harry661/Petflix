@@ -194,10 +194,28 @@ export default function HomePage() {
           .banner-container {
             height: 700px !important;
           }
+          .content-container {
+            max-width: 80vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+          .filter-container {
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+          }
+          .filter-button {
+            max-width: 250px !important;
+          }
         }
         @media (min-width: 1600px) {
           .banner-container {
             height: 800px !important;
+          }
+          .filter-button {
+            max-width: 280px !important;
           }
         }
         @media (min-width: 1920px) {
@@ -211,23 +229,8 @@ export default function HomePage() {
         @media (min-width: 1400px) {
           .video-grid {
             grid-template-columns: repeat(5, 1fr) !important;
-            max-width: 1600px;
-            margin: 0 auto;
-          }
-        }
-        @media (min-width: 1200px) {
-          .filter-container {
-            max-width: 1400px !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-          }
-          .filter-button {
-            max-width: 250px !important;
-          }
-        }
-        @media (min-width: 1600px) {
-          .filter-button {
-            max-width: 280px !important;
+            max-width: 100% !important;
+            margin: 0 !important;
           }
         }
       `}</style>
@@ -375,7 +378,7 @@ export default function HomePage() {
         backgroundColor: '#0F0F0F',
         paddingTop: 0
       }}>
-        <div style={{ 
+        <div className="content-container" style={{ 
           maxWidth: '100%',
           margin: '0 auto', 
           padding: '0 40px',
