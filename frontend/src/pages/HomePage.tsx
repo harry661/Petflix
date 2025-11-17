@@ -189,12 +189,54 @@ export default function HomePage() {
 
   return (
     <>
+      <style>{`
+        @media (min-width: 1200px) {
+          .banner-container {
+            height: 700px !important;
+          }
+        }
+        @media (min-width: 1600px) {
+          .banner-container {
+            height: 800px !important;
+          }
+        }
+        @media (min-width: 1920px) {
+          .banner-container {
+            height: 900px !important;
+          }
+        }
+        .video-grid {
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+        }
+        @media (min-width: 1400px) {
+          .video-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            max-width: 1600px;
+            margin: 0 auto;
+          }
+        }
+        @media (min-width: 1200px) {
+          .filter-container {
+            max-width: 1400px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+          .filter-button {
+            max-width: 250px !important;
+          }
+        }
+        @media (min-width: 1600px) {
+          .filter-button {
+            max-width: 280px !important;
+          }
+        }
+      `}</style>
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
       {!isSearchOpen && (
-        <div style={{
+        <div className="banner-container" style={{
           position: 'relative',
           width: '100vw',
-          height: '600px', // Increased to accommodate filter buttons overlap
+          height: '600px', // Base height
           overflow: 'hidden',
           marginLeft: 'calc(-50vw + 50%)',
           marginTop: '-70px', // Negative margin to pull banner up behind navbar
@@ -341,7 +383,7 @@ export default function HomePage() {
         }}>
         {/* Filter Buttons - Positioned over banner fade */}
         {!isSearchOpen && (
-          <div style={{
+          <div className="filter-container" style={{
             marginBottom: '30px',
             marginTop: '-100px', // Pull up to overlap with banner fade area
             display: 'flex',
@@ -355,9 +397,10 @@ export default function HomePage() {
               return (
                 <button
                   key={filter}
+                  className="filter-button"
                   onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
                   style={{
-                    flex: 1,
+                    flex: '0 1 auto', // Don't grow, allow shrinking
                     padding: 0,
                     borderRadius: '8px',
                     border: selectedFilter === filter ? '3px solid #ADD8E6' : '3px solid transparent',
@@ -371,7 +414,7 @@ export default function HomePage() {
                     boxShadow: selectedFilter === filter ? '0 4px 12px rgba(173, 216, 230, 0.5)' : '0 2px 8px rgba(0,0,0,0.2)',
                     minWidth: 0,
                     aspectRatio: '298 / 166',
-                    width: '100%',
+                    width: 'calc((100% - 32px) / 5)', // 5 buttons with gaps
                     position: 'relative',
                     overflow: 'hidden'
                   }}
@@ -484,9 +527,9 @@ export default function HomePage() {
                   }}>Loading...</p>
                 </div>
               )}
-              <div style={{
+              <div className="video-grid" style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                 gap: '20px',
                 opacity: filterLoading ? 0.6 : 1,
                 transition: 'opacity 0.2s ease'
@@ -503,4 +546,3 @@ export default function HomePage() {
     </>
   );
 }
-
