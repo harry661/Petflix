@@ -203,17 +203,16 @@ export default function HomePage() {
             padding-right: 40px !important;
           }
           .filter-container {
-            width: 100vw !important;
-            max-width: 100vw !important;
-            margin-left: calc(-50vw + 50%) !important;
-            margin-right: calc(-50vw + 50%) !important;
+            max-width: 90vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
             display: flex !important;
             flex-direction: row !important;
             justify-content: flex-start !important;
             align-items: stretch !important;
             gap: 8px !important;
-            padding-left: calc((100vw - 90vw) / 2 + 40px) !important;
-            padding-right: calc((100vw - 90vw) / 2 + 40px) !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
             box-sizing: border-box !important;
           }
           .banner-content {
@@ -427,7 +426,8 @@ export default function HomePage() {
             display: 'flex',
             gap: '8px',
             position: 'relative',
-            zIndex: 2 // Above banner
+            zIndex: 2, // Above banner
+            width: '100%'
           }}>
             {filters.map((filter) => {
               const icon = filterIcons[filter];
