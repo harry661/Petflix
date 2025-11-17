@@ -343,14 +343,49 @@ export default function AccountSettingsPage() {
     setEditValues({});
   };
 
-  const validateUrl = (url: string): boolean => {
-    if (!url || url.trim() === '') return true; // Empty is valid (will be null)
+  const validateUrl = (url: string): { valid: boolean; error?: string } => {
+    if (!url || url.trim() === '') return { valid: true }; // Empty is valid (will be null)
+    
     try {
-      const urlObj = new URL(url);
+      const urlObj = new URL(url.trim());
+      
       // Check if it's http or https
-      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+      if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+        return { valid: false, error: 'URL must start with http:// or https://' };
+      }
+      
+      // Check for common non-image URLs (search pages, HTML pages)
+      const pathname = urlObj.pathname.toLowerCase();
+      const hostname = urlObj.hostname.toLowerCase();
+      
+      // Detect Unsplash search pages
+      if (hostname.includes('unsplash.com') && pathname.includes('/s/')) {
+        return { 
+          valid: false, 
+          error: 'This is a search page, not an image. Right-click on an image and select "Copy image address" to get the direct image URL.' 
+        };
+      }
+      
+      // Detect other common search/HTML pages
+      if (pathname.includes('/search') || pathname.includes('/s/') || pathname.includes('/photos/') && !pathname.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+        return { 
+          valid: false, 
+          error: 'This appears to be a search or gallery page, not a direct image URL. Please use a direct link to an image file.' 
+        };
+      }
+      
+      // Check for common image file extensions (optional but helpful)
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+      const hasImageExtension = imageExtensions.some(ext => pathname.endsWith(ext));
+      
+      // If it doesn't have an image extension, warn but don't block (some CDNs use query params)
+      if (!hasImageExtension && !urlObj.search) {
+        // This is just a warning, not an error - some image URLs don't have extensions
+      }
+      
+      return { valid: true };
     } catch {
-      return false;
+      return { valid: false, error: 'Invalid URL format' };
     }
   };
 
@@ -359,9 +394,12 @@ export default function AccountSettingsPage() {
       const urlValue = editValues[field] || '';
       
       // Validate URL if provided
-      if (urlValue.trim() && !validateUrl(urlValue.trim())) {
-        setError('Please enter a valid URL (must start with http:// or https://)');
-        return;
+      if (urlValue.trim()) {
+        const validation = validateUrl(urlValue.trim());
+        if (!validation.valid) {
+          setError(validation.error || 'Please enter a valid image URL');
+          return;
+        }
       }
       
       setFormData({ ...formData, profile_picture_url: urlValue.trim() || '' });
@@ -828,23 +866,33 @@ export default function AccountSettingsPage() {
                     gap: '8px',
                     alignItems: 'center'
                   }}>
-                    <input
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      value={editValues['profile_picture_url'] || formData.profile_picture_url}
-                      onChange={(e) => setEditValues({ ...editValues, profile_picture_url: e.target.value })}
-                      style={{
-                        flex: 1,
-                        padding: '12px',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        borderRadius: '4px',
-                        fontSize: '14px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                        color: '#fff',
-                        outline: 'none'
-                      }}
-                      autoFocus
-                    />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <input
+                        type="url"
+                        placeholder="https://images.unsplash.com/photo-..."
+                        value={editValues['profile_picture_url'] || formData.profile_picture_url}
+                        onChange={(e) => setEditValues({ ...editValues, profile_picture_url: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                          color: '#fff',
+                          outline: 'none'
+                        }}
+                        autoFocus
+                      />
+                      <p style={{
+                        margin: 0,
+                        fontSize: '11px',
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontStyle: 'italic'
+                      }}>
+                        Tip: Right-click an image and select "Copy image address" to get the direct URL
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleSaveField('profile_picture_url')}

@@ -537,6 +537,27 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
             res.status(400).json({ error: 'Profile picture URL must use http:// or https://' });
             return;
           }
+          
+          // Check for common non-image URLs (search pages, HTML pages)
+          const pathname = url.pathname.toLowerCase();
+          const hostname = url.hostname.toLowerCase();
+          
+          // Detect Unsplash search pages
+          if (hostname.includes('unsplash.com') && pathname.includes('/s/')) {
+            res.status(400).json({ 
+              error: 'This is a search page, not an image. Please use a direct image URL. Right-click on an image and select "Copy image address".' 
+            });
+            return;
+          }
+          
+          // Detect other common search/HTML pages
+          if ((pathname.includes('/search') || pathname.includes('/s/') || (pathname.includes('/photos/') && !pathname.match(/\.(jpg|jpeg|png|gif|webp)$/i)))) {
+            res.status(400).json({ 
+              error: 'This appears to be a search or gallery page, not a direct image URL. Please use a direct link to an image file.' 
+            });
+            return;
+          }
+          
           updates.profile_picture_url = profile_picture_url.trim();
         } catch (error) {
           res.status(400).json({ error: 'Invalid profile picture URL format' });
