@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useMetaTags } from '../hooks/useMetaTags';
-import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2, Share2, Facebook, Twitter, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, Save, X as CloseIcon, Heart, Flag, Repeat2, Share2, Facebook, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 
@@ -374,11 +374,11 @@ export default function VideoDetailPage() {
     setShowShareDropdown(false);
   };
 
-  const handleTwitterShare = () => {
+  const handleXShare = () => {
     if (!id || !video) return;
     const fullUrl = typeof window !== 'undefined' ? window.location.origin + `/video/${id}` : `/video/${id}`;
-    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(video.title)}`;
-    window.open(twitterUrl, '_blank', 'width=600,height=400');
+    const xUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(video.title)}`;
+    window.open(xUrl, '_blank', 'width=600,height=400');
     setShowShareDropdown(false);
   };
 
@@ -1033,7 +1033,7 @@ export default function VideoDetailPage() {
                           Facebook
                         </button>
                         <button
-                          onClick={handleTwitterShare}
+                          onClick={handleXShare}
                           style={{
                             width: '100%',
                             padding: '12px 16px',
@@ -1050,14 +1050,25 @@ export default function VideoDetailPage() {
                             textAlign: 'left'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(29, 161, 242, 0.1)';
+                            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }}
                         >
-                          <Twitter size={18} color="#1DA1F2" />
-                          Twitter
+                          <span style={{
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                            color: '#ffffff',
+                            width: '18px',
+                            height: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            𝕏
+                          </span>
+                          X
                         </button>
                       </div>
                     )}
