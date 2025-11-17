@@ -109,12 +109,24 @@ export default function TrendingPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0F0F0F',
-      padding: '40px'
-    }}>
-      <div style={{ 
+    <>
+      <style>{`
+        @media (min-width: 1200px) {
+          .page-content-container {
+            max-width: 80vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+          }
+        }
+      `}</style>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0F0F0F',
+        padding: '40px'
+      }}>
+      <div className="page-content-container" style={{ 
         maxWidth: '100%',
         margin: '0 auto',
         padding: '0 40px'
@@ -262,6 +274,7 @@ export default function TrendingPage() {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -205,6 +205,23 @@ export default function HomePage() {
             max-width: 100% !important;
             margin-left: 0 !important;
             margin-right: 0 !important;
+            justify-content: space-between !important;
+          }
+          .banner-content {
+            max-width: 80vw !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+            box-sizing: border-box !important;
+          }
+          .banner-indicators {
+            max-width: 80vw !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+            box-sizing: border-box !important;
           }
           .filter-button {
             max-width: 250px !important;
@@ -286,13 +303,15 @@ export default function HomePage() {
                   WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%)'
                 }} />
                 
-                {/* Title and CTA Button */}
-                <div style={{
+                {/* Title and CTA Button - Aligned to 80vw container */}
+                <div className="banner-content" style={{
                   position: 'absolute',
                   bottom: '200px', // Positioned above the fade area
-                  left: '40px', // Match navbar padding
+                  left: '50%',
+                  transform: 'translateX(-50%)',
                   zIndex: 2,
-                  maxWidth: '600px'
+                  maxWidth: '600px',
+                  width: '100%'
                 }}>
                   <h1 style={{
                     color: '#fff',
@@ -338,15 +357,18 @@ export default function HomePage() {
               </div>
             ))}
             
-            {/* Carousel indicators */}
-            <div style={{
+            {/* Carousel indicators - Aligned to 80vw container */}
+            <div className="banner-indicators" style={{
               position: 'absolute',
               bottom: '200px', // Aligned with button level
-              right: '40px',
+              left: '50%',
+              transform: 'translateX(-50%)',
               display: 'flex',
               gap: '8px',
               zIndex: 3,
-              alignItems: 'center'
+              alignItems: 'center',
+              width: '100%',
+              justifyContent: 'flex-end'
             }}>
               {bannerItems.map((_, index) => (
                 <button
@@ -393,7 +415,8 @@ export default function HomePage() {
             gap: '8px',
             width: '100%',
             position: 'relative',
-            zIndex: 2 // Above banner
+            zIndex: 2, // Above banner
+            justifyContent: 'space-between'
           }}>
             {filters.map((filter) => {
               const imageUrl = filterImages[filter];
@@ -403,7 +426,7 @@ export default function HomePage() {
                   className="filter-button"
                   onClick={() => setSelectedFilter(selectedFilter === filter ? null : filter)}
                   style={{
-                    flex: '0 1 auto', // Don't grow, allow shrinking
+                    flex: 1, // Fill available space
                     padding: 0,
                     borderRadius: '8px',
                     border: selectedFilter === filter ? '3px solid #ADD8E6' : '3px solid transparent',
@@ -417,7 +440,6 @@ export default function HomePage() {
                     boxShadow: selectedFilter === filter ? '0 4px 12px rgba(173, 216, 230, 0.5)' : '0 2px 8px rgba(0,0,0,0.2)',
                     minWidth: 0,
                     aspectRatio: '298 / 166',
-                    width: 'calc((100% - 32px) / 5)', // 5 buttons with gaps
                     position: 'relative',
                     overflow: 'hidden'
                   }}

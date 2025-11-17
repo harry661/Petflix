@@ -102,12 +102,24 @@ export default function FeedPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0F0F0F',
-      padding: '20px'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
+    <>
+      <style>{`
+        @media (min-width: 1200px) {
+          .page-content-container {
+            max-width: 80vw !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+          }
+        }
+      `}</style>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0F0F0F',
+        padding: '20px'
+      }}>
+      <div className="page-content-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
         <h1 style={{ color: '#ffffff', marginBottom: '30px', fontSize: '32px', fontWeight: '600' }}>Following</h1>
         <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '30px', fontSize: '16px' }}>
           Videos from users you follow
@@ -169,6 +181,7 @@ export default function FeedPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
