@@ -523,7 +523,6 @@ export default function HomePage() {
               );
             })}
           </div>
-        )}
         
         {/* Videos Section */}
         <div>
