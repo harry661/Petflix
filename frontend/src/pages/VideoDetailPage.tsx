@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useMetaTags } from '../hooks/useMetaTags';
-import { Edit2, Trash2, Save, X as CloseIcon, Heart, Flag, Repeat2, Share2, Facebook, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, Save, X as CloseIcon, Heart, Flag, Repeat2, Share2, Facebook, ChevronDown, Link2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 
@@ -380,6 +380,54 @@ export default function VideoDetailPage() {
     const xUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(video.title)}`;
     window.open(xUrl, '_blank', 'width=600,height=400');
     setShowShareDropdown(false);
+  };
+
+  const handleCopyLink = async () => {
+    if (!id) return;
+    const fullUrl = typeof window !== 'undefined' ? window.location.origin + `/video/${id}` : `/video/${id}`;
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      setShowShareDropdown(false);
+      // Show a brief success message
+      const successMsg = document.createElement('div');
+      successMsg.textContent = 'Link copied to clipboard!';
+      successMsg.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        backgroundColor: rgba(76, 175, 80, 0.9);
+        color: #ffffff;
+        padding: 16px 24px;
+        borderRadius: 8px;
+        boxShadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        zIndex: 100003;
+        animation: slideIn 0.3s ease;
+        maxWidth: 400px;
+        fontSize: 14px;
+        fontWeight: 500;
+      `;
+      document.body.appendChild(successMsg);
+      setTimeout(() => {
+        successMsg.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => document.body.removeChild(successMsg), 300);
+      }, 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = fullUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setShowShareDropdown(false);
+        alert('Link copied to clipboard!');
+      } catch (err) {
+        alert('Failed to copy link');
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   const [reposting, setReposting] = useState(false);
