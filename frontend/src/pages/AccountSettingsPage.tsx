@@ -48,6 +48,7 @@ export default function AccountSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
     if (authLoading) {
@@ -58,12 +59,16 @@ export default function AccountSettingsPage() {
       navigate('/', { replace: true });
       return;
     }
-    loadUser();
+    
+    // Don't reload if we just saved - use the data from the save response
+    if (!justSaved) {
+      loadUser();
+    }
     checkPushSupport();
     if (isAuthenticated) {
       loadPushSubscriptionStatus();
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, navigate, justSaved]);
 
   const loadUser = async () => {
     const token = localStorage.getItem('auth_token');
@@ -72,16 +77,8 @@ export default function AccountSettingsPage() {
       return;
     }
     
-    if (authUser) {
-      setUser(authUser);
-      setFormData({
-        profile_picture_url: authUser.profile_picture_url || '',
-        bio: authUser.bio || '',
-      });
-      loadNotificationPreferences();
-      setLoading(false);
-      return;
-    }
+    // Always fetch fresh data from API to avoid stale data issues
+    // Don't rely on authUser as it might be outdated after profile updates
 
     try {
       const response = await fetch(`${API_URL}/api/v1/users/me`, {
@@ -318,8 +315,18 @@ export default function AccountSettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Update local state with the saved data
         setUser(data);
+        // Update formData to match the saved data
+        setFormData({
+          profile_picture_url: data.profile_picture_url || '',
+          bio: data.bio || '',
+        });
         setSuccess('Profile updated successfully!');
+        // Prevent reloading user data immediately after save
+        setJustSaved(true);
+        setTimeout(() => setJustSaved(false), 1000); // Allow reloads after 1 second
+        // Dispatch auth-changed to update other components
         window.dispatchEvent(new Event('auth-changed'));
         setTimeout(() => setSuccess(''), 3000);
         setEditingField(null);
