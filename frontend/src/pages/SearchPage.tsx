@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ArrowUpDown, X, Clock } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 import { useAuth } from '../hooks/useAuth';
+import Dropdown from '../components/Dropdown';
 
 import { API_URL } from '../config/api';
 
@@ -117,13 +118,27 @@ export default function SearchPage() {
             padding-right: 40px !important;
           }
         }
+        .video-grid {
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+        }
+        @media (min-width: 1400px) {
+          .video-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+          }
+        }
       `}</style>
       <div style={{
         minHeight: '100vh',
         backgroundColor: '#0F0F0F',
-        padding: '20px'
+        padding: '40px'
       }}>
-      <div className="page-content-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
+      <div className="page-content-container" style={{ 
+        maxWidth: '100%',
+        margin: '0 auto',
+        padding: '0 40px'
+      }}>
         <h1 style={{ color: '#ffffff', marginBottom: '30px', fontSize: '32px', fontWeight: '600' }}>Search Pet Videos</h1>
 
         {/* Search Bar */}
@@ -273,36 +288,20 @@ export default function SearchPage() {
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <ArrowUpDown size={16} color="rgba(255, 255, 255, 0.7)" />
-              <select
+              <Dropdown
                 value={sortBy}
-                onChange={(e) => {
-                  setSortBy(e.target.value);
-                  handleSearch(undefined, e.target.value);
+                onChange={(value) => {
+                  setSortBy(value);
+                  handleSearch(undefined, value);
                 }}
-                style={{
-                  padding: '8px 12px',
-                  fontSize: '14px',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '4px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  color: '#fff',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#ADD8E6';
-                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                }}
-              >
-                <option value="relevance">Relevance</option>
-                <option value="recency">Most Recent</option>
-                <option value="views">Most Views</option>
-                <option value="engagement">Most Liked</option>
-              </select>
+                options={[
+                  { value: 'relevance', label: 'Relevance' },
+                  { value: 'recency', label: 'Most Recent' },
+                  { value: 'views', label: 'Most Views' },
+                  { value: 'engagement', label: 'Most Liked' }
+                ]}
+                style={{ minWidth: '180px' }}
+              />
             </div>
           </div>
         )}
@@ -331,9 +330,9 @@ export default function SearchPage() {
         )}
 
         {!loading && results.length > 0 && (
-          <div style={{
+          <div className="video-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: '20px'
           }}>
             {results.map((video) => (

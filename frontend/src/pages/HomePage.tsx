@@ -401,7 +401,6 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-      )}
       
       <div style={{ 
         minHeight: '100vh',

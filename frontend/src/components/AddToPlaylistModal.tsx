@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, CheckCircle2 } from 'lucide-react';
 
 import { API_URL } from '../config/api';
 
@@ -19,6 +19,8 @@ export default function AddToPlaylistModal({ videoId, isOpen, onClose, onSuccess
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [error, setError] = useState('');
   const [addingToPlaylist, setAddingToPlaylist] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successPlaylistName, setSuccessPlaylistName] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -28,6 +30,8 @@ export default function AddToPlaylistModal({ videoId, isOpen, onClose, onSuccess
       setNewPlaylistName('');
       setNewPlaylistDescription('');
       setError('');
+      setShowSuccess(false);
+      setSuccessPlaylistName('');
     }
   }, [isOpen]);
 
@@ -55,7 +59,7 @@ export default function AddToPlaylistModal({ videoId, isOpen, onClose, onSuccess
     }
   };
 
-  const handleAddToPlaylist = async (playlistId: string) => {
+  const handleAddToPlaylist = async (playlistId: string, playlistName?: string) => {
     const token = localStorage.getItem('auth_token');
     if (!token) {
       setError('Please log in to add videos to playlists');
@@ -76,8 +80,15 @@ export default function AddToPlaylistModal({ videoId, isOpen, onClose, onSuccess
       });
 
       if (response.ok) {
+        const playlist = playlists.find(p => p.id === playlistId);
+        setSuccessPlaylistName(playlistName || playlist?.name || 'playlist');
+        setShowSuccess(true);
         if (onSuccess) onSuccess();
-        onClose();
+        // Auto-close after 2 seconds
+        setTimeout(() => {
+          setShowSuccess(false);
+          onClose();
+        }, 2000);
       } else {
         const data = await response.json();
         if (response.status === 409) {
@@ -126,7 +137,7 @@ export default function AddToPlaylistModal({ videoId, isOpen, onClose, onSuccess
 
       if (response.ok) {
         const data = await response.json();
-        await handleAddToPlaylist(data.id);
+        await handleAddToPlaylist(data.id, newPlaylistName.trim());
         await loadPlaylists();
         setShowCreateForm(false);
         setNewPlaylistName('');
@@ -143,6 +154,103 @@ export default function AddToPlaylistModal({ videoId, isOpen, onClose, onSuccess
   };
 
   if (!isOpen) return null;
+
+  // Show success screen
+  if (showSuccess) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100001,
+          animation: 'fadeIn 0.3s ease'
+        }}
+        onClick={(e) => {
+          // Close on click outside
+          if (e.target === e.currentTarget) {
+            setShowSuccess(false);
+            onClose();
+          }
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            padding: '40px',
+            backgroundColor: '#1a1a1a',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            animation: 'scaleIn 0.4s ease',
+            minWidth: '300px'
+          }}
+        >
+          <CheckCircle2 
+            size={64} 
+            color="#4CAF50" 
+            style={{ animation: 'checkmark 0.5s ease' }} 
+          />
+          <p style={{ 
+            color: '#fff', 
+            fontSize: '20px', 
+            fontWeight: '600', 
+            margin: 0,
+            textAlign: 'center'
+          }}>
+            Added to playlist!
+          </p>
+          <p style={{ 
+            color: 'rgba(255, 255, 255, 0.7)', 
+            fontSize: '14px', 
+            margin: 0,
+            textAlign: 'center'
+          }}>
+            The video has been added to "{successPlaylistName}"
+          </p>
+        </div>
+        <style>{`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes scaleIn {
+            from { 
+              opacity: 0;
+              transform: scale(0.8);
+            }
+            to { 
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          @keyframes checkmark {
+            0% {
+              opacity: 0;
+              transform: scale(0) rotate(-45deg);
+            }
+            50% {
+              opacity: 1;
+              transform: scale(1.2) rotate(-45deg);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1) rotate(0deg);
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div

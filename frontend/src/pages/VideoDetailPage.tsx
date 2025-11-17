@@ -5,6 +5,7 @@ import { useMetaTags } from '../hooks/useMetaTags';
 import { Edit2, Trash2, Save, X as CloseIcon, Heart, Flag, Repeat2, Share2, Facebook, ChevronDown, Link2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
+import Dropdown from '../components/Dropdown';
 
 import { API_URL } from '../config/api';
 
@@ -824,7 +825,7 @@ export default function VideoDetailPage() {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <X size={16} />
+                    <CloseIcon size={16} />
                     Cancel
                   </button>
                 </div>
@@ -1419,7 +1420,7 @@ export default function VideoDetailPage() {
                               e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                           >
-                            <X size={14} />
+                            <CloseIcon size={14} />
                             Cancel
                           </button>
                         </div>
@@ -1515,7 +1516,7 @@ export default function VideoDetailPage() {
                   justifyContent: 'center'
                 }}
               >
-                <X size={24} />
+                <CloseIcon size={24} />
               </button>
             </div>
 
@@ -1533,37 +1534,20 @@ export default function VideoDetailPage() {
               }}>
                 Reason for reporting *
               </label>
-              <select
+              <Dropdown
                 value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  color: '#fff',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#ADD8E6';
-                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                }}
-              >
-                <option value="">Select a reason</option>
-                <option value="Inappropriate content">Inappropriate content</option>
-                <option value="Spam or misleading">Spam or misleading</option>
-                <option value="Harassment or bullying">Harassment or bullying</option>
-                <option value="Violence or dangerous acts">Violence or dangerous acts</option>
-                <option value="Copyright infringement">Copyright infringement</option>
-                <option value="Other">Other</option>
-              </select>
+                onChange={setReportReason}
+                placeholder="Select a reason"
+                options={[
+                  { value: 'Inappropriate content', label: 'Inappropriate content' },
+                  { value: 'Spam or misleading', label: 'Spam or misleading' },
+                  { value: 'Harassment or bullying', label: 'Harassment or bullying' },
+                  { value: 'Violence or dangerous acts', label: 'Violence or dangerous acts' },
+                  { value: 'Copyright infringement', label: 'Copyright infringement' },
+                  { value: 'Other', label: 'Other' }
+                ]}
+                style={{ width: '100%' }}
+              />
             </div>
 
             <div style={{ marginBottom: '24px' }}>
