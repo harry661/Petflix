@@ -13,20 +13,14 @@ const app = express();
 
 // CORS configuration - allow all origins for now to get it working
 // In production, you can restrict this to specific frontend URLs
+// The cors() middleware automatically handles OPTIONS preflight requests
+// Express 5.x doesn't support '*' wildcard in routes, so we rely on cors() for OPTIONS
 app.use(cors({
   origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
-// Handle OPTIONS preflight requests explicitly
-app.options('*', (req: Request, res: Response) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.sendStatus(200);
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -55,4 +49,3 @@ app.use(errorHandler);
 // Vercel automatically converts it to a serverless function handler
 // This is the standard and recommended pattern for Express on Vercel
 module.exports = app;
-
