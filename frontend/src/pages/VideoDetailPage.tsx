@@ -606,17 +606,25 @@ export default function VideoDetailPage() {
             transform: scale(1) rotate(0deg);
           }
         }
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @media (min-width: 1200px) {
+            @keyframes slideIn {
+              from {
+                opacity: 0;
+                transform: translateY(20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            @keyframes fadeOut {
+              from {
+                opacity: 1;
+              }
+              to {
+                opacity: 0;
+              }
+            }
+            @media (min-width: 1200px) {
           .page-content-container {
             max-width: 90vw !important;
             margin-left: auto !important;
@@ -1088,6 +1096,7 @@ export default function VideoDetailPage() {
                             backgroundColor: 'transparent',
                             color: '#ffffff',
                             border: 'none',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -1117,6 +1126,33 @@ export default function VideoDetailPage() {
                             𝕏
                           </span>
                           X
+                        </button>
+                        <button
+                          onClick={handleCopyLink}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            backgroundColor: 'transparent',
+                            color: '#ffffff',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease',
+                            textAlign: 'left'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <Link2 size={18} color="#ffffff" />
+                          Copy Link
                         </button>
                       </div>
                     )}
