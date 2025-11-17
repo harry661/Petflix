@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useMetaTags } from '../hooks/useMetaTags';
-import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2 } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Heart, Flag, Repeat2, Share2, Facebook, Twitter, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
-import ShareButtons from '../components/ShareButtons';
 
 import { API_URL } from '../config/api';
 
@@ -32,6 +31,7 @@ export default function VideoDetailPage() {
   const [reportDescription, setReportDescription] = useState('');
   const [reporting, setReporting] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
@@ -364,6 +364,22 @@ export default function VideoDetailPage() {
     } finally {
       setReporting(false);
     }
+  };
+
+  const handleFacebookShare = () => {
+    if (!id || !video) return;
+    const fullUrl = typeof window !== 'undefined' ? window.location.origin + `/video/${id}` : `/video/${id}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`;
+    window.open(facebookUrl, '_blank', 'width=600,height=400');
+    setShowShareDropdown(false);
+  };
+
+  const handleTwitterShare = () => {
+    if (!id || !video) return;
+    const fullUrl = typeof window !== 'undefined' ? window.location.origin + `/video/${id}` : `/video/${id}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(video.title)}`;
+    window.open(twitterUrl, '_blank', 'width=600,height=400');
+    setShowShareDropdown(false);
   };
 
   const [reposting, setReposting] = useState(false);
@@ -936,12 +952,116 @@ export default function VideoDetailPage() {
                       <Repeat2 size={18} fill={isReposted ? '#ADD8E6' : 'none'} color={isReposted ? '#ADD8E6' : '#ffffff'} />
                     </button>
                   )}
-                  <ShareButtons
-                    url={`/video/${id}`}
-                    title={video.title}
-                    description={video.description}
-                    imageUrl={video.thumbnail || (video.youtubeVideoId ? `https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg` : undefined)}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => setShowShareDropdown(!showShareDropdown)}
+                      style={{
+                        padding: '14px 24px',
+                        backgroundColor: 'transparent',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                      title="Share video"
+                    >
+                      <Share2 size={18} />
+                      Share
+                      <ChevronDown size={16} style={{ 
+                        transition: 'transform 0.2s ease',
+                        transform: showShareDropdown ? 'rotate(180deg)' : 'rotate(0deg)'
+                      }} />
+                    </button>
+                    {showShareDropdown && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          marginTop: '8px',
+                          backgroundColor: '#1a1a1a',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                          zIndex: 1000,
+                          minWidth: '180px',
+                          overflow: 'hidden',
+                          animation: 'slideIn 0.2s ease'
+                        }}
+                        onMouseLeave={() => setShowShareDropdown(false)}
+                      >
+                        <button
+                          onClick={handleFacebookShare}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            backgroundColor: 'transparent',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease',
+                            textAlign: 'left'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(24, 119, 242, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <Facebook size={18} color="#1877F2" />
+                          Facebook
+                        </button>
+                        <button
+                          onClick={handleTwitterShare}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            backgroundColor: 'transparent',
+                            color: '#ffffff',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease',
+                            textAlign: 'left'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(29, 161, 242, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <Twitter size={18} color="#1DA1F2" />
+                          Twitter
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {user && video.userId !== user.id && (
                     <button
                       onClick={() => setShowReportModal(true)}
