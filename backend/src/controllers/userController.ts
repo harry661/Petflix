@@ -542,6 +542,14 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
           const pathname = url.pathname.toLowerCase();
           const hostname = url.hostname.toLowerCase();
           
+          // Detect Unsplash Plus premium URLs (may require authentication)
+          if (hostname.includes('plus.unsplash.com')) {
+            res.status(400).json({ 
+              error: 'Unsplash Plus URLs may not work as direct image links. Please use a regular Unsplash image URL (starting with images.unsplash.com).' 
+            });
+            return;
+          }
+          
           // Detect Unsplash search pages
           if (hostname.includes('unsplash.com') && pathname.includes('/s/')) {
             res.status(400).json({ 

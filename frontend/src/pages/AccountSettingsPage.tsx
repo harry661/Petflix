@@ -358,6 +358,14 @@ export default function AccountSettingsPage() {
       const pathname = urlObj.pathname.toLowerCase();
       const hostname = urlObj.hostname.toLowerCase();
       
+      // Detect Unsplash Plus premium URLs (may require authentication)
+      if (hostname.includes('plus.unsplash.com')) {
+        return { 
+          valid: false, 
+          error: 'Unsplash Plus URLs may not work as direct image links. Try using a regular Unsplash image: 1) Go to unsplash.com, 2) Search for your image, 3) Click on it, 4) Right-click the image and select "Copy image address" to get a URL starting with images.unsplash.com' 
+        };
+      }
+      
       // Detect Unsplash search pages
       if (hostname.includes('unsplash.com') && pathname.includes('/s/')) {
         return { 
@@ -890,7 +898,7 @@ export default function AccountSettingsPage() {
                         color: 'rgba(255, 255, 255, 0.5)',
                         fontStyle: 'italic'
                       }}>
-                        Tip: Right-click an image and select "Copy image address" to get the direct URL
+                        Tip: Use regular Unsplash images (images.unsplash.com). Right-click an image and select "Copy image address". Avoid Plus/premium URLs.
                       </p>
                     </div>
                     <button
