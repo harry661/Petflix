@@ -486,7 +486,8 @@ export default function Navigation() {
                         key={video.id}
                         onClick={() => {
                           navigate(`/video/${video.id}`);
-                          handleCloseSearch();
+                          closeSearch();
+                          setPreviousLocation(null);
                         }}
                         style={{
                           padding: '12px 16px',
