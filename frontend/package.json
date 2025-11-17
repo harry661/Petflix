@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "build:check": "tsc --noEmit && vite build",
+    "build": "npx vite build",
+    "build:check": "tsc --noEmit && npx vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
