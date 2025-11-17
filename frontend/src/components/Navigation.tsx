@@ -465,6 +465,7 @@ export default function Navigation() {
                   borderRadius: '8px',
                   minWidth: '400px',
                   maxWidth: '600px',
+                  width: 'max-content',
                   maxHeight: '500px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -480,7 +481,12 @@ export default function Navigation() {
                     Searching...
                   </div>
                 ) : searchResults.length > 0 ? (
-                  <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
+                  <div style={{ 
+                    maxHeight: '450px', 
+                    overflowY: 'auto',
+                    width: '100%',
+                    minWidth: 0
+                  }}>
                     {searchResults.map((video) => (
                       <div
                         key={video.id}
@@ -496,7 +502,10 @@ export default function Navigation() {
                           transition: 'background-color 0.2s',
                           display: 'flex',
                           gap: '12px',
-                          alignItems: 'center'
+                          alignItems: 'center',
+                          minWidth: 0,
+                          width: '100%',
+                          boxSizing: 'border-box'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -509,11 +518,17 @@ export default function Navigation() {
                               width: '80px',
                               height: '45px',
                               objectFit: 'cover',
-                              borderRadius: '4px'
+                              borderRadius: '4px',
+                              flexShrink: 0
                             }}
                           />
                         )}
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ 
+                          flex: 1, 
+                          minWidth: 0,
+                          maxWidth: '100%',
+                          overflow: 'hidden'
+                        }}>
                           <p style={{
                             color: '#fff',
                             margin: 0,
@@ -522,7 +537,8 @@ export default function Navigation() {
                             marginBottom: '4px',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            maxWidth: '100%'
                           }}>
                             {video.title}
                           </p>
@@ -533,7 +549,8 @@ export default function Navigation() {
                               fontSize: '12px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
+                              whiteSpace: 'nowrap',
+                              maxWidth: '100%'
                             }}>
                               {video.user.username}
                             </p>
