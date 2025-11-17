@@ -92,13 +92,13 @@ export default function TrendingPage() {
 
   const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
   
-  // Map filter names to image filenames
-  const filterImages: { [key: string]: string } = {
-    'Dogs': '/dogs-filter.png',
-    'Cats': '/cats-filter.png',
-    'Birds': '/birds-filter.png',
-    'Small and fluffy': '/smalls-filter.png',
-    'Underwater': '/aquatic-filter.png'
+  // Map filter names to icons
+  const filterIcons: { [key: string]: React.ReactNode } = {
+    'Dogs': <Dog size={24} />,
+    'Cats': <Cat size={24} />,
+    'Birds': <Bird size={24} />,
+    'Small and fluffy': <Rabbit size={24} />,
+    'Underwater': <Fish size={24} />
   };
 
   const handleFilterClick = (filter: string) => {
