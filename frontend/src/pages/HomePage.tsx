@@ -198,8 +198,8 @@ export default function HomePage() {
             max-width: 80vw !important;
             margin-left: auto !important;
             margin-right: auto !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
           }
           .filter-container {
             max-width: 100% !important;
