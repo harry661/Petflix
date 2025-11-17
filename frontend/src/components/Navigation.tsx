@@ -11,7 +11,7 @@ export default function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, user, logout, loading } = useAuth();
-  const { isSearchOpen, searchQuery, openSearch, closeSearch, setSearchQuery, setSearchResults, setIsLoading } = useSearch();
+  const { isSearchOpen, searchQuery, searchResults, isLoading: searchLoading, previousLocation, openSearch, closeSearch, setSearchQuery, setSearchResults, setIsLoading, setPreviousLocation } = useSearch();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationsMenu, setShowNotificationsMenu] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -123,7 +123,7 @@ export default function Navigation() {
         // Check the ref value (always current) - only close if search query is empty
         const currentQuery = searchQueryRef.current;
         if (!currentQuery || currentQuery.trim().length === 0) {
-          closeSearch();
+          handleCloseSearch();
         }
         // If there's text, do nothing - search stays open
       }
@@ -182,6 +182,15 @@ export default function Navigation() {
     // Search is handled automatically by useEffect with debounce
   };
 
+  const handleCloseSearch = () => {
+    closeSearch();
+    // Navigate back to previous location if it exists
+    if (previousLocation && previousLocation !== location.pathname) {
+      navigate(previousLocation);
+    }
+    setPreviousLocation(null);
+  };
+
   // Focus search input when opened and handle Escape key
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -190,7 +199,7 @@ export default function Navigation() {
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isSearchOpen) {
-        closeSearch();
+        handleCloseSearch();
       }
     };
 
@@ -367,7 +376,11 @@ export default function Navigation() {
           >
             {!isSearchOpen ? (
               <div
-                onClick={openSearch}
+                onClick={() => {
+                  // Store current location before opening search
+                  setPreviousLocation(location.pathname);
+                  openSearch();
+                }}
                 style={{
                   color: '#fff',
                   cursor: 'pointer',
@@ -412,7 +425,7 @@ export default function Navigation() {
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Escape') {
-                        closeSearch();
+                        handleCloseSearch();
                       }
                     }}
                   />
