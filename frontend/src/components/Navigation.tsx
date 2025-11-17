@@ -465,7 +465,7 @@ export default function Navigation() {
                   borderRadius: '8px',
                   minWidth: '400px',
                   maxWidth: '600px',
-                  width: 'max-content',
+                  width: '100%',
                   maxHeight: '500px',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
