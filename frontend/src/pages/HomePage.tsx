@@ -10,7 +10,6 @@ import { API_URL } from '../config/api';
 export default function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
-  const { isSearchOpen, searchQuery, searchResults, isLoading: searchLoading } = useSearch();
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterLoading, setFilterLoading] = useState(false); // Separate loading state for filter changes
@@ -52,32 +51,32 @@ export default function HomePage() {
       return;
     }
     
-        // Load videos only if authenticated and not searching
-        if (isAuthenticated && user && !isSearchOpen) {
-          loadTrendingVideos();
-        }
-        
-        return () => {
-          if (carouselIntervalRef.current) {
-            clearInterval(carouselIntervalRef.current);
-          }
-        };
-      }, [isAuthenticated, authLoading, user, navigate, isSearchOpen]);
-      
-      // Auto-rotate banner carousel
-      useEffect(() => {
-        if (bannerItems.length > 1 && !isSearchOpen) {
-          carouselIntervalRef.current = setInterval(() => {
-            setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
-          }, 5000); // Change every 5 seconds
-          
-          return () => {
-            if (carouselIntervalRef.current) {
-              clearInterval(carouselIntervalRef.current);
-            }
-          };
-        }
-      }, [bannerItems.length, isSearchOpen]);
+    // Load trending videos on mount
+    if (isAuthenticated && user) {
+      loadTrendingVideos();
+    }
+    
+    return () => {
+      if (carouselIntervalRef.current) {
+        clearInterval(carouselIntervalRef.current);
+      }
+    };
+  }, [isAuthenticated, authLoading, user, navigate]);
+  
+  // Auto-rotate banner carousel
+  useEffect(() => {
+    if (bannerItems.length > 1) {
+      carouselIntervalRef.current = setInterval(() => {
+        setCurrentBannerIndex((prev) => (prev + 1) % bannerItems.length);
+      }, 5000); // Change every 5 seconds
+    }
+
+    return () => {
+      if (carouselIntervalRef.current) {
+        clearInterval(carouselIntervalRef.current);
+      }
+    };
+  }, [bannerItems.length]);
 
 
   const loadTrendingVideos = async (filter?: string | null, isFilterChange: boolean = false) => {
@@ -144,7 +143,7 @@ export default function HomePage() {
   
   // Reload videos when filter changes (use filterLoading, not loading)
   useEffect(() => {
-    if (isAuthenticated && user && !isSearchOpen) {
+    if (isAuthenticated && user) {
       // Only trigger filter change if we already have videos loaded (not initial load)
       if (trendingVideos.length > 0 || selectedFilter !== null) {
         loadTrendingVideos(selectedFilter, true);
@@ -153,14 +152,12 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilter]);
 
-  // Determine which videos to show
-  const displayVideos = isSearchOpen && searchQuery ? searchResults : trendingVideos;
-  const displayLoading = isSearchOpen ? searchLoading : loading;
-  const displayTitle = isSearchOpen && searchQuery 
-    ? `Search results for "${searchQuery}"` 
-    : selectedFilter 
-      ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Videos`
-      : 'Trending Pet Videos';
+  // Determine which videos to show (don't show search results inline - use dropdown only)
+  const displayVideos = trendingVideos;
+  const displayLoading = loading;
+  const displayTitle = selectedFilter 
+    ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Videos`
+    : 'Trending Pet Videos';
   
   const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
   
@@ -175,7 +172,7 @@ export default function HomePage() {
   
 
       // Only show full page loading on initial load, not filter changes
-      if (authLoading || (loading && !isSearchOpen && !filterLoading)) {
+      if (authLoading || (loading && !filterLoading)) {
         return (
           <div style={{
             minHeight: '100vh',
@@ -262,8 +259,7 @@ export default function HomePage() {
         }
       `}</style>
       {/* Hero Section - Banner Carousel (Full Width, Behind Navbar) */}
-      {!isSearchOpen && (
-        <div className="banner-container" style={{
+      <div className="banner-container" style={{
           position: 'relative',
           width: '100vw',
           height: '600px', // Base height
@@ -419,8 +415,7 @@ export default function HomePage() {
           position: 'relative'
         }}>
         {/* Filter Buttons - Positioned over banner fade */}
-        {!isSearchOpen && (
-          <div className="filter-container" style={{
+      <div className="filter-container" style={{
             marginBottom: '30px',
             marginTop: '-100px', // Pull up to overlap with banner fade area
             display: 'flex',
@@ -563,17 +558,6 @@ export default function HomePage() {
             )}
           </div>
           
-          {displayLoading && isSearchOpen && (
-            <div style={{
-              textAlign: 'center',
-              padding: '60px',
-              backgroundColor: '#1a1a1a',
-              borderRadius: '8px'
-            }}>
-              <p style={{ color: '#ffffff' }}>Searching...</p>
-            </div>
-          )}
-
           {!displayLoading && displayVideos.length === 0 && (
             <div style={{
               textAlign: 'center',
@@ -582,9 +566,7 @@ export default function HomePage() {
               borderRadius: '8px'
             }}>
               <p style={{ color: '#ffffff' }}>
-                {isSearchOpen && searchQuery 
-                  ? `No videos found for "${searchQuery}". Try different keywords.`
-                  : 'No videos found. Try searching for pet videos!'}
+                No videos found. Try searching for pet videos!
               </p>
             </div>
           )}
