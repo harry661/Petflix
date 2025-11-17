@@ -343,7 +343,7 @@ export default function AccountSettingsPage() {
     setEditValues({});
   };
 
-  const validateUrl = (url: string): { valid: boolean; error?: string } => {
+  const validateUrl = (url: string): { valid: boolean; error?: string; warning?: string } => {
     if (!url || url.trim() === '') return { valid: true }; // Empty is valid (will be null)
     
     try {
@@ -386,6 +386,15 @@ export default function AccountSettingsPage() {
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
       const hasImageExtension = imageExtensions.some(ext => pathname.endsWith(ext));
       
+      // Warn about CDN URLs that might have hotlink protection
+      const cdnDomains = ['supertails.com', 'shopify.com', 'cdn.shopify.com'];
+      if (cdnDomains.some(domain => hostname.includes(domain))) {
+        return {
+          valid: true, // Allow it, but it might not work due to hotlink protection
+          warning: 'This CDN URL may have hotlink protection and might not display. Consider using an image hosting service like imgur.com, imgbb.com, or postimg.cc that allows hotlinking.'
+        };
+      }
+      
       // If it doesn't have an image extension, warn but don't block (some CDNs use query params)
       if (!hasImageExtension && !urlObj.search) {
         // This is just a warning, not an error - some image URLs don't have extensions
@@ -407,6 +416,12 @@ export default function AccountSettingsPage() {
         if (!validation.valid) {
           setError(validation.error || 'Please enter a valid image URL');
           return;
+        }
+        
+        // Show warning if URL might have issues but don't block
+        if (validation.warning) {
+          setError(validation.warning);
+          // Still allow saving, but user is warned
         }
       }
       
@@ -898,7 +913,7 @@ export default function AccountSettingsPage() {
                         color: 'rgba(255, 255, 255, 0.5)',
                         fontStyle: 'italic'
                       }}>
-                        Tip: Use regular Unsplash images (images.unsplash.com). Right-click an image and select "Copy image address". Avoid Plus/premium URLs.
+                        Tip: Use image hosting services that allow hotlinking (imgur.com, imgbb.com, postimg.cc) or Unsplash (images.unsplash.com). Some CDN URLs may be blocked.
                       </p>
                     </div>
                     <button
