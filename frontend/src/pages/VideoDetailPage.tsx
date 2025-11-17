@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useMetaTags } from '../hooks/useMetaTags';
-import { Edit2, Trash2, Save, X as CloseIcon, Heart, Flag, Repeat2, Share2, Facebook, ChevronDown, Link2 } from 'lucide-react';
+import { Edit2, Trash2, Save, X as CloseIcon, Heart, Flag, Repeat2, Share2, Facebook, ChevronDown, Link2, ListPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 import Dropdown from '../components/Dropdown';
+import AddToPlaylistModal from '../components/AddToPlaylistModal';
 
 import { API_URL } from '../config/api';
 
@@ -33,6 +34,7 @@ export default function VideoDetailPage() {
   const [reporting, setReporting] = useState(false);
   const [reportSuccess, setReportSuccess] = useState(false);
   const [showShareDropdown, setShowShareDropdown] = useState(false);
+  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const isAuthenticated = authIsAuthenticated;
 
   useEffect(() => {
@@ -1158,6 +1160,39 @@ export default function VideoDetailPage() {
                       </div>
                     )}
                   </div>
+                  <button
+                    onClick={() => setShowAddToPlaylistModal(true)}
+                    disabled={!isAuthenticated}
+                    style={{
+                      padding: '14px 24px',
+                      backgroundColor: 'transparent',
+                      color: '#ffffff',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '6px',
+                      cursor: isAuthenticated ? 'pointer' : 'not-allowed',
+                      fontWeight: 'bold',
+                      fontSize: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      opacity: isAuthenticated ? 1 : 0.6
+                    }}
+                    onMouseEnter={(e) => {
+                      if (isAuthenticated) {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                    title={isAuthenticated ? 'Add to playlist' : 'Log in to add videos to playlists'}
+                  >
+                    <ListPlus size={18} />
+                    Add to Playlist
+                  </button>
                   {user && video.userId !== user.id && (
                     <button
                       onClick={() => setShowReportModal(true)}
@@ -1669,6 +1704,15 @@ export default function VideoDetailPage() {
             Thank you for your report. We'll review it shortly.
           </p>
         </div>
+      )}
+
+      {/* Add to Playlist Modal */}
+      {video && (
+        <AddToPlaylistModal
+          videoId={video.id}
+          isOpen={showAddToPlaylistModal}
+          onClose={() => setShowAddToPlaylistModal(false)}
+        />
       )}
     </>
   );
