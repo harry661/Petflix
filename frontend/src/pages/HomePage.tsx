@@ -525,11 +525,11 @@ export default function HomePage() {
           </div>
         )}
         
-        {/* Videos Section - Adapts to search or trending */}
+        {/* Videos Section */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ color: '#ffffff', margin: 0 }}>{displayTitle}</h2>
-            {!isSearchOpen && !selectedFilter && (
+            {!selectedFilter && (
               <Link
                 to="/trending"
                 style={{
