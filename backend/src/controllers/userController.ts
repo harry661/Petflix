@@ -731,3 +731,89 @@ export const resetPassword = async (
   }
 };
 
+/**
+ * Get most popular user this week (by followers gained in last 7 days, or total followers)
+ * GET /api/v1/users/most-popular-this-week
+ */
+export const getMostPopularUserThisWeek = async (req: Request, res: Response) => {
+  try {
+    // Calculate date 7 days ago
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Get all users and calculate followers gained in last 7 days
+    const { data: allUsers, error: usersError } = await supabaseAdmin!
+      .from('users')
+      .select(`
+        id,
+        username,
+        email,
+        profile_picture_url,
+        bio,
+        created_at
+      `);
+
+    if (usersError || !allUsers) {
+      console.error('Error fetching users:', usersError);
+      res.status(500).json({ error: 'Failed to load users' });
+      return;
+    }
+
+    // For each user, count followers gained in last 7 days
+    const usersWithFollowers = await Promise.all(
+      allUsers.map(async (user) => {
+        // Get total followers
+        const { count: totalFollowers } = await supabaseAdmin!
+          .from('followers')
+          .select('*', { count: 'exact', head: true })
+          .eq('following_id', user.id);
+
+        // Get followers gained in last 7 days
+        const { count: newFollowers } = await supabaseAdmin!
+          .from('followers')
+          .select('*', { count: 'exact', head: true })
+          .eq('following_id', user.id)
+          .gte('created_at', sevenDaysAgo.toISOString());
+
+        return {
+          ...user,
+          totalFollowers: totalFollowers || 0,
+          newFollowers: newFollowers || 0,
+        };
+      })
+    );
+
+    // Sort by new followers first, then by total followers
+    usersWithFollowers.sort((a, b) => {
+      if (b.newFollowers !== a.newFollowers) {
+        return b.newFollowers - a.newFollowers;
+      }
+      return b.totalFollowers - a.totalFollowers;
+    });
+
+    // Get the top user
+    const topUser = usersWithFollowers[0];
+
+    if (!topUser) {
+      res.status(404).json({ error: 'No users found' });
+      return;
+    }
+
+    res.json({
+      user: {
+        id: topUser.id,
+        username: topUser.username,
+        email: topUser.email,
+        profile_picture_url: topUser.profile_picture_url,
+        bio: topUser.bio,
+        created_at: topUser.created_at,
+        totalFollowers: topUser.totalFollowers,
+        newFollowers: topUser.newFollowers,
+      },
+    });
+  } catch (error) {
+    console.error('Get most popular user this week error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+

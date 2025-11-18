@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import VideoCard from '../components/VideoCard';
+import { Dog, Cat, Bird, Rabbit, Fish } from 'lucide-react';
 
 import { API_URL } from '../config/api';
 
@@ -9,8 +10,10 @@ export default function FeedPage() {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<any[]>([]);
+  const [allVideos, setAllVideos] = useState<any[]>([]); // Store all videos for filtering
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   useEffect(() => {
     // Wait for auth to finish loading
@@ -49,12 +52,72 @@ export default function FeedPage() {
       }
 
       const data = await response.json();
-      setVideos(data.videos || []);
+      const feedVideos = data.videos || [];
+      setAllVideos(feedVideos); // Store all videos
+      setVideos(feedVideos); // Initially show all videos
     } catch (err: any) {
       setError('Failed to load feed. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Filter videos by selected tag
+  useEffect(() => {
+    if (!selectedFilter) {
+      setVideos(allVideos);
+      return;
+    }
+
+    // Filter videos that have the selected tag
+    const filterLower = selectedFilter.toLowerCase();
+    const tagMap: { [key: string]: string[] } = {
+      'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Canine', 'Canines'],
+      'cats': ['Cat', 'Cats', 'Kitten', 'Kittens', 'Feline', 'Felines'],
+      'birds': ['Bird', 'Birds', 'Parrot', 'Parrots', 'Canary', 'Canaries', 'Finch', 'Finches'],
+      'small and fluffy': ['Rabbit', 'Rabbits', 'Hamster', 'Hamsters', 'Guinea Pig', 'Guinea Pigs', 'Rodent', 'Rodents'],
+      'underwater': ['Fish', 'Fishes', 'Goldfish', 'Betta', 'Bettas', 'Guppy', 'Guppies', 'Angelfish', 'Tetra', 'Tetras', 'Cichlid', 'Cichlids', 'Discus', 'Oscar', 'Oscars', 'Koi', 'Aquarium', 'Aquatic', 'Underwater', 'Marine', 'Tropical Fish', 'Saltwater', 'Freshwater', 'Turtle', 'Turtles', 'Tortoise', 'Tortoises', 'Sea Turtle', 'Terrapin', 'Terrapins', 'Frog', 'Frogs', 'Toad', 'Toads', 'Axolotl', 'Axolotls', 'Newt', 'Newts']
+    };
+
+    const tagNames = tagMap[filterLower] || [selectedFilter];
+
+    // Filter videos that have matching tags
+    const filtered = allVideos.filter((video) => {
+      if (!video.tags || !Array.isArray(video.tags)) {
+        return false;
+      }
+      return video.tags.some((tag: string) => 
+        tagNames.some((tagName) => tag.toLowerCase() === tagName.toLowerCase())
+      );
+    });
+
+    setVideos(filtered);
+  }, [selectedFilter, allVideos]);
+
+  // Helper function to convert filter to singular display name
+  const getFilterDisplayName = (filter: string | null): string => {
+    if (!filter) return 'Following';
+    
+    const filterMap: { [key: string]: string } = {
+      'dogs': 'Dog',
+      'cats': 'Cat',
+      'birds': 'Bird',
+      'small and fluffy': 'Small and Fluffy',
+      'underwater': 'Underwater'
+    };
+    
+    return filterMap[filter.toLowerCase()] || filter.charAt(0).toUpperCase() + filter.slice(1);
+  };
+
+  const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
+  
+  // Map filter names to icons
+  const filterIcons: { [key: string]: React.ReactNode } = {
+    'Dogs': <Dog size={24} />,
+    'Cats': <Cat size={24} />,
+    'Birds': <Bird size={24} />,
+    'Small and fluffy': <Rabbit size={24} />,
+    'Underwater': <Fish size={24} />
   };
 
   if (loading) {
@@ -121,10 +184,116 @@ export default function FeedPage() {
         padding: '20px'
       }}>
       <div className="page-content-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
-        <h1 style={{ color: '#ffffff', marginBottom: '30px', fontSize: '32px', fontWeight: '600' }}>Following</h1>
-        <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '30px', fontSize: '16px' }}>
-          Videos from users you follow
-        </p>
+        <h1 style={{ color: '#ffffff', marginBottom: '30px' }}>
+          {selectedFilter ? `${getFilterDisplayName(selectedFilter)} Videos` : 'Following'}
+        </h1>
+
+        {/* Filter Buttons */}
+        <div style={{
+          marginBottom: '30px',
+          display: 'flex',
+          gap: '8px',
+          width: '100%'
+        }}>
+          {filters.map((filter) => {
+            const icon = filterIcons[filter];
+            const isSelected = selectedFilter === filter;
+            return (
+              <button
+                key={filter}
+                onClick={() => setSelectedFilter(isSelected ? null : filter)}
+                style={{
+                  flexGrow: 1,
+                  flexShrink: 1,
+                  flexBasis: 0,
+                  padding: '24px 20px',
+                  borderRadius: '8px',
+                  border: isSelected ? '2px solid #ADD8E6' : '2px solid rgba(255, 255, 255, 0.2)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: isSelected 
+                    ? '0 4px 16px rgba(173, 216, 230, 0.4), inset 0 0 0 1px rgba(173, 216, 230, 0.2)' 
+                    : '0 2px 8px rgba(0, 0, 0, 0.3)',
+                  minWidth: 0,
+                  height: '120px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  color: '#ffffff'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+                  }
+                }}
+              >
+                {/* Background blur effect layer */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: isSelected ? 'rgba(173, 216, 230, 0.1)' : 'transparent',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s ease',
+                  pointerEvents: 'none'
+                }} />
+                
+                {/* Content */}
+                <div style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%'
+                }}>
+                  <div style={{
+                    color: isSelected ? '#ADD8E6' : '#ffffff',
+                    transition: 'color 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {icon}
+                  </div>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: isSelected ? '600' : '500',
+                    color: isSelected ? '#ADD8E6' : '#ffffff',
+                    transition: 'all 0.3s ease',
+                    textAlign: 'center',
+                    lineHeight: '1.2'
+                  }}>
+                    {filter}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
         {videos.length === 0 ? (
           <div style={{

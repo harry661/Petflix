@@ -12,6 +12,7 @@ import {
   updateGlobalNotificationPreference,
   forgotPassword,
   resetPassword,
+  getMostPopularUserThisWeek,
 } from '../controllers/userController';
 import {
   followUser,
@@ -34,6 +35,7 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.get('/search', searchUsers);
+router.get('/most-popular-this-week', getMostPopularUserThisWeek);
 
 // Protected routes - must come before /:userId to avoid route conflicts
 router.get('/me', authenticate, getCurrentUser);

@@ -142,11 +142,28 @@ export default function TrendingPage() {
         margin: '0 auto',
         padding: '0 40px'
       }}>
-        <h1 style={{ color: '#ffffff', marginBottom: '30px' }}>
-          {tagFilter 
-            ? `${tagFilter.charAt(0).toUpperCase() + tagFilter.slice(1)} Trending Videos`
-            : 'Trending Pet Videos'}
-        </h1>
+        {/* Helper function to convert filter to singular display name */}
+        {(() => {
+          const getFilterDisplayName = (filter: string): string => {
+            const filterMap: { [key: string]: string } = {
+              'dogs': 'Dog',
+              'cats': 'Cat',
+              'birds': 'Bird',
+              'small and fluffy': 'Small and Fluffy',
+              'underwater': 'Underwater'
+            };
+            
+            return filterMap[filter.toLowerCase()] || filter.charAt(0).toUpperCase() + filter.slice(1);
+          };
+
+          return (
+            <h1 style={{ color: '#ffffff', marginBottom: '30px' }}>
+              {tagFilter 
+                ? `Trending ${getFilterDisplayName(tagFilter)} Videos`
+                : 'Trending Pet Videos'}
+            </h1>
+          );
+        })()}
 
         {/* Filter Buttons */}
         <div style={{

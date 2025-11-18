@@ -11,12 +11,17 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading: authLoading } = useAuth();
   const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
+  const [recommendedVideos, setRecommendedVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recommendedLoading, setRecommendedLoading] = useState(true);
   const [filterLoading, setFilterLoading] = useState(false); // Separate loading state for filter changes
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const carouselIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Pet genres for "Pet of the Week"
+  const petGenres = ['dogs', 'cats', 'birds', 'small and fluffy', 'underwater'];
+  
   // Banner carousel items
   const bannerItems = [
     {
@@ -39,6 +44,57 @@ export default function HomePage() {
     }
   ];
 
+  // Handle hero carousel button clicks
+  const handleHeroButtonClick = async (itemId: string) => {
+    if (itemId === 'pet-of-the-week') {
+      // Randomly select a pet genre and navigate to filtered popular videos
+      const randomGenre = petGenres[Math.floor(Math.random() * petGenres.length)];
+      navigate(`/popular?tag=${encodeURIComponent(randomGenre)}`);
+    } else if (itemId === 'clip-of-the-week') {
+      // Fetch most popular video this week and navigate to it
+      try {
+        const response = await fetch(`${API_URL}/api/v1/videos/most-popular-this-week`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.video && data.video.id) {
+            navigate(`/video/${data.video.id}`);
+          } else {
+            // Fallback to trending page if no video found
+            navigate('/trending');
+          }
+        } else {
+          // Fallback to trending page on error
+          navigate('/trending');
+        }
+      } catch (error) {
+        console.error('Error fetching most popular video:', error);
+        // Fallback to trending page on error
+        navigate('/trending');
+      }
+    } else if (itemId === 'rising-star') {
+      // Fetch most popular user this week and navigate to their profile
+      try {
+        const response = await fetch(`${API_URL}/api/v1/users/most-popular-this-week`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user && data.user.username) {
+            navigate(`/user/${data.user.username}`);
+          } else {
+            // Fallback to trending page if no user found
+            navigate('/trending');
+          }
+        } else {
+          // Fallback to trending page on error
+          navigate('/trending');
+        }
+      } catch (error) {
+        console.error('Error fetching most popular user:', error);
+        // Fallback to trending page on error
+        navigate('/trending');
+      }
+    }
+  };
+
   useEffect(() => {
     // Wait for auth check to complete
     if (authLoading) {
@@ -51,9 +107,10 @@ export default function HomePage() {
       return;
     }
     
-    // Load trending videos on mount
+    // Load trending videos and recommendations on mount
     if (isAuthenticated && user) {
       loadTrendingVideos();
+      loadRecommendedVideos();
     }
     
     return () => {
@@ -152,11 +209,114 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilter]);
 
+  const loadRecommendedVideos = async () => {
+    try {
+      setRecommendedLoading(true);
+      const token = localStorage.getItem('auth_token');
+      
+      // First, try to get user's liked videos to understand their preferences
+      let preferredTags: string[] = [];
+      
+      if (token && user) {
+        try {
+          const likedResponse = await fetch(`${API_URL}/api/v1/videos/liked/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include',
+          });
+          
+          if (likedResponse.ok) {
+            const likedData = await likedResponse.json();
+            const likedVideos = likedData.videos || [];
+            
+            // Extract tags from liked videos
+            likedVideos.forEach((video: any) => {
+              if (video.tags && Array.isArray(video.tags)) {
+                preferredTags.push(...video.tags);
+              }
+            });
+            
+            // Get unique tags and take top 3 most common
+            const tagCounts: { [key: string]: number } = {};
+            preferredTags.forEach(tag => {
+              tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            });
+            
+            const sortedTags = Object.entries(tagCounts)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 3)
+              .map(([tag]) => tag);
+            
+            preferredTags = sortedTags;
+          }
+        } catch (err) {
+          // Silently fail - will fall back to popular videos
+        }
+      }
+      
+      // If we have preferred tags, search for videos with those tags
+      if (preferredTags.length > 0) {
+        // Try to get videos with preferred tags
+        const tagQuery = preferredTags.slice(0, 1).join(' '); // Use most preferred tag
+        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(tagQuery)}&limit=20`);
+        
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json();
+          if (searchData.videos && searchData.videos.length > 0) {
+            // Filter out videos that are already in trending (to avoid duplicates)
+            const trendingVideoIds = new Set(trendingVideos.map(v => v.id));
+            const filtered = searchData.videos.filter((v: any) => !trendingVideoIds.has(v.id));
+            setRecommendedVideos(filtered.slice(0, 10));
+            setRecommendedLoading(false);
+            return;
+          }
+        }
+      }
+      
+      // Fallback: Get popular/recent videos (excluding already shown trending videos)
+      const recentResponse = await fetch(`${API_URL}/api/v1/videos/recent?limit=20`);
+      if (recentResponse.ok) {
+        const recentData = await recentResponse.json();
+        const allRecentVideos = recentData.videos || [];
+        
+        // Filter out videos that are already in trending (to avoid duplicates)
+        const trendingVideoIds = new Set(trendingVideos.map(v => v.id));
+        const filtered = allRecentVideos.filter((v: any) => !trendingVideoIds.has(v.id));
+        
+        setRecommendedVideos(filtered.slice(0, 10));
+      } else {
+        setRecommendedVideos([]);
+      }
+    } catch (err) {
+      // Error loading recommended videos - set empty array
+      setRecommendedVideos([]);
+    } finally {
+      setRecommendedLoading(false);
+    }
+  };
+
+
+  // Helper function to convert filter to singular display name
+  const getFilterDisplayName = (filter: string | null): string => {
+    if (!filter) return 'Trending Pet Videos';
+    
+    const filterMap: { [key: string]: string } = {
+      'dogs': 'Dog',
+      'cats': 'Cat',
+      'birds': 'Bird',
+      'small and fluffy': 'Small and Fluffy',
+      'underwater': 'Underwater'
+    };
+    
+    return filterMap[filter.toLowerCase()] || filter.charAt(0).toUpperCase() + filter.slice(1);
+  };
+
   // Determine which videos to show (don't show search results inline - use dropdown only)
   const displayVideos = trendingVideos;
   const displayLoading = loading;
   const displayTitle = selectedFilter 
-    ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)} Videos`
+    ? `${getFilterDisplayName(selectedFilter)} Videos`
     : 'Trending Pet Videos';
   
   const filters = ['Dogs', 'Cats', 'Birds', 'Small and fluffy', 'Underwater'];
@@ -331,10 +491,7 @@ export default function HomePage() {
                     {item.title}
                   </h1>
                   <button
-                      onClick={() => {
-                        // Navigate to trending page for featured content
-                        navigate('/trending');
-                      }}
+                      onClick={() => handleHeroButtonClick(item.id)}
                     style={{
                       padding: '14px 32px',
                       backgroundColor: '#ADD8E6',
@@ -599,6 +756,49 @@ export default function HomePage() {
                   <VideoCard key={video.id} video={video} />
                 ))}
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Recommended for You Section */}
+        <div style={{ marginTop: '60px', marginBottom: '60px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ color: '#ffffff', margin: 0 }}>Recommended for you</h2>
+          </div>
+          
+          {recommendedLoading && recommendedVideos.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '60px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '8px'
+            }}>
+              <p style={{ color: '#ffffff' }}>Loading recommendations...</p>
+            </div>
+          )}
+
+          {!recommendedLoading && recommendedVideos.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '60px',
+              backgroundColor: '#1a1a1a',
+              borderRadius: '8px'
+            }}>
+              <p style={{ color: '#ffffff' }}>
+                No recommendations available. Start liking videos to get personalized recommendations!
+              </p>
+            </div>
+          )}
+
+          {!recommendedLoading && recommendedVideos.length > 0 && (
+            <div className="video-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '20px'
+            }}>
+              {recommendedVideos.map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
             </div>
           )}
         </div>

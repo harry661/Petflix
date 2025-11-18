@@ -736,6 +736,26 @@ export const getFeed = async (req: Request, res: Response) => {
       }
     });
 
+    // Get tags for all videos in one query
+    const videoIds = (videos || []).map((v: any) => v.id);
+    let videoTagsMap: { [key: string]: string[] } = {};
+    
+    if (videoIds.length > 0) {
+      const { data: videoTags, error: tagsError } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('video_id, tag_name')
+        .in('video_id', videoIds);
+
+      if (!tagsError && videoTags) {
+        videoTags.forEach((vt: any) => {
+          if (!videoTagsMap[vt.video_id]) {
+            videoTagsMap[vt.video_id] = [];
+          }
+          videoTagsMap[vt.video_id].push(vt.tag_name);
+        });
+      }
+    }
+
     // Format videos with thumbnails (generate directly from video IDs)
     const videosFormatted = (videos || []).map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
@@ -774,6 +794,7 @@ export const getFeed = async (req: Request, res: Response) => {
           email: originalUserData.email,
           profile_picture_url: originalUserData.profile_picture_url,
         } : null,
+        tags: videoTagsMap[video.id] || [],
       };
     });
 
@@ -1859,6 +1880,78 @@ export const deleteVideo = async (req: Request<{ id: string }>, res: Response) =
     res.json({ message: 'Video deleted successfully' });
   } catch (error) {
     console.error('Delete video error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Get most popular video this week (by view count, created within last 7 days)
+ * GET /api/v1/videos/most-popular-this-week
+ */
+export const getMostPopularVideoThisWeek = async (req: Request, res: Response) => {
+  try {
+    // Calculate date 7 days ago
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Get the most popular video from the last 7 days
+    const { data: videos, error } = await supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        original_user_id,
+        created_at,
+        updated_at,
+        view_count,
+        users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        ),
+        original_user:original_user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        )
+      `)
+      .gte('created_at', sevenDaysAgo.toISOString())
+      .is('original_user_id', null) // Only original shares, not reposts
+      .order('view_count', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error('Error fetching most popular video this week:', error);
+      res.status(500).json({ error: 'Failed to load most popular video' });
+      return;
+    }
+
+    if (!videos || videos.length === 0) {
+      res.status(404).json({ error: 'No videos found this week' });
+      return;
+    }
+
+    // Get tags for the video
+    const video = videos[0];
+    const { data: tags } = await supabaseAdmin!
+      .from('video_tags_direct')
+      .select('tag_name')
+      .eq('video_id', video.id);
+
+    res.json({
+      video: {
+        ...video,
+        tags: tags?.map((t: any) => t.tag_name) || [],
+      },
+    });
+  } catch (error) {
+    console.error('Get most popular video this week error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
