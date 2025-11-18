@@ -819,35 +819,16 @@ export default function Navigation() {
                 gap: '8px'
               }}
             >
-              {user.profile_picture_url ? (
-                <img
-                  src={user.profile_picture_url}
-                  alt={user.username}
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '4px',
-                    objectFit: 'cover',
-                    border: '2px solid #fff'
-                  }}
-                />
-              ) : (
-                <div style={{
-                  width: '32px',
-                  height: '32px',
+              <ProfilePicture
+                src={user.profile_picture_url}
+                alt={user.username}
+                size={32}
+                fallbackChar={user.username.charAt(0).toUpperCase()}
+                style={{
                   borderRadius: '4px',
-                  backgroundColor: '#ADD8E6',
-                  color: '#0F0F0F',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '14px',
                   border: '2px solid #fff'
-                }}>
-                  {user.username.charAt(0).toUpperCase()}
-                </div>
-              )}
+                }}
+              />
               <ChevronDown size={16} color="#fff" />
             </div>
 
