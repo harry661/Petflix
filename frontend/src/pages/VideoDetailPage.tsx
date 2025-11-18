@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 import Dropdown from '../components/Dropdown';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
+import ProfilePicture from '../components/ProfilePicture';
 
 import { API_URL } from '../config/api';
 
@@ -880,36 +881,13 @@ export default function VideoDetailPage() {
                         onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
                         onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                       >
-                        {displayUser.profile_picture_url ? (
-                          <img
-                            src={displayUser.profile_picture_url}
-                            alt={displayUser.username}
-                            loading="lazy"
-                            style={{
-                              width: '24px',
-                              height: '24px',
-                              borderRadius: '50%',
-                              objectFit: 'cover',
-                              cursor: 'pointer'
-                            }}
-                          />
-                        ) : (
-                          <div style={{
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '50%',
-                            backgroundColor: '#ADD8E6',
-                            color: '#ffffff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 'bold',
-                            fontSize: '12px',
-                            cursor: 'pointer'
-                          }}>
-                            {displayUser.username?.charAt(0).toUpperCase() || 'U'}
-                          </div>
-                        )}
+                        <ProfilePicture
+                          src={displayUser.profile_picture_url}
+                          alt={displayUser.username}
+                          size={24}
+                          fallbackChar={displayUser.username?.charAt(0).toUpperCase() || 'U'}
+                          style={{ cursor: 'pointer' }}
+                        />
                         <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                           Shared by <strong style={{ color: '#ffffff' }}>{displayUser.username}</strong>
                         </span>

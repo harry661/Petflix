@@ -5,6 +5,7 @@ import { useSearch } from '../context/SearchContext';
 import { Search, Bell, ChevronDown, X, UserPlus, Video, Heart, MessageCircle } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
 import PetflixLogo from '../assets/PETFLIX.svg';
+import ProfilePicture from './ProfilePicture';
 import { API_URL } from '../config/api';
 
 export default function Navigation() {
@@ -726,33 +727,12 @@ export default function Navigation() {
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                           {/* Profile Picture or Icon */}
                           <div style={{ position: 'relative', flexShrink: 0 }}>
-                            {notification.related_user?.profile_picture_url ? (
-                              <img
-                                src={notification.related_user.profile_picture_url}
-                                alt={notification.related_user.username}
-                                style={{
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '50%',
-                                  objectFit: 'cover'
-                                }}
-                              />
-                            ) : (
-                              <div style={{
-                                width: '40px',
-                                height: '40px',
-                                borderRadius: '50%',
-                                backgroundColor: '#ADD8E6',
-                                color: '#0F0F0F',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontWeight: 'bold',
-                                fontSize: '16px'
-                              }}>
-                                {notification.related_user?.username?.charAt(0).toUpperCase() || 'U'}
-                              </div>
-                            )}
+                            <ProfilePicture
+                              src={notification.related_user?.profile_picture_url}
+                              alt={notification.related_user?.username || 'User'}
+                              size={40}
+                              fallbackChar={notification.related_user?.username?.charAt(0).toUpperCase() || 'U'}
+                            />
                             {/* Notification type icon overlay */}
                             <div style={{
                               position: 'absolute',
@@ -839,35 +819,15 @@ export default function Navigation() {
                 gap: '8px'
               }}
             >
-              {user.profile_picture_url ? (
-                <img
-                  src={user.profile_picture_url}
-                  alt={user.username}
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '4px',
-                    objectFit: 'cover',
-                    border: '2px solid #fff'
-                  }}
-                />
-              ) : (
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '4px',
-                  backgroundColor: '#ADD8E6',
-                  color: '#0F0F0F',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '14px',
+              <ProfilePicture
+                src={user.profile_picture_url}
+                alt={user.username}
+                size={32}
+                fallbackChar={user.username.charAt(0).toUpperCase()}
+                style={{
                   border: '2px solid #fff'
-                }}>
-                  {user.username.charAt(0).toUpperCase()}
-                </div>
-              )}
+                }}
+              />
               <ChevronDown size={16} color="#fff" />
             </div>
 

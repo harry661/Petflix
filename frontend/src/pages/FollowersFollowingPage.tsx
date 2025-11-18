@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { UserPlus, UserMinus } from 'lucide-react';
+import ProfilePicture from '../components/ProfilePicture';
 
 import { API_URL } from '../config/api';
 
@@ -344,35 +345,13 @@ export default function FollowersFollowingPage() {
                     }}
                   >
                     {/* Profile Picture */}
-                    {user.profile_picture_url ? (
-                      <img
-                        src={user.profile_picture_url}
-                        alt={user.username}
-                        style={{
-                          width: '56px',
-                          height: '56px',
-                          borderRadius: '50%',
-                          objectFit: 'cover',
-                          flexShrink: 0
-                        }}
-                      />
-                    ) : (
-                      <div style={{
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '50%',
-                        backgroundColor: '#ADD8E6',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '24px',
-                        flexShrink: 0
-                      }}>
-                        {user.username?.charAt(0).toUpperCase() || 'U'}
-                      </div>
-                    )}
+                    <ProfilePicture
+                      src={user.profile_picture_url}
+                      alt={user.username}
+                      size={56}
+                      fallbackChar={user.username?.charAt(0).toUpperCase() || 'U'}
+                      style={{ flexShrink: 0 }}
+                    />
 
                     {/* User Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>

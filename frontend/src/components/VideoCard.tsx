@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { MoreVertical, CheckCircle2, Trash2, XCircle } from 'lucide-react';
 import AddToPlaylistModal from './AddToPlaylistModal';
+import ProfilePicture from './ProfilePicture';
 import { API_URL } from '../config/api';
 
 interface VideoCardProps {
@@ -755,76 +756,26 @@ function VideoCard({ video }: VideoCardProps) {
                   flexShrink: 0
                 }}
               >
-                {displayUser?.profile_picture_url ? (
-                  <img
-                    src={displayUser.profile_picture_url}
-                    alt={displayUser.username}
-                    loading="lazy"
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      cursor: 'pointer',
-                      transition: 'opacity 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                  />
-                ) : (
-                  <div style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    backgroundColor: '#ADD8E6',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '14px',
+                <ProfilePicture
+                  src={displayUser.profile_picture_url}
+                  alt={displayUser.username}
+                  size={36}
+                  fallbackChar={displayUser.username?.charAt(0).toUpperCase() || 'U'}
+                  style={{
                     cursor: 'pointer',
                     transition: 'opacity 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                  >
-                    {displayUser?.username?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                )}
+                />
               </Link>
             ) : (
               // Fallback if no user
-              displayUser?.profile_picture_url ? (
-                <img
-                  src={displayUser.profile_picture_url}
-                  alt={displayUser.username || 'User'}
-                  loading="lazy"
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    flexShrink: 0
-                  }}
-                />
-              ) : (
-                <div style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  backgroundColor: '#ADD8E6',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '14px',
-                  flexShrink: 0
-                }}>
-                  {displayUser?.username?.charAt(0).toUpperCase() || 'U'}
-                </div>
-              )
+              <ProfilePicture
+                src={displayUser?.profile_picture_url}
+                alt={displayUser?.username || 'User'}
+                size={36}
+                fallbackChar={displayUser?.username?.charAt(0).toUpperCase() || 'U'}
+                style={{ flexShrink: 0 }}
+              />
             );
           })()}
 
