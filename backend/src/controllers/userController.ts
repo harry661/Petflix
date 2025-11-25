@@ -702,16 +702,21 @@ export const forgotPassword = async (
       // In production, you'd want to store this in a separate table with expiration
 
       // Send email with reset link
-      // TODO: Integrate with email service (SendGrid, AWS SES, etc.)
-      // For now, we'll log the token (in production, send email)
       const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
       
       console.log('[Password Reset] Token generated for user:', user.email);
       console.log('[Password Reset] Reset URL:', resetUrl);
-      // In production, send email here:
-      // await sendPasswordResetEmail(user.email, resetUrl);
-
-      // For development/testing, you can check the console for the reset URL
+      
+      // Send password reset email (PRD requirement)
+      try {
+        const { sendPasswordResetEmail } = await import('../services/emailService');
+        await sendPasswordResetEmail(user.email, user.username, resetUrl);
+        console.log('[Password Reset] ✅ Email sent successfully');
+      } catch (emailError: any) {
+        console.error('[Password Reset] ❌ Failed to send email:', emailError);
+        // Don't fail the request - still return success to prevent email enumeration
+        // But log the error for debugging
+      }
     }
 
     // Always return success to prevent email enumeration
