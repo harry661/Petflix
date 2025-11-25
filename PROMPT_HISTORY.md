@@ -140,13 +140,17 @@ This document records all prompts and instructions given during the development 
 - "Now on the search page the relevance dropdown doesnt look nice, lets change this to match our styling. There is a similar issue on the report modal"
 - "The report modal now doesnt appear and i get a black screen"
 - "On teh searched for page lets have a similar layout to every other page(5 videos a row at appropriate screen size)"
+- "The grammar on the title when a filter button is pressed is off. Dogs videos doesn't make sense, this should be 'Dog videos', then on the trending page 'Trending Dog Videos' etc"
 
 ### Playlist Features
 - "We need an added to playlist success screen similar to the repost one"
 - "Can we add better playlist card elements to the profile page? This would provide a better preview of the content"
+- "Add 'add to playlist' as an additional button on the video details page"
 
 ### Home Page Content
 - "Trending pet videos currently doesnt fill the 2 rows of content. This should show currently popular videos on the platform"
+- "On the home page the trending videos section, Lets add 1 more section called recommended for you which will have another 2 rows of videos"
+- "The recommended for you section sits at the bottom of the apge with no space. Lets add a little bit of empty space below this"
 
 ### Profile Picture Upload Issues
 - "Good, also profile picture link uploads doesnt seem to funciton correclty. SmallFurry's profile photo appears as a quesiton mark"
@@ -158,6 +162,9 @@ This document records all prompts and instructions given during the development 
 - "The add image layout seems slightly broken after addng guidance text"
 - "give me a working image link for a hamster"
 - "I cant remove or replace the text in the image upload field. I remove all teh characters then this comes back endlessly"
+- "This user's profile photo is appearing on their profile or videos. SmallFurry is the user"
+- "Why is the top right profile icon circular now? this should be square i didnt ask you to change this"
+- "When signed in as smallfurry the top right profile pic doesnt appear correctly like the rest"
 
 ### Testing & Deployment
 - "start the backend"
@@ -174,6 +181,23 @@ This document records all prompts and instructions given during the development 
 - "Add 'add to playlist' as an additional button on the video details page"
 - "push and deploy this"
 - "Not all prompts have been recorded from past sessions"
+- "dont have these i asked you to record them"
+- "Is this project complete, everything in the scope/prd accounted for?"
+- "This user's profile photo is appearing on their profile or videos. SmallFurry is the user"
+- "Why is the top right profile icon circular now? this should be square i didnt ask you to change this"
+- "push and deploy this"
+
+### Hero Carousel & Navigation Features (Latest Session)
+- "I want the hero carousel sections to redirect to an appropriate page when cta is clicked. Pet of the week takes to a genre of pet(Filtered popular videos), Clip of the week takes to the most popular video this week and rising star takes you to the most popular account/user this week. The hero section buttons are what takes you to these destinations"
+- "The grammar on the title when a filter button is pressed is off. Dogs videos doesn't make sense, this should be 'Dog videos', then on the trending page 'Trending Dog Videos' etc"
+- "Excellent, now lets add the filter buttons to the follownig page also"
+- "We dont need the subtitle of videos from users you follow. I also want the title to be the same size as on the popular page"
+- "On the home page the trending videos section, Lets add 1 more section called recommended for you which will have another 2 rows of videos"
+- "The recommended for you section sits at the bottom of the apge with no space. Lets add a little bit of empty space below this"
+- "Good, now push and deploy these changes"
+- "When signed in as smallfurry the top right profile pic doesnt appear correctly like the rest"
+- "push and deploy this"
+- "make sure all of my prompts are recorded from the entire project"
 
 ## Inferred Prompts from Implemented Features
 

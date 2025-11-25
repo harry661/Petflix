@@ -11,6 +11,8 @@ export default function PlaylistDetailPage() {
   const { isAuthenticated, user } = useAuth();
   const [playlist, setPlaylist] = useState<any>(null);
   const [videos, setVideos] = useState<any[]>([]);
+  const [originalVideos, setOriginalVideos] = useState<any[]>([]); // Store original order
+  const [isShuffled, setIsShuffled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -44,7 +46,10 @@ export default function PlaylistDetailPage() {
       if (response.ok) {
         const data = await response.json();
         setPlaylist(data);
-        setVideos(data.videos || []);
+        const playlistVideos = data.videos || [];
+        setVideos(playlistVideos);
+        setOriginalVideos(playlistVideos); // Store original order
+        setIsShuffled(false);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Playlist not found');
@@ -102,7 +107,11 @@ export default function PlaylistDetailPage() {
 
       if (response.ok) {
         // Remove video from local state
-        setVideos(videos.filter(v => v.id !== videoId));
+        const updatedVideos = videos.filter(v => v.id !== videoId);
+        setVideos(updatedVideos);
+        // Also update original videos if it exists there
+        const updatedOriginal = originalVideos.filter(v => v.id !== videoId);
+        setOriginalVideos(updatedOriginal);
       } else {
         const data = await response.json();
         alert(data.error || 'Failed to remove video from playlist');
@@ -451,7 +460,16 @@ export default function PlaylistDetailPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <button
                 onClick={() => {
-                  if (videos.length > 0) {
+                  if (videos.length > 0 && id) {
+                    // Store playlist order for sequential playback
+                    const videoIds = videos.map(v => v.id);
+                    sessionStorage.setItem('currentPlaylist', JSON.stringify({
+                      playlistId: id,
+                      videoIds,
+                      currentIndex: 0,
+                      shuffled: isShuffled,
+                      playlistName: playlist.name
+                    }));
                     navigate(`/video/${videos[0].id}`);
                   }
                 }}
@@ -489,16 +507,24 @@ export default function PlaylistDetailPage() {
               <button
                 onClick={() => {
                   if (videos.length > 0) {
-                    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-                    navigate(`/video/${randomVideo.id}`);
+                    if (isShuffled) {
+                      // Restore original order
+                      setVideos([...originalVideos]);
+                      setIsShuffled(false);
+                    } else {
+                      // Shuffle the videos array
+                      const shuffled = [...videos].sort(() => Math.random() - 0.5);
+                      setVideos(shuffled);
+                      setIsShuffled(true);
+                    }
                   }
                 }}
                 style={{
                   width: '100%',
                   padding: '14px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  backgroundColor: isShuffled ? 'rgba(173, 216, 230, 0.3)' : 'rgba(255, 255, 255, 0.15)',
                   color: '#ffffff',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  border: isShuffled ? '1px solid rgba(173, 216, 230, 0.5)' : '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '8px',
                   cursor: videos.length > 0 ? 'pointer' : 'not-allowed',
                   fontWeight: '600',
@@ -511,18 +537,18 @@ export default function PlaylistDetailPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (videos.length > 0) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.25)';
+                    e.currentTarget.style.backgroundColor = isShuffled ? 'rgba(173, 216, 230, 0.4)' : 'rgba(255, 255, 255, 0.25)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (videos.length > 0) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                    e.currentTarget.style.backgroundColor = isShuffled ? 'rgba(173, 216, 230, 0.3)' : 'rgba(255, 255, 255, 0.15)';
                   }
                 }}
                 disabled={videos.length === 0}
               >
                 <Shuffle size={20} />
-                Shuffle
+                {isShuffled ? 'Unshuffle' : 'Shuffle'}
               </button>
             </div>
           )}

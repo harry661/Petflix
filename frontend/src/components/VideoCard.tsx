@@ -28,9 +28,10 @@ interface VideoCardProps {
     viewCount?: number | string;
     duration?: string; // Format: "MM:SS" or "H:MM:SS"
   };
+  onVideoClick?: (videoId: string) => void; // Optional custom click handler
 }
 
-function VideoCard({ video }: VideoCardProps) {
+function VideoCard({ video, onVideoClick }: VideoCardProps) {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -203,7 +204,12 @@ function VideoCard({ video }: VideoCardProps) {
     if ((e.target as HTMLElement).closest('.video-menu')) {
       return;
     }
-    navigate(`/video/${video.id}`);
+    // Use custom click handler if provided, otherwise use default navigation
+    if (onVideoClick) {
+      onVideoClick(video.id);
+    } else {
+      navigate(`/video/${video.id}`);
+    }
   };
 
   // Handle delete confirmation

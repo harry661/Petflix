@@ -276,10 +276,28 @@ export default function LandingPage() {
 
         <form onSubmit={handleSubmit}>
           {!isLogin && (
-            <div style={{ marginBottom: '16px' }}>
+            <div style={{ marginBottom: '16px', position: 'relative' }}>
+              <label
+                htmlFor="username"
+                style={{
+                  position: 'absolute',
+                  top: formData.username ? '-8px' : '16px',
+                  left: '16px',
+                  fontSize: formData.username ? '12px' : '16px',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  pointerEvents: 'none',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: formData.username ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                  padding: formData.username ? '0 4px' : '0',
+                  zIndex: 1
+                }}
+              >
+                Username
+              </label>
               <input
+                id="username"
                 type="text"
-                placeholder="Username"
+                placeholder={formData.username ? '' : 'Username'}
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 required
@@ -325,10 +343,28 @@ export default function LandingPage() {
             }
           `}</style>
 
-          <div style={{ marginBottom: '16px' }}>
+          <div style={{ marginBottom: '16px', position: 'relative' }}>
+            <label
+              htmlFor="email"
+              style={{
+                position: 'absolute',
+                top: formData.email ? '-8px' : '16px',
+                left: '16px',
+                fontSize: formData.email ? '12px' : '16px',
+                color: 'rgba(255, 255, 255, 0.6)',
+                pointerEvents: 'none',
+                transition: 'all 0.2s ease',
+                backgroundColor: formData.email ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                padding: formData.email ? '0 4px' : '0',
+                zIndex: 1
+              }}
+            >
+              Email
+            </label>
             <input
+              id="email"
               type="email"
-              placeholder="Email address"
+              placeholder={formData.email ? '' : 'Email address'}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               autoComplete="email"
@@ -358,9 +394,27 @@ export default function LandingPage() {
           </div>
 
           <div style={{ marginBottom: '16px', position: 'relative' }}>
+            <label
+              htmlFor="password"
+              style={{
+                position: 'absolute',
+                top: formData.password ? '-8px' : '16px',
+                left: '16px',
+                fontSize: formData.password ? '12px' : '16px',
+                color: 'rgba(255, 255, 255, 0.6)',
+                pointerEvents: 'none',
+                transition: 'all 0.2s ease',
+                backgroundColor: formData.password ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                padding: formData.password ? '0 4px' : '0',
+                zIndex: 1
+              }}
+            >
+              Password
+            </label>
             <input
+              id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
+              placeholder={formData.password ? '' : 'Password'}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               autoComplete={isLogin ? 'current-password' : 'new-password'}
@@ -415,9 +469,27 @@ export default function LandingPage() {
 
           {!isLogin && (
             <div style={{ marginBottom: '16px', position: 'relative' }}>
+              <label
+                htmlFor="confirmPassword"
+                style={{
+                  position: 'absolute',
+                  top: formData.confirmPassword ? '-8px' : '16px',
+                  left: '16px',
+                  fontSize: formData.confirmPassword ? '12px' : '16px',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  pointerEvents: 'none',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: formData.confirmPassword ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                  padding: formData.confirmPassword ? '0 4px' : '0',
+                  zIndex: 1
+                }}
+              >
+                Confirm Password
+              </label>
               <input
+                id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm Password"
+                placeholder={formData.confirmPassword ? '' : 'Confirm Password'}
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 autoComplete="new-password"

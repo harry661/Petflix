@@ -17,6 +17,8 @@ export default function VideoDetailPage() {
   const [video, setVideo] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [recommendedVideos, setRecommendedVideos] = useState<any[]>([]);
+  const [upNextVideos, setUpNextVideos] = useState<any[]>([]);
+  const [currentPlaylist, setCurrentPlaylist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newComment, setNewComment] = useState('');
@@ -42,9 +44,66 @@ export default function VideoDetailPage() {
     if (id) {
       loadVideo();
       loadComments();
-      loadRecommendedVideos();
+      checkPlaylistContext();
     }
   }, [id]);
+
+  const checkPlaylistContext = () => {
+    try {
+      const playlistData = sessionStorage.getItem('currentPlaylist');
+      if (playlistData) {
+        const playlist = JSON.parse(playlistData);
+        const currentIndex = playlist.videoIds.findIndex((vidId: string) => vidId === id);
+        
+        if (currentIndex !== -1) {
+          // We're playing from a playlist
+          setCurrentPlaylist(playlist);
+          // Get up next videos (remaining videos in playlist)
+          const remainingVideos = playlist.videoIds.slice(currentIndex + 1);
+          loadUpNextVideos(remainingVideos);
+        } else {
+          // Not in playlist, show recommendations
+          setCurrentPlaylist(null);
+          loadRecommendedVideos();
+        }
+      } else {
+        // No playlist context, show recommendations
+        setCurrentPlaylist(null);
+        loadRecommendedVideos();
+      }
+    } catch (err) {
+      // Error parsing playlist data, show recommendations
+      setCurrentPlaylist(null);
+      loadRecommendedVideos();
+    }
+  };
+
+  const loadUpNextVideos = async (videoIds: string[]) => {
+    if (videoIds.length === 0) {
+      setUpNextVideos([]);
+      return;
+    }
+
+    try {
+      // Load videos in parallel
+      const videoPromises = videoIds.slice(0, 8).map(async (videoId: string) => {
+        try {
+          const response = await fetch(`${API_URL}/api/v1/videos/${videoId}`);
+          if (response.ok) {
+            return await response.json();
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      });
+
+      const videos = await Promise.all(videoPromises);
+      setUpNextVideos(videos.filter(v => v !== null));
+    } catch (err) {
+      setUpNextVideos([]);
+    }
+  };
 
   // Update meta tags for video page
   useMetaTags({
@@ -1449,19 +1508,44 @@ export default function VideoDetailPage() {
         </div>
         </div>
 
-        {/* Right Column - Recommended Videos */}
+        {/* Right Column - Up Next or Recommended Videos */}
         <div style={{ flex: '0 0 400px', minWidth: 0 }}>
           <h3 style={{ color: '#ffffff', marginTop: 0, marginBottom: '20px', fontSize: '16px', fontWeight: '500' }}>
-            Recommended
+            {currentPlaylist ? 'Up next' : 'Recommended'}
           </h3>
+          {currentPlaylist && (
+            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'rgba(173, 216, 230, 0.1)', borderRadius: '8px', border: '1px solid rgba(173, 216, 230, 0.2)' }}>
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '14px', margin: '0 0 4px 0', fontWeight: '500' }}>
+                {currentPlaylist.playlistName}
+              </p>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px', margin: 0 }}>
+                {upNextVideos.length} {upNextVideos.length === 1 ? 'video' : 'videos'} remaining
+              </p>
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {recommendedVideos.length > 0 ? (
-              recommendedVideos.map((recVideo) => (
-                <VideoCard key={recVideo.id} video={recVideo} />
+            {(currentPlaylist ? upNextVideos : recommendedVideos).length > 0 ? (
+              (currentPlaylist ? upNextVideos : recommendedVideos).map((recVideo, index) => (
+                <VideoCard 
+                  key={recVideo.id} 
+                  video={recVideo}
+                  onVideoClick={currentPlaylist ? (videoId) => {
+                    // Update playlist context with new current index
+                    const currentIndex = currentPlaylist.videoIds.findIndex((vidId: string) => vidId === videoId);
+                    if (currentIndex !== -1) {
+                      const updatedPlaylist = {
+                        ...currentPlaylist,
+                        currentIndex
+                      };
+                      sessionStorage.setItem('currentPlaylist', JSON.stringify(updatedPlaylist));
+                    }
+                    navigate(`/video/${videoId}`);
+                  } : undefined}
+                />
               ))
             ) : (
               <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>
-                Loading recommendations...
+                {currentPlaylist ? 'No more videos in playlist' : 'Loading recommendations...'}
               </p>
             )}
           </div>
