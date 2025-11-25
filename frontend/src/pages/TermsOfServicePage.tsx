@@ -19,7 +19,7 @@ export default function TermsOfServicePage() {
         borderRadius: '8px'
       }}>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/?mode=signup')}
           style={{
             display: 'flex',
             alignItems: 'center',
