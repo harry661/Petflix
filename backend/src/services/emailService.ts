@@ -96,7 +96,9 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
           <!-- Footer -->
           <tr>
             <td style="padding: 30px; background-color: #1a1a1a; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-              <img src="${petflixLogo}" alt="Petflix" style="width: 200px; height: auto; margin: 0 auto 16px; display: block;" />
+              <div style="margin: 0 auto 16px; text-align: center;">
+                ${petflixLogoInline}
+              </div>
               <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.6);">
                 Petflix Inc. All rights reserved
               </p>
@@ -207,7 +209,9 @@ export const sendLoginAttemptEmail = async (email: string, username: string, att
           <!-- Footer -->
           <tr>
             <td style="padding: 30px; background-color: #1a1a1a; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-              <img src="${petflixLogo}" alt="Petflix" style="width: 200px; height: auto; margin: 0 auto 16px; display: block;" />
+              <div style="margin: 0 auto 16px; text-align: center;">
+                ${petflixLogoInline}
+              </div>
               <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.6);">
                 Petflix Inc. All rights reserved
               </p>
