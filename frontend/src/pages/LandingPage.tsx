@@ -22,6 +22,7 @@ export default function LandingPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
     // If user is already logged in, redirect to home
@@ -281,14 +282,14 @@ export default function LandingPage() {
                 htmlFor="username"
                 style={{
                   position: 'absolute',
-                  top: formData.username ? '-8px' : '16px',
+                  top: (formData.username || focusedField === 'username') ? '-8px' : '16px',
                   left: '16px',
-                  fontSize: formData.username ? '12px' : '16px',
+                  fontSize: (formData.username || focusedField === 'username') ? '12px' : '16px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   pointerEvents: 'none',
                   transition: 'all 0.2s ease',
-                  backgroundColor: formData.username ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
-                  padding: formData.username ? '0 4px' : '0',
+                  backgroundColor: (formData.username || focusedField === 'username') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                  padding: (formData.username || focusedField === 'username') ? '0 4px' : '0',
                   zIndex: 1
                 }}
               >
@@ -297,9 +298,11 @@ export default function LandingPage() {
               <input
                 id="username"
                 type="text"
-                placeholder={formData.username ? '' : 'Username'}
+                placeholder={(formData.username || focusedField === 'username') ? '' : 'Username'}
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                onFocus={() => setFocusedField('username')}
+                onBlur={() => setFocusedField(null)}
                 required
                 minLength={3}
                 maxLength={20}
@@ -315,11 +318,13 @@ export default function LandingPage() {
                   outline: 'none'
                 }}
                 onFocus={(e) => {
+                  setFocusedField('username');
                   e.target.style.borderColor = '#ADD8E6';
                   e.target.style.borderWidth = '1px';
                   e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                 }}
                 onBlur={(e) => {
+                  setFocusedField(null);
                   e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                   e.target.style.borderWidth = '1px';
                   e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
@@ -348,14 +353,14 @@ export default function LandingPage() {
               htmlFor="email"
               style={{
                 position: 'absolute',
-                top: formData.email ? '-8px' : '16px',
+                top: (formData.email || focusedField === 'email') ? '-8px' : '16px',
                 left: '16px',
-                fontSize: formData.email ? '12px' : '16px',
+                fontSize: (formData.email || focusedField === 'email') ? '12px' : '16px',
                 color: 'rgba(255, 255, 255, 0.6)',
                 pointerEvents: 'none',
                 transition: 'all 0.2s ease',
-                backgroundColor: formData.email ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
-                padding: formData.email ? '0 4px' : '0',
+                backgroundColor: (formData.email || focusedField === 'email') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                padding: (formData.email || focusedField === 'email') ? '0 4px' : '0',
                 zIndex: 1
               }}
             >
@@ -364,9 +369,11 @@ export default function LandingPage() {
             <input
               id="email"
               type="email"
-              placeholder={formData.email ? '' : 'Email address'}
+              placeholder={(formData.email || focusedField === 'email') ? '' : 'Email address'}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onFocus={() => setFocusedField('email')}
+              onBlur={() => setFocusedField(null)}
               autoComplete="email"
               required
               style={{
@@ -381,11 +388,13 @@ export default function LandingPage() {
                 outline: 'none'
               }}
               onFocus={(e) => {
+                setFocusedField('email');
                 e.target.style.borderColor = '#ADD8E6';
                 e.target.style.borderWidth = '1px';
                 e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
               }}
               onBlur={(e) => {
+                setFocusedField(null);
                 e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                 e.target.style.borderWidth = '1px';
                 e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
@@ -398,14 +407,14 @@ export default function LandingPage() {
               htmlFor="password"
               style={{
                 position: 'absolute',
-                top: formData.password ? '-8px' : '16px',
+                top: (formData.password || focusedField === 'password') ? '-8px' : '16px',
                 left: '16px',
-                fontSize: formData.password ? '12px' : '16px',
+                fontSize: (formData.password || focusedField === 'password') ? '12px' : '16px',
                 color: 'rgba(255, 255, 255, 0.6)',
                 pointerEvents: 'none',
                 transition: 'all 0.2s ease',
-                backgroundColor: formData.password ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
-                padding: formData.password ? '0 4px' : '0',
+                backgroundColor: (formData.password || focusedField === 'password') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                padding: (formData.password || focusedField === 'password') ? '0 4px' : '0',
                 zIndex: 1
               }}
             >
@@ -414,9 +423,11 @@ export default function LandingPage() {
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder={formData.password ? '' : 'Password'}
+              placeholder={(formData.password || focusedField === 'password') ? '' : 'Password'}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onFocus={() => setFocusedField('password')}
+              onBlur={() => setFocusedField(null)}
               autoComplete={isLogin ? 'current-password' : 'new-password'}
               required
               style={{
@@ -432,11 +443,13 @@ export default function LandingPage() {
                 outline: 'none'
               }}
               onFocus={(e) => {
+                setFocusedField('password');
                 e.target.style.borderColor = '#ADD8E6';
                 e.target.style.borderWidth = '1px';
                 e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
               }}
               onBlur={(e) => {
+                setFocusedField(null);
                 e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                 e.target.style.borderWidth = '1px';
                 e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
@@ -473,14 +486,14 @@ export default function LandingPage() {
                 htmlFor="confirmPassword"
                 style={{
                   position: 'absolute',
-                  top: formData.confirmPassword ? '-8px' : '16px',
+                  top: (formData.confirmPassword || focusedField === 'confirmPassword') ? '-8px' : '16px',
                   left: '16px',
-                  fontSize: formData.confirmPassword ? '12px' : '16px',
+                  fontSize: (formData.confirmPassword || focusedField === 'confirmPassword') ? '12px' : '16px',
                   color: 'rgba(255, 255, 255, 0.6)',
                   pointerEvents: 'none',
                   transition: 'all 0.2s ease',
-                  backgroundColor: formData.confirmPassword ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
-                  padding: formData.confirmPassword ? '0 4px' : '0',
+                  backgroundColor: (formData.confirmPassword || focusedField === 'confirmPassword') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
+                  padding: (formData.confirmPassword || focusedField === 'confirmPassword') ? '0 4px' : '0',
                   zIndex: 1
                 }}
               >
@@ -489,9 +502,11 @@ export default function LandingPage() {
               <input
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder={formData.confirmPassword ? '' : 'Confirm Password'}
+                placeholder={(formData.confirmPassword || focusedField === 'confirmPassword') ? '' : 'Confirm Password'}
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                onFocus={() => setFocusedField('confirmPassword')}
+                onBlur={() => setFocusedField(null)}
                 autoComplete="new-password"
                 required
                 style={{
@@ -507,11 +522,13 @@ export default function LandingPage() {
                   outline: 'none'
                 }}
                 onFocus={(e) => {
+                  setFocusedField('confirmPassword');
                   e.target.style.borderColor = '#ADD8E6';
                   e.target.style.borderWidth = '1px';
                   e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                 }}
                 onBlur={(e) => {
+                  setFocusedField(null);
                   e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                   e.target.style.borderWidth = '1px';
                   e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
