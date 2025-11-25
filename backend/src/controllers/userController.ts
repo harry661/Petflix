@@ -126,9 +126,18 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
     }
 
     // Hash password
-    const passwordHash = await hashPassword(password);
+    let passwordHash;
+    try {
+      passwordHash = await hashPassword(password);
+      console.log('[Register] Password hashed successfully');
+    } catch (hashError: any) {
+      console.error('[Register] Error hashing password:', hashError);
+      res.status(500).json({ error: 'Failed to process password', details: hashError?.message });
+      return;
+    }
 
     // Create user (store normalized email)
+    console.log('[Register] Attempting to create user in database...');
     const { data: newUser, error: insertError } = await supabaseAdmin!
       .from('users')
       .insert({
@@ -139,11 +148,25 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
       .select('id, username, email')
       .single();
 
-    if (insertError || !newUser) {
-      console.error('Error creating user:', insertError);
+    if (insertError) {
+      console.error('[Register] Database insert error:', insertError);
+      console.error('[Register] Error code:', insertError.code);
+      console.error('[Register] Error message:', insertError.message);
+      console.error('[Register] Error details:', insertError.details);
+      res.status(500).json({ 
+        error: 'Failed to create user account',
+        details: process.env.NODE_ENV === 'development' ? insertError.message : undefined
+      });
+      return;
+    }
+
+    if (!newUser) {
+      console.error('[Register] User creation returned no data');
       res.status(500).json({ error: 'Failed to create user account' });
       return;
     }
+
+    console.log('[Register] User created successfully:', newUser.id);
 
     // Generate token
     const token = generateToken({
@@ -168,9 +191,15 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
         email: newUser.email,
       },
     });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error: any) {
+    console.error('[Register] ❌ Unexpected registration error:', error);
+    console.error('[Register] Error stack:', error?.stack);
+    console.error('[Register] Error message:', error?.message);
+    console.error('[Register] Error name:', error?.name);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+    });
   }
 };
 
