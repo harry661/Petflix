@@ -9,6 +9,7 @@ import {
   ErrorResponse,
 } from '../types';
 import { validateEmail, validatePassword, validateUsername, sanitizeInput } from '../middleware/validation';
+import { sendSignupAttemptEmail, sendLoginAttemptEmail } from '../services/emailService';
 
 /**
  * Register a new user
@@ -77,7 +78,28 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
     const existingUsers = [...(existingUsersByUsername || []), ...(existingUsersByEmail || [])];
 
     if (existingUsers && existingUsers.length > 0) {
-      res.status(409).json({ error: 'Username or email already exists' });
+      // Check if email exists and send notification
+      if (existingUsersByEmail && existingUsersByEmail.length > 0) {
+        // Get the existing user's details
+        const { data: existingUser } = await supabaseAdmin
+          .from('users')
+          .select('id, username, email')
+          .eq('email', normalizedEmail)
+          .single();
+
+        if (existingUser) {
+          // Send email notification to the existing user
+          sendSignupAttemptEmail(
+            existingUser.email,
+            existingUser.username,
+            normalizedEmail,
+            username
+          ).catch(err => console.error('[Register] Error sending email notification:', err));
+        }
+      }
+
+      // Always return generic error message to prevent email enumeration
+      res.status(400).json({ error: 'Unable to create account. Please try again or use a different email address.' });
       return;
     }
 
@@ -188,6 +210,14 @@ export const login = async (req: Request<{}, AuthenticationResponse | ErrorRespo
     
     if (!isValidPassword) {
       console.log('[LOGIN] Password comparison failed');
+      
+      // Send email notification to the user about failed login attempt
+      sendLoginAttemptEmail(
+        user.email,
+        user.username,
+        email.toLowerCase().trim()
+      ).catch(err => console.error('[Login] Error sending email notification:', err));
+      
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
