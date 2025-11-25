@@ -298,7 +298,7 @@ export default function LandingPage() {
               <input
                 id="username"
                 type="text"
-                placeholder={(formData.username || focusedField === 'username') ? '' : 'Username'}
+                placeholder="Username"
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 required
@@ -333,6 +333,13 @@ export default function LandingPage() {
           <style>{`
             input::placeholder {
               color: rgba(255, 255, 255, 0.6) !important;
+              opacity: 1 !important;
+            }
+            input:focus::placeholder {
+              opacity: 0 !important;
+            }
+            input[value]:not([value=""])::placeholder {
+              opacity: 0 !important;
             }
             input {
               color: #fff !important;
@@ -367,7 +374,7 @@ export default function LandingPage() {
             <input
               id="email"
               type="email"
-              placeholder={(formData.email || focusedField === 'email') ? '' : 'Email address'}
+              placeholder="Email address"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               autoComplete="email"
@@ -419,7 +426,7 @@ export default function LandingPage() {
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder={(formData.password || focusedField === 'password') ? '' : 'Password'}
+              placeholder="Password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               autoComplete={isLogin ? 'current-password' : 'new-password'}
@@ -496,7 +503,7 @@ export default function LandingPage() {
               <input
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder={(formData.confirmPassword || focusedField === 'confirmPassword') ? '' : 'Confirm Password'}
+                placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 autoComplete="new-password"
