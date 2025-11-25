@@ -74,7 +74,7 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
                 Hello ${username},
               </p>
               <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.9);">
-                We noticed that someone recently attempted to create a new account using your email address (<span style="color: #ADD8E6;">${attemptEmail}</span>).
+                We noticed that someone recently attempted to create a new account using your email address (<a href="mailto:${attemptEmail}" style="color: #ADD8E6; text-decoration: underline;">${attemptEmail}</a>).
               </p>
               <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.9);">
                 If this was you, you can safely ignore this email. If you did not attempt to create an account, we recommend:
@@ -186,7 +186,7 @@ export const sendLoginAttemptEmail = async (email: string, username: string, att
                 Hello ${username},
               </p>
               <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.9);">
-                We detected a failed login attempt to your Petflix account using your email address (<span style="color: #ADD8E6;">${attemptEmail}</span>).
+                We detected a failed login attempt to your Petflix account using your email address (<a href="mailto:${attemptEmail}" style="color: #ADD8E6; text-decoration: underline;">${attemptEmail}</a>).
               </p>
               <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.9);">
                 If this was you, you may have entered an incorrect password. If you did not attempt to sign in, we recommend:
