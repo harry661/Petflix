@@ -32,10 +32,11 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
   console.log('[Email] Sending to:', email);
   
   if (!transporter) {
+    const error = new Error('SMTP not configured. Transporter is null.');
     console.error('[Email] SMTP not configured. Transporter is null.');
     console.error('[Email] SMTP_USER:', SMTP_USER || 'MISSING');
     console.error('[Email] SMTP_PASS:', SMTP_PASS ? 'SET' : 'MISSING');
-    return;
+    throw error; // Throw instead of silently returning
   }
 
   try {
@@ -146,8 +147,11 @@ export const sendLoginAttemptEmail = async (email: string, username: string, att
   console.log('[Email] Sending to:', email);
   
   if (!transporter) {
+    const error = new Error('SMTP not configured. Transporter is null.');
     console.error('[Email] SMTP not configured. Transporter is null.');
-    return;
+    console.error('[Email] SMTP_USER:', SMTP_USER || 'MISSING');
+    console.error('[Email] SMTP_PASS:', SMTP_PASS ? 'SET' : 'MISSING');
+    throw error; // Throw instead of silently returning
   }
 
   try {

@@ -93,26 +93,28 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
           console.log('[Register] Existing user username:', existingUser.username);
           
           // Send email notification to the existing user
-          // Create the promise immediately to ensure it starts before response is sent
-          const emailPromise = sendSignupAttemptEmail(
-            existingUser.email,
-            existingUser.username,
-            normalizedEmail,
-            username
-          );
-          
-          // Log that email promise was created
-          console.log('[Register] Email promise created, sending response...');
-          
-          // Handle errors without blocking
-          emailPromise.catch(err => {
-            console.error('[Register] ❌ Error sending email notification:', err);
-            console.error('[Register] Error details:', {
-              message: err.message,
-              code: err.code,
-              response: err.response,
+          // IMPORTANT: We need to actually send the email, not just create a promise
+          // Fire and forget, but ensure it's actually initiated
+          try {
+            sendSignupAttemptEmail(
+              existingUser.email,
+              existingUser.username,
+              normalizedEmail,
+              username
+            ).then(() => {
+              console.log('[Register] ✅ Email sent successfully');
+            }).catch(err => {
+              console.error('[Register] ❌ Error sending email notification:', err);
+              console.error('[Register] Error details:', {
+                message: err.message,
+                code: err.code,
+                response: err.response,
+              });
             });
-          });
+            console.log('[Register] Email sending initiated');
+          } catch (err: any) {
+            console.error('[Register] ❌ Failed to initiate email send:', err);
+          }
         } else {
           console.log('[Register] Existing user not found after query');
         }
