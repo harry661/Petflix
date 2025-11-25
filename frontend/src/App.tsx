@@ -17,6 +17,8 @@ const FeedPage = lazy(() => import('./pages/FeedPage'));
 const PlaylistDetailPage = lazy(() => import('./pages/PlaylistDetailPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 // LoginPage and RegisterPage are not used - routes redirect to LandingPage
 
 function AppContent() {
@@ -25,7 +27,9 @@ function AppContent() {
     location.pathname !== '/login' && 
     location.pathname !== '/register' &&
     location.pathname !== '/forgot-password' &&
-    location.pathname !== '/reset-password';
+    location.pathname !== '/reset-password' &&
+    location.pathname !== '/terms-of-service' &&
+    location.pathname !== '/privacy-policy';
 
   return (
     <>
@@ -58,6 +62,8 @@ function AppContent() {
           <Route path="/playlist/:id" element={<PlaylistDetailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           {/* Keep login/register routes for backwards compatibility, but redirect to landing */}
           <Route path="/login" element={<LandingPage />} />
           <Route path="/register" element={<LandingPage />} />

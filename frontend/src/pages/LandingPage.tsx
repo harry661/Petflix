@@ -707,10 +707,8 @@ export default function LandingPage() {
               marginTop: '24px'
             }}>
               By signing up, you agree to our{' '}
-              <a
-                href="https://www.petflix.com/terms-of-service"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/terms-of-service"
                 style={{
                   color: '#ADD8E6',
                   textDecoration: 'underline',
@@ -720,12 +718,10 @@ export default function LandingPage() {
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Terms of Service
-              </a>
+              </Link>
               {' '}and{' '}
-              <a
-                href="https://www.petflix.com/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/privacy-policy"
                 style={{
                   color: '#ADD8E6',
                   textDecoration: 'underline',
@@ -735,7 +731,7 @@ export default function LandingPage() {
                 onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           )}
         </form>
