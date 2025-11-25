@@ -290,7 +290,9 @@ export default function LandingPage() {
                   transition: 'all 0.2s ease',
                   backgroundColor: (formData.username || focusedField === 'username') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
                   padding: (formData.username || focusedField === 'username') ? '0 4px' : '0',
-                  zIndex: 1
+                  zIndex: 1,
+                  opacity: (formData.username || focusedField === 'username') ? 1 : 0,
+                  visibility: (formData.username || focusedField === 'username') ? 'visible' : 'hidden'
                 }}
               >
                 Username
@@ -298,7 +300,7 @@ export default function LandingPage() {
               <input
                 id="username"
                 type="text"
-                placeholder="Username"
+                placeholder={(formData.username || focusedField === 'username') ? '' : 'Username'}
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 required
@@ -333,13 +335,6 @@ export default function LandingPage() {
           <style>{`
             input::placeholder {
               color: rgba(255, 255, 255, 0.6) !important;
-              opacity: 1 !important;
-            }
-            input:focus::placeholder {
-              opacity: 0 !important;
-            }
-            input[value]:not([value=""])::placeholder {
-              opacity: 0 !important;
             }
             input {
               color: #fff !important;
@@ -366,7 +361,9 @@ export default function LandingPage() {
                 transition: 'all 0.2s ease',
                 backgroundColor: (formData.email || focusedField === 'email') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
                 padding: (formData.email || focusedField === 'email') ? '0 4px' : '0',
-                zIndex: 1
+                zIndex: 1,
+                opacity: (formData.email || focusedField === 'email') ? 1 : 0,
+                visibility: (formData.email || focusedField === 'email') ? 'visible' : 'hidden'
               }}
             >
               Email
@@ -374,7 +371,7 @@ export default function LandingPage() {
             <input
               id="email"
               type="email"
-              placeholder="Email address"
+              placeholder={(formData.email || focusedField === 'email') ? '' : 'Email address'}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               autoComplete="email"
@@ -418,7 +415,9 @@ export default function LandingPage() {
                 transition: 'all 0.2s ease',
                 backgroundColor: (formData.password || focusedField === 'password') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
                 padding: (formData.password || focusedField === 'password') ? '0 4px' : '0',
-                zIndex: 1
+                zIndex: 1,
+                opacity: (formData.password || focusedField === 'password') ? 1 : 0,
+                visibility: (formData.password || focusedField === 'password') ? 'visible' : 'hidden'
               }}
             >
               Password
@@ -426,7 +425,7 @@ export default function LandingPage() {
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
+              placeholder={(formData.password || focusedField === 'password') ? '' : 'Password'}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               autoComplete={isLogin ? 'current-password' : 'new-password'}
@@ -495,7 +494,9 @@ export default function LandingPage() {
                   transition: 'all 0.2s ease',
                   backgroundColor: (formData.confirmPassword || focusedField === 'confirmPassword') ? 'rgba(0, 0, 0, 0.75)' : 'transparent',
                   padding: (formData.confirmPassword || focusedField === 'confirmPassword') ? '0 4px' : '0',
-                  zIndex: 1
+                  zIndex: 1,
+                  opacity: (formData.confirmPassword || focusedField === 'confirmPassword') ? 1 : 0,
+                  visibility: (formData.confirmPassword || focusedField === 'confirmPassword') ? 'visible' : 'hidden'
                 }}
               >
                 Confirm Password
@@ -503,7 +504,7 @@ export default function LandingPage() {
               <input
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm Password"
+                placeholder={(formData.confirmPassword || focusedField === 'confirmPassword') ? '' : 'Confirm Password'}
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 autoComplete="new-password"
