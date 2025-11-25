@@ -10,10 +10,20 @@ Petflix uses email notifications to alert users about security events:
 
 Add these to your **Backend Vercel Project** → Settings → Environment Variables:
 
-### Required for Email Functionality
+### Required for Email Functionality (SendGrid - Recommended)
 
 ```bash
-# SMTP Configuration
+# SendGrid API Configuration (Preferred)
+SENDGRID_API_KEY=SG.your-api-key-here  # Your SendGrid API key
+FROM_EMAIL=noreply@petflix.com         # Must be verified in SendGrid
+FROM_NAME=Petflix                      # Display name for emails
+FRONTEND_URL=https://petflix.com       # Your frontend URL (for email links)
+```
+
+### Alternative: SMTP Configuration (Fallback)
+
+```bash
+# SMTP Configuration (Only if not using SendGrid)
 SMTP_HOST=smtp.gmail.com          # Your SMTP server hostname
 SMTP_PORT=587                      # SMTP port (587 for TLS, 465 for SSL)
 SMTP_USER=your-email@gmail.com     # Your SMTP username/email
@@ -23,9 +33,33 @@ FROM_NAME=Petflix                  # Display name for emails
 FRONTEND_URL=https://petflix.com  # Your frontend URL (for email links)
 ```
 
+**Note:** The system will use SendGrid API if `SENDGRID_API_KEY` is set, otherwise it falls back to SMTP.
+
 ## Email Service Providers
 
-### Option 1: Gmail (Recommended for Development)
+### Option 1: SendGrid (Recommended for Production) ⭐
+
+**This is the preferred method for Petflix.**
+
+1. **Sign up** at https://sendgrid.com (free tier: 100 emails/day)
+2. **Create an API Key**:
+   - Go to Settings → API Keys
+   - Create a new API key with "Mail Send" permissions
+   - Copy the API key (starts with `SG.`)
+3. **Verify Sender**:
+   - Go to Settings → Sender Authentication
+   - Verify a Single Sender (for testing) or Authenticate Your Domain (for production)
+4. **Set Environment Variables**:
+   ```
+   SENDGRID_API_KEY=SG.your-api-key-here
+   FROM_EMAIL=your-verified-email@domain.com
+   FROM_NAME=Petflix
+   FRONTEND_URL=https://your-frontend.vercel.app
+   ```
+
+**See [SENDGRID_SETUP.md](./SENDGRID_SETUP.md) for detailed setup instructions.**
+
+### Option 2: Gmail (For Development Only)
 
 1. **Enable 2-Factor Authentication** on your Gmail account
 2. **Generate an App Password**:
