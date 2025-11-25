@@ -93,28 +93,37 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
           console.log('[Register] Existing user username:', existingUser.username);
           
           // Send email notification to the existing user
-          // IMPORTANT: We need to actually send the email, not just create a promise
-          // Fire and forget, but ensure it's actually initiated
-          try {
-            sendSignupAttemptEmail(
-              existingUser.email,
-              existingUser.username,
-              normalizedEmail,
-              username
-            ).then(() => {
+          // Fire and forget, but ensure the promise is created and started immediately
+          // Don't await - let it run in background
+          console.log('[Register] Initiating email send...');
+          
+          // Create and start the email promise immediately
+          const emailPromise = (async () => {
+            try {
+              await sendSignupAttemptEmail(
+                existingUser.email,
+                existingUser.username,
+                normalizedEmail,
+                username
+              );
               console.log('[Register] ✅ Email sent successfully');
-            }).catch(err => {
+            } catch (err: any) {
               console.error('[Register] ❌ Error sending email notification:', err);
               console.error('[Register] Error details:', {
-                message: err.message,
-                code: err.code,
-                response: err.response,
+                message: err?.message,
+                code: err?.code,
+                response: err?.response,
+                stack: err?.stack,
               });
-            });
-            console.log('[Register] Email sending initiated');
-          } catch (err: any) {
-            console.error('[Register] ❌ Failed to initiate email send:', err);
-          }
+            }
+          })();
+          
+          // Ensure promise is tracked (prevents unhandled rejection)
+          emailPromise.catch(() => {
+            // Error already logged above
+          });
+          
+          console.log('[Register] Email promise created and executing in background');
         } else {
           console.log('[Register] Existing user not found after query');
         }
