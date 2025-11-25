@@ -88,13 +88,26 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
           .single();
 
         if (existingUser) {
+          console.log('[Register] Existing user found, sending email notification...');
+          console.log('[Register] Existing user email:', existingUser.email);
+          console.log('[Register] Existing user username:', existingUser.username);
+          
           // Send email notification to the existing user
           sendSignupAttemptEmail(
             existingUser.email,
             existingUser.username,
             normalizedEmail,
             username
-          ).catch(err => console.error('[Register] Error sending email notification:', err));
+          ).catch(err => {
+            console.error('[Register] ❌ Error sending email notification:', err);
+            console.error('[Register] Error details:', {
+              message: err.message,
+              code: err.code,
+              response: err.response,
+            });
+          });
+        } else {
+          console.log('[Register] Existing user not found after query');
         }
       }
 

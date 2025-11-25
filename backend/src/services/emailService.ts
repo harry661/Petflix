@@ -23,8 +23,18 @@ const transporter = SMTP_USER && SMTP_PASS ? nodemailer.createTransport({
  * Send email notification when someone tries to sign up with existing email
  */
 export const sendSignupAttemptEmail = async (email: string, username: string, attemptEmail: string, attemptUsername: string) => {
+  console.log('[Email] Attempting to send signup attempt notification...');
+  console.log('[Email] SMTP_HOST:', SMTP_HOST);
+  console.log('[Email] SMTP_PORT:', SMTP_PORT);
+  console.log('[Email] SMTP_USER:', SMTP_USER ? `${SMTP_USER.substring(0, 3)}***` : 'NOT SET');
+  console.log('[Email] SMTP_PASS:', SMTP_PASS ? 'SET' : 'NOT SET');
+  console.log('[Email] Transporter exists:', !!transporter);
+  console.log('[Email] Sending to:', email);
+  
   if (!transporter) {
-    console.warn('[Email] SMTP not configured. Skipping email notification.');
+    console.error('[Email] SMTP not configured. Transporter is null.');
+    console.error('[Email] SMTP_USER:', SMTP_USER || 'MISSING');
+    console.error('[Email] SMTP_PASS:', SMTP_PASS ? 'SET' : 'MISSING');
     return;
   }
 
@@ -102,16 +112,29 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
 </html>
     `;
 
-    await transporter.sendMail({
+    const mailOptions = {
       from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to: email,
       subject: 'Security Alert: Signup Attempt on Your Petflix Account',
       html: htmlContent,
+    };
+
+    console.log('[Email] Sending mail with options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject,
     });
 
-    console.log(`[Email] Signup attempt notification sent to ${email}`);
-  } catch (error) {
-    console.error('[Email] Error sending signup attempt notification:', error);
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log(`[Email] ✅ Signup attempt notification sent successfully to ${email}`);
+    console.log('[Email] Message ID:', info.messageId);
+  } catch (error: any) {
+    console.error('[Email] ❌ Error sending signup attempt notification:', error);
+    console.error('[Email] Error code:', error.code);
+    console.error('[Email] Error message:', error.message);
+    console.error('[Email] Error response:', error.response);
+    throw error; // Re-throw so caller knows it failed
   }
 };
 
@@ -119,8 +142,12 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
  * Send email notification when someone tries to sign in with wrong credentials
  */
 export const sendLoginAttemptEmail = async (email: string, username: string, attemptEmail: string) => {
+  console.log('[Email] Attempting to send login attempt notification...');
+  console.log('[Email] Transporter exists:', !!transporter);
+  console.log('[Email] Sending to:', email);
+  
   if (!transporter) {
-    console.warn('[Email] SMTP not configured. Skipping email notification.');
+    console.error('[Email] SMTP not configured. Transporter is null.');
     return;
   }
 
@@ -198,16 +225,29 @@ export const sendLoginAttemptEmail = async (email: string, username: string, att
 </html>
     `;
 
-    await transporter.sendMail({
+    const mailOptions = {
       from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
       to: email,
       subject: 'Security Alert: Failed Login Attempt on Your Petflix Account',
       html: htmlContent,
+    };
+
+    console.log('[Email] Sending mail with options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject,
     });
 
-    console.log(`[Email] Login attempt notification sent to ${email}`);
-  } catch (error) {
-    console.error('[Email] Error sending login attempt notification:', error);
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log(`[Email] ✅ Login attempt notification sent successfully to ${email}`);
+    console.log('[Email] Message ID:', info.messageId);
+  } catch (error: any) {
+    console.error('[Email] ❌ Error sending login attempt notification:', error);
+    console.error('[Email] Error code:', error.code);
+    console.error('[Email] Error message:', error.message);
+    console.error('[Email] Error response:', error.response);
+    throw error; // Re-throw so caller knows it failed
   }
 };
 
