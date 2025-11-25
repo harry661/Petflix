@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer';
 
 // Email configuration from environment variables
+// Support both SMTP and SendGrid API
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
 const SMTP_USER = process.env.SMTP_USER || '';
@@ -8,8 +10,12 @@ const SMTP_PASS = process.env.SMTP_PASS || '';
 const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER || 'noreply@petflix.com';
 const FROM_NAME = process.env.FROM_NAME || 'Petflix';
 
-// Create transporter (only if credentials are provided)
-const transporter = SMTP_USER && SMTP_PASS ? nodemailer.createTransport({
+// Determine which email method to use (SendGrid API preferred for production)
+const useSendGrid = !!SENDGRID_API_KEY;
+const useSMTP = !useSendGrid && SMTP_USER && SMTP_PASS;
+
+// Create SMTP transporter (only if credentials are provided and SendGrid not available)
+const transporter = useSMTP ? nodemailer.createTransport({
   host: SMTP_HOST,
   port: SMTP_PORT,
   secure: SMTP_PORT === 465, // true for 465, false for other ports
@@ -20,23 +26,77 @@ const transporter = SMTP_USER && SMTP_PASS ? nodemailer.createTransport({
 }) : null;
 
 /**
+ * Send email using SendGrid API (preferred for production)
+ */
+const sendViaSendGrid = async (to: string, subject: string, html: string) => {
+  if (!SENDGRID_API_KEY) {
+    throw new Error('SendGrid API key not configured');
+  }
+
+  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      personalizations: [{
+        to: [{ email: to }],
+      }],
+      from: {
+        email: FROM_EMAIL,
+        name: FROM_NAME,
+      },
+      subject: subject,
+      content: [{
+        type: 'text/html',
+        value: html,
+      }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`SendGrid API error: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+
+  return { messageId: `sendgrid-${Date.now()}` };
+};
+
+/**
+ * Send email using SMTP (fallback for development)
+ */
+const sendViaSMTP = async (to: string, subject: string, html: string) => {
+  if (!transporter) {
+    throw new Error('SMTP not configured. Transporter is null.');
+  }
+
+  const mailOptions = {
+    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    to: to,
+    subject: subject,
+    html: html,
+  };
+
+  return await transporter.sendMail(mailOptions);
+};
+
+/**
  * Send email notification when someone tries to sign up with existing email
  */
 export const sendSignupAttemptEmail = async (email: string, username: string, attemptEmail: string, attemptUsername: string) => {
   console.log('[Email] Attempting to send signup attempt notification...');
-  console.log('[Email] SMTP_HOST:', SMTP_HOST);
-  console.log('[Email] SMTP_PORT:', SMTP_PORT);
-  console.log('[Email] SMTP_USER:', SMTP_USER ? `${SMTP_USER.substring(0, 3)}***` : 'NOT SET');
-  console.log('[Email] SMTP_PASS:', SMTP_PASS ? 'SET' : 'NOT SET');
-  console.log('[Email] Transporter exists:', !!transporter);
+  console.log('[Email] Using SendGrid:', useSendGrid);
+  console.log('[Email] Using SMTP:', useSMTP);
   console.log('[Email] Sending to:', email);
   
-  if (!transporter) {
-    const error = new Error('SMTP not configured. Transporter is null.');
-    console.error('[Email] SMTP not configured. Transporter is null.');
+  if (!useSendGrid && !useSMTP) {
+    const error = new Error('Email service not configured. Set SENDGRID_API_KEY or SMTP credentials.');
+    console.error('[Email] Email service not configured.');
+    console.error('[Email] SENDGRID_API_KEY:', SENDGRID_API_KEY ? 'SET' : 'NOT SET');
     console.error('[Email] SMTP_USER:', SMTP_USER || 'MISSING');
     console.error('[Email] SMTP_PASS:', SMTP_PASS ? 'SET' : 'MISSING');
-    throw error; // Throw instead of silently returning
+    throw error;
   }
 
   try {
@@ -112,20 +172,18 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
 </html>
     `;
 
-    const mailOptions = {
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    const subject = 'Security Alert: Signup Attempt on Your Petflix Account';
+    
+    console.log('[Email] Sending mail:', {
+      from: FROM_EMAIL,
       to: email,
-      subject: 'Security Alert: Signup Attempt on Your Petflix Account',
-      html: htmlContent,
-    };
-
-    console.log('[Email] Sending mail with options:', {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject,
+      subject: subject,
+      method: useSendGrid ? 'SendGrid API' : 'SMTP',
     });
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = useSendGrid 
+      ? await sendViaSendGrid(email, subject, htmlContent)
+      : await sendViaSMTP(email, subject, htmlContent);
     
     console.log(`[Email] ✅ Signup attempt notification sent successfully to ${email}`);
     console.log('[Email] Message ID:', info.messageId);
@@ -143,15 +201,17 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
  */
 export const sendLoginAttemptEmail = async (email: string, username: string, attemptEmail: string) => {
   console.log('[Email] Attempting to send login attempt notification...');
-  console.log('[Email] Transporter exists:', !!transporter);
+  console.log('[Email] Using SendGrid:', useSendGrid);
+  console.log('[Email] Using SMTP:', useSMTP);
   console.log('[Email] Sending to:', email);
   
-  if (!transporter) {
-    const error = new Error('SMTP not configured. Transporter is null.');
-    console.error('[Email] SMTP not configured. Transporter is null.');
+  if (!useSendGrid && !useSMTP) {
+    const error = new Error('Email service not configured. Set SENDGRID_API_KEY or SMTP credentials.');
+    console.error('[Email] Email service not configured.');
+    console.error('[Email] SENDGRID_API_KEY:', SENDGRID_API_KEY ? 'SET' : 'NOT SET');
     console.error('[Email] SMTP_USER:', SMTP_USER || 'MISSING');
     console.error('[Email] SMTP_PASS:', SMTP_PASS ? 'SET' : 'MISSING');
-    throw error; // Throw instead of silently returning
+    throw error;
   }
 
   try {
@@ -227,20 +287,18 @@ export const sendLoginAttemptEmail = async (email: string, username: string, att
 </html>
     `;
 
-    const mailOptions = {
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    const subject = 'Security Alert: Failed Login Attempt on Your Petflix Account';
+    
+    console.log('[Email] Sending mail:', {
+      from: FROM_EMAIL,
       to: email,
-      subject: 'Security Alert: Failed Login Attempt on Your Petflix Account',
-      html: htmlContent,
-    };
-
-    console.log('[Email] Sending mail with options:', {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject,
+      subject: subject,
+      method: useSendGrid ? 'SendGrid API' : 'SMTP',
     });
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = useSendGrid 
+      ? await sendViaSendGrid(email, subject, htmlContent)
+      : await sendViaSMTP(email, subject, htmlContent);
     
     console.log(`[Email] ✅ Login attempt notification sent successfully to ${email}`);
     console.log('[Email] Message ID:', info.messageId);
