@@ -99,9 +99,13 @@ export default function LandingPage() {
         // Dispatch event to notify auth state change
         window.dispatchEvent(new Event('auth-changed'));
         
+        // Check for redirect parameter
+        const redirectParam = searchParams.get('redirect');
+        const redirectPath = redirectParam || '/home';
+        
         // Give auth hook a moment to update, then navigate
         setTimeout(() => {
-          navigate('/home', { replace: true });
+          navigate(redirectPath, { replace: true });
         }, 200);
       } catch (err: any) {
         console.error('Login error:', err);
