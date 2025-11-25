@@ -664,24 +664,6 @@ export default function LandingPage() {
                   Sign up now
                 </button>
               </div>
-              <div style={{
-                textAlign: 'right',
-                marginTop: '8px'
-              }}>
-                <Link
-                  to="/forgot-password"
-                  style={{
-                    color: '#ADD8E6',
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'opacity 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  Forgot password?
-                </Link>
-              </div>
             </>
           )}
 
