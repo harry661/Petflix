@@ -93,34 +93,26 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
           console.log('[Register] Existing user username:', existingUser.username);
           
           // Send email notification to the existing user
-          // Fire and forget, but ensure the promise is created and started immediately
+          // Call the function directly to start the promise immediately
           // Don't await - let it run in background
           console.log('[Register] Initiating email send...');
           
-          // Create and start the email promise immediately
-          const emailPromise = (async () => {
-            try {
-              await sendSignupAttemptEmail(
-                existingUser.email,
-                existingUser.username,
-                normalizedEmail,
-                username
-              );
-              console.log('[Register] ✅ Email sent successfully');
-            } catch (err: any) {
-              console.error('[Register] ❌ Error sending email notification:', err);
-              console.error('[Register] Error details:', {
-                message: err?.message,
-                code: err?.code,
-                response: err?.response,
-                stack: err?.stack,
-              });
-            }
-          })();
-          
-          // Ensure promise is tracked (prevents unhandled rejection)
-          emailPromise.catch(() => {
-            // Error already logged above
+          // Call the function directly - this starts the promise immediately
+          sendSignupAttemptEmail(
+            existingUser.email,
+            existingUser.username,
+            normalizedEmail,
+            username
+          ).then(() => {
+            console.log('[Register] ✅ Email sent successfully');
+          }).catch((err: any) => {
+            console.error('[Register] ❌ Error sending email notification:', err);
+            console.error('[Register] Error details:', {
+              message: err?.message,
+              code: err?.code,
+              response: err?.response,
+              stack: err?.stack,
+            });
           });
           
           console.log('[Register] Email promise created and executing in background');
