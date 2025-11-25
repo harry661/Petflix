@@ -113,5 +113,30 @@ router.post('/test-email', async (req, res) => {
   }
 });
 
+// Test SMTP configuration
+router.get('/test-smtp', async (req, res) => {
+  try {
+    const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
+    const SMTP_USER = process.env.SMTP_USER || '';
+    const SMTP_PASS = process.env.SMTP_PASS || '';
+    
+    res.json({
+      smtpConfigured: !!(SMTP_USER && SMTP_PASS),
+      smtpHost: SMTP_HOST,
+      smtpPort: SMTP_PORT,
+      smtpUser: SMTP_USER ? `${SMTP_USER.substring(0, 3)}***` : 'NOT SET',
+      smtpPass: SMTP_PASS ? 'SET' : 'NOT SET',
+      fromEmail: process.env.FROM_EMAIL || SMTP_USER || 'NOT SET',
+      fromName: process.env.FROM_NAME || 'Petflix',
+    });
+  } catch (err: any) {
+    res.status(500).json({ 
+      error: 'Failed to check SMTP config',
+      details: err.message,
+    });
+  }
+});
+
 export default router;
 
