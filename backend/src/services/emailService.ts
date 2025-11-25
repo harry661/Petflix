@@ -58,10 +58,13 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
         <table role="presentation" style="width: 100%; max-width: 600px; background-color: #1a1a1a; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);">
           <!-- Header with Petflix blue background -->
           <tr>
-            <td style="background-color: #ADD8E6; padding: 40px 20px; text-align: center;">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto; display: block;">
-                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#0F0F0F"/>
-              </svg>
+            <td style="background-color: #ADD8E6; padding: 50px 20px; text-align: center;">
+              <div style="width: 80px; height: 80px; margin: 0 auto; background-color: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" fill="white"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#0F0F0F"/>
+                </svg>
+              </div>
             </td>
           </tr>
           <!-- Content -->
@@ -166,10 +169,13 @@ export const sendLoginAttemptEmail = async (email: string, username: string, att
         <table role="presentation" style="width: 100%; max-width: 600px; background-color: #1a1a1a; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);">
           <!-- Header with Petflix blue background -->
           <tr>
-            <td style="background-color: #ADD8E6; padding: 40px 20px; text-align: center;">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto; display: block;">
-                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#0F0F0F"/>
-              </svg>
+            <td style="background-color: #ADD8E6; padding: 50px 20px; text-align: center;">
+              <div style="width: 80px; height: 80px; margin: 0 auto; background-color: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" fill="white"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#0F0F0F"/>
+                </svg>
+              </div>
             </td>
           </tr>
           <!-- Content -->

@@ -93,6 +93,7 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
           console.log('[Register] Existing user username:', existingUser.username);
           
           // Send email notification to the existing user
+          // Fire and forget - don't block response, but ensure it's initiated
           sendSignupAttemptEmail(
             existingUser.email,
             existingUser.username,
