@@ -113,26 +113,41 @@ router.post('/test-email', async (req, res) => {
   }
 });
 
-// Test SMTP configuration
+// Test email service configuration
 router.get('/test-smtp', async (req, res) => {
   try {
+    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
     const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
     const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
     const SMTP_USER = process.env.SMTP_USER || '';
     const SMTP_PASS = process.env.SMTP_PASS || '';
+    const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER || 'NOT SET';
+    const FROM_NAME = process.env.FROM_NAME || 'Petflix';
+    
+    const useSendGrid = !!SENDGRID_API_KEY;
+    const useSMTP = !useSendGrid && SMTP_USER && SMTP_PASS;
+    const emailConfigured = useSendGrid || useSMTP;
     
     res.json({
-      smtpConfigured: !!(SMTP_USER && SMTP_PASS),
-      smtpHost: SMTP_HOST,
-      smtpPort: SMTP_PORT,
-      smtpUser: SMTP_USER ? `${SMTP_USER.substring(0, 3)}***` : 'NOT SET',
-      smtpPass: SMTP_PASS ? 'SET' : 'NOT SET',
-      fromEmail: process.env.FROM_EMAIL || SMTP_USER || 'NOT SET',
-      fromName: process.env.FROM_NAME || 'Petflix',
+      emailConfigured: emailConfigured,
+      method: useSendGrid ? 'SendGrid API' : (useSMTP ? 'SMTP' : 'NOT CONFIGURED'),
+      sendGrid: {
+        configured: useSendGrid,
+        apiKey: SENDGRID_API_KEY ? 'SET' : 'NOT SET',
+      },
+      smtp: {
+        configured: useSMTP,
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        user: SMTP_USER ? `${SMTP_USER.substring(0, 3)}***` : 'NOT SET',
+        pass: SMTP_PASS ? 'SET' : 'NOT SET',
+      },
+      fromEmail: FROM_EMAIL,
+      fromName: FROM_NAME,
     });
   } catch (err: any) {
     res.status(500).json({ 
-      error: 'Failed to check SMTP config',
+      error: 'Failed to check email config',
       details: err.message,
     });
   }
