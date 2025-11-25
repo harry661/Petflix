@@ -85,10 +85,10 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
                 <li>Reviewing your account activity for any suspicious behavior</li>
               </ul>
               <div style="text-align: center; margin: 32px 0;">
-                <a href="${process.env.FRONTEND_URL || 'https://petflix.com'}/settings" style="display: inline-block; padding: 14px 28px; background-color: #ADD8E6; color: #0F0F0F; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">Review Account Settings</a>
+                <a href="${process.env.FRONTEND_URL || 'https://petflix.com'}/?mode=login&redirect=/settings" style="display: inline-block; padding: 14px 28px; background-color: #ADD8E6; color: #0F0F0F; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">Sign In to Review Account Settings</a>
               </div>
               <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.7);">
-                If you have any concerns about your account security, please contact our support team immediately.
+                If you have any concerns about your account security, please <a href="mailto:support@petflix.com" style="color: #ADD8E6; text-decoration: underline;">contact our support team</a> immediately.
               </p>
             </td>
           </tr>
@@ -197,10 +197,10 @@ export const sendLoginAttemptEmail = async (email: string, username: string, att
                 <li>Reviewing your account activity for any unauthorized access</li>
               </ul>
               <div style="text-align: center; margin: 32px 0;">
-                <a href="${process.env.FRONTEND_URL || 'https://petflix.com'}/forgot-password" style="display: inline-block; padding: 14px 28px; background-color: #ADD8E6; color: #0F0F0F; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">Reset Password</a>
+                <a href="${process.env.FRONTEND_URL || 'https://petflix.com'}/?mode=login&redirect=/settings" style="display: inline-block; padding: 14px 28px; background-color: #ADD8E6; color: #0F0F0F; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">Sign In to Review Account Settings</a>
               </div>
               <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.7);">
-                If you have any concerns about your account security, please contact our support team immediately.
+                If you have any concerns about your account security, please <a href="mailto:support@petflix.com" style="color: #ADD8E6; text-decoration: underline;">contact our support team</a> immediately.
               </p>
             </td>
           </tr>
