@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
  * Send email notification when someone tries to sign up with existing email
  */
 export const sendSignupAttemptEmail = async (email: string, username: string, attemptEmail: string, attemptUsername: string) => {
-  if (!SMTP_USER || !SMTP_PASS) {
+  if (!transporter) {
     console.warn('[Email] SMTP not configured. Skipping email notification.');
     return;
   }
@@ -119,7 +119,7 @@ export const sendSignupAttemptEmail = async (email: string, username: string, at
  * Send email notification when someone tries to sign in with wrong credentials
  */
 export const sendLoginAttemptEmail = async (email: string, username: string, attemptEmail: string) => {
-  if (!SMTP_USER || !SMTP_PASS) {
+  if (!transporter) {
     console.warn('[Email] SMTP not configured. Skipping email notification.');
     return;
   }
