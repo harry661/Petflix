@@ -8,16 +8,16 @@ const SMTP_PASS = process.env.SMTP_PASS || '';
 const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER || 'noreply@petflix.com';
 const FROM_NAME = process.env.FROM_NAME || 'Petflix';
 
-// Create transporter
-const transporter = nodemailer.createTransport({
+// Create transporter (only if credentials are provided)
+const transporter = SMTP_USER && SMTP_PASS ? nodemailer.createTransport({
   host: SMTP_HOST,
   port: SMTP_PORT,
   secure: SMTP_PORT === 465, // true for 465, false for other ports
-  auth: SMTP_USER && SMTP_PASS ? {
+  auth: {
     user: SMTP_USER,
     pass: SMTP_PASS,
-  } : undefined,
-});
+  },
+}) : null;
 
 /**
  * Send email notification when someone tries to sign up with existing email
