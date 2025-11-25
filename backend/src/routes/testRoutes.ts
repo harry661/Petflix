@@ -65,5 +65,53 @@ router.get('/test-db', async (req, res) => {
   }
 });
 
+// Test email endpoint - sends a test security alert email
+router.post('/test-email', async (req, res) => {
+  try {
+    const { email, type = 'signup' } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Import email service
+    const { sendSignupAttemptEmail, sendLoginAttemptEmail } = await import('../services/emailService.js');
+    
+    if (type === 'signup') {
+      await sendSignupAttemptEmail(
+        email,
+        'TestUser',
+        email,
+        'TestAttacker'
+      );
+      res.json({ 
+        success: true, 
+        message: 'Signup attempt email sent successfully',
+        email: email
+      });
+    } else if (type === 'login') {
+      await sendLoginAttemptEmail(
+        email,
+        'TestUser',
+        email
+      );
+      res.json({ 
+        success: true, 
+        message: 'Login attempt email sent successfully',
+        email: email
+      });
+    } else {
+      res.status(400).json({ error: 'Invalid type. Use "signup" or "login"' });
+    }
+  } catch (err: any) {
+    console.error('Test email error:', err);
+    res.status(500).json({ 
+      error: 'Failed to send test email',
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    });
+  }
+});
+
 export default router;
 
