@@ -93,13 +93,19 @@ export const register = async (req: Request<{}, AuthenticationResponse | ErrorRe
           console.log('[Register] Existing user username:', existingUser.username);
           
           // Send email notification to the existing user
-          // Fire and forget - don't block response, but ensure it's initiated
-          sendSignupAttemptEmail(
+          // Create the promise immediately to ensure it starts before response is sent
+          const emailPromise = sendSignupAttemptEmail(
             existingUser.email,
             existingUser.username,
             normalizedEmail,
             username
-          ).catch(err => {
+          );
+          
+          // Log that email promise was created
+          console.log('[Register] Email promise created, sending response...');
+          
+          // Handle errors without blocking
+          emailPromise.catch(err => {
             console.error('[Register] ❌ Error sending email notification:', err);
             console.error('[Register] Error details:', {
               message: err.message,
