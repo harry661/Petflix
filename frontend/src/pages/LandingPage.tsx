@@ -301,8 +301,6 @@ export default function LandingPage() {
                 placeholder={(formData.username || focusedField === 'username') ? '' : 'Username'}
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                onFocus={() => setFocusedField('username')}
-                onBlur={() => setFocusedField(null)}
                 required
                 minLength={3}
                 maxLength={20}
@@ -372,8 +370,6 @@ export default function LandingPage() {
               placeholder={(formData.email || focusedField === 'email') ? '' : 'Email address'}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              onFocus={() => setFocusedField('email')}
-              onBlur={() => setFocusedField(null)}
               autoComplete="email"
               required
               style={{
@@ -426,8 +422,6 @@ export default function LandingPage() {
               placeholder={(formData.password || focusedField === 'password') ? '' : 'Password'}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              onFocus={() => setFocusedField('password')}
-              onBlur={() => setFocusedField(null)}
               autoComplete={isLogin ? 'current-password' : 'new-password'}
               required
               style={{
@@ -505,8 +499,6 @@ export default function LandingPage() {
                 placeholder={(formData.confirmPassword || focusedField === 'confirmPassword') ? '' : 'Confirm Password'}
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                onFocus={() => setFocusedField('confirmPassword')}
-                onBlur={() => setFocusedField(null)}
                 autoComplete="new-password"
                 required
                 style={{
