@@ -806,25 +806,16 @@ export default function VideoDetailPage() {
       // Check if this is a YouTube video (id starts with "youtube_" or video.source is "youtube")
       const isYouTubeVideo = id?.startsWith('youtube_') || video?.source === 'youtube';
       
-      // For reposts, we still need to share the video to Petflix
-      // But we can do it seamlessly without redirecting
+      // For reposts, use the video ID directly (backend will handle finding the original sharer)
+      // Don't call ensureYouTubeVideoShared - that would create a shared video, not a repost
       let videoId = id;
       
+      // If it's a YouTube video, use the YouTube ID format that backend expects
       if (isYouTubeVideo && video?.youtubeVideoId) {
-        const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
-        const sharedId = await ensureYouTubeVideoShared(youtubeVideoId);
-        if (sharedId) {
-          videoId = sharedId;
-          // Update URL without reloading (seamless experience)
-          window.history.replaceState({}, '', `/video/${sharedId}`);
-        } else {
-          alert('Failed to process video. Please try again.');
-          setReposting(false);
-          return;
-        }
+        videoId = video.youtubeVideoId; // Use the YouTube video ID directly
       }
 
-      if (!videoId || videoId.startsWith('youtube_')) {
+      if (!videoId) {
         setReposting(false);
         return;
       }

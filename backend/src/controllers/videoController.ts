@@ -1734,28 +1734,94 @@ export const repostVideo = async (
 
     const { id } = req.params;
 
-    // Get the original video
-    const { data: originalVideo, error: videoError } = await supabaseAdmin!
-      .from('videos')
-      .select(`
-        id,
-        youtube_video_id,
-        title,
-        description,
-        user_id,
-        view_count,
-        original_user_id
-      `)
-      .eq('id', id)
-      .single();
+    // Check if this is a YouTube video ID (starts with "youtube_" or is a YouTube video ID format)
+    const isYouTubeId = id.startsWith('youtube_') || /^[a-zA-Z0-9_-]{11}$/.test(id);
+    
+    let originalVideo: any;
+    let originalUserId: string;
+    let youtubeVideoId: string;
+    let videoTitle: string;
+    let videoDescription: string;
+    let videoViewCount: number = 0;
 
-    if (videoError || !originalVideo) {
-      res.status(404).json({ error: 'Video not found' });
-      return;
+    if (isYouTubeId) {
+      // Handle direct YouTube video repost
+      youtubeVideoId = id.startsWith('youtube_') ? id.replace('youtube_', '') : id;
+      
+      // Find if this YouTube video is already shared by someone (prefer someone else, but allow own share)
+      // Get all shared videos for this YouTube video, ordered by creation date
+      const { data: existingSharedVideos } = await supabaseAdmin!
+        .from('videos')
+        .select(`
+          id,
+          youtube_video_id,
+          title,
+          description,
+          user_id,
+          view_count,
+          original_user_id
+        `)
+        .eq('youtube_video_id', youtubeVideoId)
+        .is('original_user_id', null) // Only check for shared videos, not reposts
+        .order('created_at', { ascending: true }); // Get the first person who shared it
+
+      if (existingSharedVideos && existingSharedVideos.length > 0) {
+        // Find the first video shared by someone else (not current user)
+        const otherUserShare = existingSharedVideos.find(v => v.user_id !== req.user.userId);
+        
+        if (otherUserShare) {
+          // Video is already shared by someone else, repost that video
+          originalVideo = otherUserShare;
+          originalUserId = otherUserShare.user_id;
+        } else {
+          // Only the current user has shared it - we can't repost our own video
+          res.status(400).json({ 
+            error: 'You cannot repost a video that you have already shared. If you want to repost it, please wait for someone else to share it first.' 
+          });
+          return;
+        }
+        
+        youtubeVideoId = originalVideo.youtube_video_id;
+        videoTitle = originalVideo.title;
+        videoDescription = originalVideo.description;
+        videoViewCount = originalVideo.view_count || 0;
+      } else {
+        // Video not shared yet - we can't repost it without an original sharer
+        res.status(400).json({ 
+          error: 'This video has not been shared to Petflix yet. Please share it first, or wait for someone else to share it.' 
+        });
+        return;
+      }
+    } else {
+      // Handle repost of existing Petflix video
+      const { data: videoData, error: videoError } = await supabaseAdmin!
+        .from('videos')
+        .select(`
+          id,
+          youtube_video_id,
+          title,
+          description,
+          user_id,
+          view_count,
+          original_user_id
+        `)
+        .eq('id', id)
+        .single();
+
+      if (videoError || !videoData) {
+        res.status(404).json({ error: 'Video not found' });
+        return;
+      }
+
+      originalVideo = videoData;
+      youtubeVideoId = videoData.youtube_video_id;
+      videoTitle = videoData.title;
+      videoDescription = videoData.description;
+      videoViewCount = videoData.view_count || 0;
+      
+      // Determine the original sharer (if already a repost, use original_user_id, otherwise use user_id)
+      originalUserId = videoData.original_user_id || videoData.user_id;
     }
-
-    // Determine the original sharer (if already a repost, use original_user_id, otherwise use user_id)
-    const originalUserId = originalVideo.original_user_id || originalVideo.user_id;
 
     // Prevent reposting your own videos
     if (originalUserId === req.user.userId) {
@@ -1790,12 +1856,12 @@ export const repostVideo = async (
     const { data: newVideo, error: insertError } = await supabaseAdmin!
       .from('videos')
       .insert({
-        youtube_video_id: originalVideo.youtube_video_id,
-        title: originalVideo.title,
-        description: originalVideo.description,
+        youtube_video_id: youtubeVideoId,
+        title: videoTitle,
+        description: videoDescription,
         user_id: req.user.userId, // Current user is reposting
         original_user_id: originalUserId, // Credit the original sharer
-        view_count: originalVideo.view_count || 0,
+        view_count: videoViewCount,
       })
       .select('id, youtube_video_id, title, description, user_id, original_user_id, created_at, updated_at, view_count')
       .single();
@@ -1822,11 +1888,12 @@ export const repostVideo = async (
       return;
     }
 
-    // Copy tags from original video
+    // Copy tags from original video (use originalVideo.id if it exists, otherwise use the found video's id)
+    const sourceVideoId = originalVideo?.id || id;
     const { data: originalTags } = await supabaseAdmin!
       .from('video_tags_direct')
       .select('tag_name')
-      .eq('video_id', id);
+      .eq('video_id', sourceVideoId);
 
     if (originalTags && originalTags.length > 0) {
       const tagInserts = originalTags.map(tag => ({
