@@ -4,6 +4,15 @@ import { ErrorResponse } from '../types';
 import multer from 'multer';
 import sharp from 'sharp';
 
+// Extend Express Request to include file
+declare global {
+  namespace Express {
+    interface Request {
+      file?: Express.Multer.File;
+    }
+  }
+}
+
 // Configure multer for memory storage (we'll upload directly to Supabase)
 const upload = multer({
   storage: multer.memoryStorage(),
