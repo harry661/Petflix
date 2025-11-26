@@ -244,7 +244,7 @@ export const getTrendingYouTubeVideos = async (
  * Get YouTube video metadata using oEmbed API (free, no quota)
  * Falls back to Data API if oEmbed fails
  */
-export const getYouTubeVideoMetadata = async (videoId: string): Promise<{ title: string; description: string; thumbnail?: string } | null> => {
+export const getYouTubeVideoMetadata = async (videoId: string): Promise<{ title: string; description: string; thumbnail?: string; authorName?: string; authorUrl?: string } | null> => {
   try {
     // Use oEmbed API (free, no quota limits)
     const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
@@ -255,6 +255,8 @@ export const getYouTubeVideoMetadata = async (videoId: string): Promise<{ title:
         title: response.data.title || `YouTube Video ${videoId}`,
         description: response.data.author_name ? `By ${response.data.author_name}` : '',
         thumbnail: response.data.thumbnail_url,
+        authorName: response.data.author_name,
+        authorUrl: response.data.author_url,
       };
     }
   } catch (error) {

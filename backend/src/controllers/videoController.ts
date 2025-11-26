@@ -1876,10 +1876,10 @@ export const getLikedVideos = async (
   try {
     const { userId } = req.params;
 
-    // Get all video IDs that this user has liked
+    // Get all likes (both Petflix videos and YouTube videos)
     const { data: likes, error: likesError } = await supabaseAdmin!
       .from('likes')
-      .select('video_id')
+      .select('video_id, youtube_video_id, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -1893,92 +1893,137 @@ export const getLikedVideos = async (
       return;
     }
 
-    const videoIds = likes.map(like => like.video_id);
+    // Separate Petflix video likes and YouTube video likes
+    const petflixVideoIds = likes.filter(like => like.video_id).map(like => like.video_id);
+    const youtubeVideoIds = likes.filter(like => like.youtube_video_id).map(like => like.youtube_video_id);
 
-    // Get the actual video data
-    const { data: videos, error: videosError } = await supabaseAdmin!
-      .from('videos')
-      .select(`
-        id,
-        youtube_video_id,
-        title,
-        description,
-        user_id,
-        original_user_id,
-        created_at,
-        updated_at,
-        view_count,
-        users:user_id (
+    const allVideos: any[] = [];
+
+    // Get Petflix videos
+    if (petflixVideoIds.length > 0) {
+      const { data: videos, error: videosError } = await supabaseAdmin!
+        .from('videos')
+        .select(`
           id,
-          username,
-          email,
-          profile_picture_url
-        ),
-        original_user:original_user_id (
-          id,
-          username,
-          email,
-          profile_picture_url
-        )
-      `)
-      .in('id', videoIds)
-      .order('created_at', { ascending: false });
+          youtube_video_id,
+          title,
+          description,
+          user_id,
+          original_user_id,
+          created_at,
+          updated_at,
+          view_count,
+          users:user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          ),
+          original_user:original_user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          )
+        `)
+        .in('id', petflixVideoIds);
 
-    if (videosError) {
-      res.status(500).json({ error: 'Failed to load liked videos' });
-      return;
-    }
+      if (!videosError && videos) {
+        // Format Petflix videos
+        videos.forEach((video: any) => {
+          let thumbnail: string | null = null;
+          if (video.youtube_video_id) {
+            if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+              thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+            }
+          }
 
-    // Refresh view counts for videos with 0 views (async, don't wait)
-    (videos || []).forEach((video: any) => {
-      if (video.view_count === 0 && video.youtube_video_id) {
-        refreshVideoViewCount(video.id, video.youtube_video_id).catch((err: any) => {
-          // Non-critical, don't affect response
+          const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+          const originalUserData = video.original_user_id 
+            ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+            : null;
+
+          // Find the like date for this video
+          const likeData = likes.find(l => l.video_id === video.id);
+
+          allVideos.push({
+            id: video.id,
+            youtubeVideoId: video.youtube_video_id,
+            title: video.title,
+            description: video.description,
+            userId: video.user_id,
+            createdAt: video.created_at,
+            likedAt: likeData?.created_at || video.created_at,
+            updatedAt: video.updated_at,
+            viewCount: video.view_count || 0,
+            thumbnail: thumbnail,
+            source: 'petflix',
+            user: userData ? {
+              id: userData.id,
+              username: userData.username,
+              email: userData.email,
+              profile_picture_url: userData.profile_picture_url,
+            } : null,
+            originalUser: originalUserData ? {
+              id: originalUserData.id,
+              username: originalUserData.username,
+              email: originalUserData.email,
+              profile_picture_url: originalUserData.profile_picture_url,
+            } : null,
+          });
         });
       }
-    });
+    }
 
-    // Format videos with thumbnails
-    const videosFormatted = (videos || []).map((video: any) => {
-      let thumbnail: string | null = null;
-      if (video.youtube_video_id) {
-        if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
-          thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+    // Get YouTube videos metadata (videos liked directly without being shared)
+    if (youtubeVideoIds.length > 0) {
+      const { getYouTubeVideoMetadata } = await import('../services/youtubeService');
+      
+      // Fetch metadata for YouTube videos in parallel (limit to avoid too many requests)
+      const youtubeVideoPromises = youtubeVideoIds.slice(0, 50).map(async (youtubeVideoId: string) => {
+        try {
+          const metadata = await getYouTubeVideoMetadata(youtubeVideoId);
+          if (!metadata) return null;
+
+          // Find the like date for this video
+          const likeData = likes.find(l => l.youtube_video_id === youtubeVideoId);
+
+          return {
+            id: null, // No Petflix ID - this is a directly liked YouTube video
+            youtubeVideoId: youtubeVideoId,
+            title: metadata.title,
+            description: metadata.description || '',
+            userId: null, // Not shared by any Petflix user
+            createdAt: likeData?.created_at || new Date().toISOString(),
+            likedAt: likeData?.created_at || new Date().toISOString(),
+            updatedAt: likeData?.created_at || new Date().toISOString(),
+            viewCount: 0, // We don't have view count for directly liked videos
+            thumbnail: metadata.thumbnail || `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`,
+            source: 'youtube',
+            // Use author information from oEmbed
+            authorName: metadata.authorName || 'YouTube',
+            authorUrl: metadata.authorUrl || `https://www.youtube.com/watch?v=${youtubeVideoId}`,
+            user: null, // No Petflix user - show original YouTube uploader
+            originalUser: null,
+          };
+        } catch (err) {
+          console.error(`Error fetching metadata for YouTube video ${youtubeVideoId}:`, err);
+          return null;
         }
-      }
-      const displayDate = video.created_at;
+      });
 
-      const userData = Array.isArray(video.users) ? video.users[0] : video.users;
-      const originalUserData = video.original_user_id 
-        ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
-        : null;
+      const youtubeVideos = await Promise.all(youtubeVideoPromises);
+      allVideos.push(...youtubeVideos.filter(v => v !== null));
+    }
 
-      return {
-        id: video.id,
-        youtubeVideoId: video.youtube_video_id,
-        title: video.title,
-        description: video.description,
-        userId: video.user_id,
-        createdAt: displayDate,
-        updatedAt: video.updated_at,
-        viewCount: video.view_count || 0,
-        thumbnail: thumbnail,
-        user: userData ? {
-          id: userData.id,
-          username: userData.username,
-          email: userData.email,
-          profile_picture_url: userData.profile_picture_url,
-        } : null,
-        originalUser: originalUserData ? {
-          id: originalUserData.id,
-          username: originalUserData.username,
-          email: originalUserData.email,
-          profile_picture_url: originalUserData.profile_picture_url,
-        } : null,
-      };
+    // Sort by liked date (most recent first)
+    allVideos.sort((a, b) => {
+      const dateA = new Date(a.likedAt || a.createdAt).getTime();
+      const dateB = new Date(b.likedAt || b.createdAt).getTime();
+      return dateB - dateA;
     });
 
-    res.json({ videos: videosFormatted });
+    res.json({ videos: allVideos });
   } catch (error) {
     console.error('Get liked videos error:', error);
     res.status(500).json({ error: 'Internal server error' });
