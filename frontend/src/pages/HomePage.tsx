@@ -27,7 +27,7 @@ export default function HomePage() {
     {
       id: 'pet-of-the-week',
       title: 'Pet of the Week',
-      buttonText: 'See Winner',
+      buttonText: 'See Videos',
       backgroundImage: '/pet-of-the-week.png'
     },
     {
@@ -39,7 +39,7 @@ export default function HomePage() {
     {
       id: 'rising-star',
       title: 'Rising Star',
-      buttonText: 'See Winner',
+      buttonText: 'See Profile',
       backgroundImage: '/rising-star.png'
     }
   ];
