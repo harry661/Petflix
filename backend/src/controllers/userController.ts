@@ -738,15 +738,27 @@ export const forgotPassword = async (
       console.log('[Password Reset] Reset URL:', resetUrl);
       
       // Send password reset email (PRD requirement)
-      try {
-        const { sendPasswordResetEmail } = await import('../services/emailService');
-        await sendPasswordResetEmail(user.email, user.username, resetUrl);
-        console.log('[Password Reset] ✅ Email sent successfully');
-      } catch (emailError: any) {
-        console.error('[Password Reset] ❌ Failed to send email:', emailError);
-        // Don't fail the request - still return success to prevent email enumeration
-        // But log the error for debugging
-      }
+      // Fire and forget, but ensure the promise is created and started immediately
+      console.log('[Password Reset] Initiating email send...');
+      
+      // Import and start the email promise immediately
+      import('../services/emailService').then(({ sendPasswordResetEmail }) => {
+        sendPasswordResetEmail(user.email, user.username, resetUrl)
+          .then(() => {
+            console.log('[Password Reset] ✅ Email sent successfully');
+          })
+          .catch((emailError: any) => {
+            console.error('[Password Reset] ❌ Failed to send email:', emailError);
+            console.error('[Password Reset] Error details:', {
+              message: emailError?.message,
+              code: emailError?.code,
+              response: emailError?.response,
+              stack: emailError?.stack,
+            });
+          });
+      }).catch((importError: any) => {
+        console.error('[Password Reset] ❌ Failed to import email service:', importError);
+      });
     }
 
     // Always return success to prevent email enumeration
