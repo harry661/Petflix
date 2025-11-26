@@ -570,6 +570,28 @@ export const getVideoById = async (
       ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
       : null;
     
+    // Check if this is a reposted video
+    const isReposted = !!video.original_user_id;
+    
+    // For reposted YouTube videos, fetch YouTube metadata to show original uploader
+    let authorName: string | undefined;
+    let authorUrl: string | undefined;
+    let source: 'petflix' | 'youtube' = 'petflix';
+    
+    if (video.youtube_video_id && isReposted) {
+      // This is a reposted YouTube video - fetch original YouTube uploader info
+      try {
+        const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+        if (metadata?.authorName) {
+          authorName = metadata.authorName;
+          authorUrl = metadata.authorUrl;
+          source = 'youtube';
+        }
+      } catch (err) {
+        // Silently fail - will show Petflix user instead
+      }
+    }
+    
     // Get like status if user is authenticated
     let isLiked = false;
     if (req.user) {
@@ -607,12 +629,18 @@ export const getVideoById = async (
       youtubeVideoId: video.youtube_video_id,
       title: video.title,
       description: video.description,
-      userId: video.user_id,
+      // For reposted videos, userId should be the original sharer, not the reposter
+      userId: isReposted ? (originalUserData?.id || video.user_id) : video.user_id,
       createdAt: displayDate, // Use YouTube publish date if available
       updatedAt: video.updated_at,
       likeCount: likeCount,
       isLiked: isLiked,
-      user: userData ? {
+      source: source,
+      authorName: authorName,
+      authorUrl: authorUrl,
+      // For reposted videos, user should be null (we show originalUser or YouTube uploader instead)
+      // For non-reposted videos, user is the sharer
+      user: isReposted ? undefined : (userData ? {
         id: userData.id,
         username: userData.username,
         email: userData.email,
@@ -620,8 +648,10 @@ export const getVideoById = async (
         bio: (userData as any).bio || null,
         created_at: (userData as any).created_at || video.created_at,
         updated_at: (userData as any).updated_at || video.updated_at,
-      } : undefined,
-      originalUser: originalUserData ? {
+      } : undefined),
+      // For reposted YouTube videos, originalUser is undefined (we show YouTube uploader via authorName)
+      // For reposted Petflix videos, originalUser is the original Petflix sharer
+      originalUser: (source === 'youtube' && authorName) ? undefined : (originalUserData ? {
         id: originalUserData.id,
         username: originalUserData.username,
         email: originalUserData.email,
@@ -629,7 +659,7 @@ export const getVideoById = async (
         bio: (originalUserData as any).bio || null,
         created_at: (originalUserData as any).created_at || video.created_at,
         updated_at: (originalUserData as any).updated_at || video.updated_at,
-      } : undefined,
+      } : undefined),
     } as VideoDetailsResponse);
   } catch (error: any) {
     console.error('Get video error:', error);
