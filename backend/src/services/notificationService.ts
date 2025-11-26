@@ -1,7 +1,8 @@
 import { supabaseAdmin } from '../config/supabase';
+import { sendPushNotification } from './pushNotificationService';
 
 /**
- * Create a notification for a user
+ * Create a notification for a user and send push notification if enabled
  */
 export const createNotification = async (
   userId: string,
@@ -12,6 +13,7 @@ export const createNotification = async (
   relatedVideoId?: string
 ): Promise<void> => {
   try {
+    // Create notification in database
     await supabaseAdmin!
       .from('notifications')
       .insert({
@@ -23,6 +25,31 @@ export const createNotification = async (
         related_video_id: relatedVideoId || null,
         read: false,
       });
+
+    // Send push notification (fire and forget, don't block)
+    const frontendUrl = process.env.FRONTEND_URL || 'https://petflix-weld.vercel.app';
+    const notificationUrl = relatedVideoId 
+      ? `${frontendUrl}/video/${relatedVideoId}`
+      : relatedUserId
+      ? `${frontendUrl}/profile/${relatedUserId}`
+      : frontendUrl;
+
+    sendPushNotification(userId, {
+      title,
+      body: message,
+      icon: `${frontendUrl}/vite.svg`,
+      badge: `${frontendUrl}/vite.svg`,
+      tag: type,
+      url: notificationUrl,
+      data: {
+        type,
+        relatedUserId: relatedUserId || null,
+        relatedVideoId: relatedVideoId || null,
+      },
+    }).catch((err) => {
+      // Silently fail - push notifications are non-critical
+      console.error('[Notification] Error sending push notification:', err);
+    });
   } catch (error) {
     console.error('Error creating notification:', error);
     // Don't throw - notifications are non-critical
@@ -100,6 +127,34 @@ export const notifyFollowersOfVideoShare = async (
         .from('notifications')
         .insert(batch);
     }
+
+    // Send push notifications to all followers (fire and forget)
+    const frontendUrl = process.env.FRONTEND_URL || 'https://petflix-weld.vercel.app';
+    const notificationUrl = `${frontendUrl}/video/${videoId}`;
+    
+    const pushPromises = followersToNotify.map((followerId: string) =>
+      sendPushNotification(followerId, {
+        title: `${ownerUsername} shared a new video`,
+        body: videoTitle.length > 60 ? `${videoTitle.substring(0, 60)}...` : videoTitle,
+        icon: `${frontendUrl}/vite.svg`,
+        badge: `${frontendUrl}/vite.svg`,
+        tag: 'video_shared',
+        url: notificationUrl,
+        data: {
+          type: 'video_shared',
+          relatedUserId: videoOwnerId,
+          relatedVideoId: videoId,
+        },
+      }).catch((err) => {
+        // Silently fail - push notifications are non-critical
+        console.error(`[Notification] Error sending push to follower ${followerId}:`, err);
+      })
+    );
+
+    // Don't await - let push notifications send in background
+    Promise.allSettled(pushPromises).catch(() => {
+      // Ignore errors
+    });
   } catch (error) {
     console.error('Error notifying followers of video share:', error);
     // Don't throw - notifications are non-critical
@@ -144,6 +199,24 @@ export const notifyUserOfNewFollower = async (
       console.error('Error creating follow notification:', notifError);
     } else {
       console.log(`✅ Created follow notification for user ${followedUserId} from ${followerUsername}`);
+      
+      // Send push notification (fire and forget)
+      const frontendUrl = process.env.FRONTEND_URL || 'https://petflix-weld.vercel.app';
+      sendPushNotification(followedUserId, {
+        title: `${followerUsername} started following you`,
+        body: `${followerUsername} is now following you. Check out their profile!`,
+        icon: `${frontendUrl}/vite.svg`,
+        badge: `${frontendUrl}/vite.svg`,
+        tag: 'follow',
+        url: `${frontendUrl}/profile/${followerId}`,
+        data: {
+          type: 'follow',
+          relatedUserId: followerId,
+        },
+      }).catch((err) => {
+        // Silently fail - push notifications are non-critical
+        console.error('[Notification] Error sending push notification:', err);
+      });
     }
   } catch (error) {
     console.error('Error notifying user of new follower:', error);

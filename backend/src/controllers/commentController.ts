@@ -7,6 +7,7 @@ import {
   ErrorResponse,
 } from '../types';
 import { sanitizeInput } from '../middleware/validation';
+import { createNotification } from '../services/notificationService';
 
 /**
  * Create a comment
@@ -53,6 +54,40 @@ export const createComment = async (
       console.error('Error creating comment:', insertError);
       res.status(500).json({ error: 'Failed to create comment' });
       return;
+    }
+
+    // Get video owner and commenter info for notification
+    const { data: videoData } = await supabaseAdmin!
+      .from('videos')
+      .select('user_id, title')
+      .eq('id', videoId)
+      .single();
+
+    const { data: commenterData } = await supabaseAdmin!
+      .from('users')
+      .select('username')
+      .eq('id', req.user!.userId)
+      .single();
+
+    // Notify video owner if they're not the one commenting (async, don't wait)
+    if (videoData && videoData.user_id !== req.user!.userId) {
+      const commenterUsername = commenterData?.username || 'Someone';
+      const videoTitle = videoData.title || 'your video';
+      const commentPreview = sanitizedText.length > 60 
+        ? `${sanitizedText.substring(0, 60)}...` 
+        : sanitizedText;
+
+      createNotification(
+        videoData.user_id,
+        'comment',
+        `${commenterUsername} commented on your video`,
+        commentPreview,
+        req.user!.userId,
+        videoId
+      ).catch((err) => {
+        console.error('Error creating comment notification:', err);
+        // Non-critical error, don't affect response
+      });
     }
 
     res.status(201).json({

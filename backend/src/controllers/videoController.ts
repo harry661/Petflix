@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase';
 import { authenticate } from '../middleware/auth';
-import { notifyFollowersOfVideoShare } from '../services/notificationService';
+import { notifyFollowersOfVideoShare, createNotification } from '../services/notificationService';
 import {
   VideoCreationRequest,
   VideoResponse,
@@ -1151,6 +1151,13 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
       return;
     }
 
+    // Get video owner info for notification
+    const { data: videoData } = await supabaseAdmin!
+      .from('videos')
+      .select('user_id, title')
+      .eq('id', id)
+      .single();
+
     // Create like (trigger will update like_count)
     const { error: likeError, data: likeData } = await supabaseAdmin!
       .from('likes')
@@ -1169,6 +1176,31 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
         details: likeError.message || likeError.code || 'Unknown error'
       });
       return;
+    }
+
+    // Notify video owner if they're not the one liking (async, don't wait)
+    if (videoData && videoData.user_id !== userId) {
+      const { data: likerData } = await supabaseAdmin!
+        .from('users')
+        .select('username')
+        .eq('id', userId)
+        .single();
+
+      const likerUsername = likerData?.username || 'Someone';
+      const videoTitle = videoData.title || 'your video';
+
+      // Create notification (fire and forget)
+      createNotification(
+        videoData.user_id,
+        'like',
+        `${likerUsername} liked your video`,
+        `${likerUsername} liked "${videoTitle}"`,
+        userId,
+        id
+      ).catch((err) => {
+        console.error('Error creating like notification:', err);
+        // Non-critical error, don't affect response
+      });
     }
 
     res.json({ message: 'Video liked successfully' });
