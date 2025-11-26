@@ -1001,8 +1001,8 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
             {/* Username - clickable link */}
             {/* For YouTube videos, show author name; for Petflix videos, show user's username */}
             {(() => {
-              // For YouTube videos with author info, show YouTube channel name
-              if (video.source === 'youtube' && video.authorName && !video.user) {
+              // For YouTube videos with author info (liked directly or reposted), show YouTube channel name
+              if (video.source === 'youtube' && video.authorName) {
                 return (
                   <div style={{ marginBottom: '2px' }}>
                     <a

@@ -946,7 +946,8 @@ export const getVideosByUser = async (
     });
 
     // Format videos with thumbnails (generate directly from video IDs, don't use API)
-    const videosFormatted = (videos || []).map((video: any) => {
+    // For reposted YouTube videos, fetch YouTube metadata to show original uploader
+    const videosFormatted = await Promise.all((videos || []).map(async (video: any) => {
       // Generate thumbnail URL directly from YouTube video ID
       // This is more reliable than using the API which may hit quota limits
       let thumbnail: string | null = null;
@@ -964,6 +965,25 @@ export const getVideosByUser = async (
         ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
         : null;
 
+      // For reposted YouTube videos, fetch YouTube metadata to show original uploader
+      let authorName: string | undefined;
+      let authorUrl: string | undefined;
+      let source: 'petflix' | 'youtube' = 'petflix';
+      
+      if (video.youtube_video_id && video.original_user_id) {
+        // This is a reposted YouTube video - fetch original YouTube uploader info
+        try {
+          const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+          if (metadata?.authorName) {
+            authorName = metadata.authorName;
+            authorUrl = metadata.authorUrl;
+            source = 'youtube';
+          }
+        } catch (err) {
+          // Silently fail - will show Petflix user instead
+        }
+      }
+
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
@@ -974,20 +994,25 @@ export const getVideosByUser = async (
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
         thumbnail: thumbnail,
+        source: source,
+        authorName: authorName,
+        authorUrl: authorUrl,
         user: userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
         } : null,
-        originalUser: originalUserData ? {
+        // For reposted YouTube videos, originalUser is null (we show YouTube uploader instead)
+        // For reposted Petflix videos, originalUser is the original Petflix sharer
+        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
           profile_picture_url: originalUserData.profile_picture_url,
-        } : null,
+        } : null),
       };
-    });
+    }));
 
     res.json({ videos: videosFormatted });
   } catch (error) {
