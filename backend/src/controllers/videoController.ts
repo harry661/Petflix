@@ -1735,7 +1735,10 @@ export const repostVideo = async (
     const { id } = req.params;
 
     // Check if this is a YouTube video ID (starts with "youtube_" or is a YouTube video ID format)
-    const isYouTubeId = id.startsWith('youtube_') || /^[a-zA-Z0-9_-]{11}$/.test(id);
+    // Note: YouTube video IDs are exactly 11 characters, but we should be careful not to match UUIDs
+    // UUIDs are 36 characters, so 11-character IDs are likely YouTube IDs
+    // However, we should also check if it's a valid UUID format first
+    const isYouTubeId = id.startsWith('youtube_') || (/^[a-zA-Z0-9_-]{11}$/.test(id) && !id.includes('-') && id.length === 11);
     
     let originalVideo: any;
     let originalUserId: string;
