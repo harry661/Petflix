@@ -175,6 +175,9 @@ export default function VideoDetailPage() {
       
       // Don't load comments for YouTube videos (they don't exist in Petflix)
       setComments([]);
+      
+      // Load recommended videos for YouTube videos too
+      loadRecommendedVideos();
     } catch (err: any) {
       console.error('Error loading YouTube video:', err);
       setError('Failed to load YouTube video');
