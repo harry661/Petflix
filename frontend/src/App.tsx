@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { SearchProvider } from './context/SearchContext';
+import { ToastProvider } from './components/ToastContainer';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
@@ -75,11 +77,15 @@ function AppContent() {
 
 function App() {
   return (
-    <SearchProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </SearchProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <SearchProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </SearchProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

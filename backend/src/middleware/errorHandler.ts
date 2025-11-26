@@ -8,10 +8,33 @@ export const errorHandler = (
   next: NextFunction
 ) => {
   console.error('Error:', err);
+  console.error('Request path:', req.path);
+  console.error('Request method:', req.method);
 
   // Default error
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Something went wrong!';
+  let statusCode = err.statusCode || err.status || 500;
+  let message = err.message || 'Something went wrong!';
+
+  // Handle specific error types
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+    message = err.message || 'Validation error';
+  } else if (err.name === 'UnauthorizedError' || err.name === 'JsonWebTokenError') {
+    statusCode = 401;
+    message = 'Authentication required';
+  } else if (err.code === 'PGRST116' || err.code === 'PGRST205') {
+    // Supabase/PostgREST errors
+    statusCode = 404;
+    message = err.message || 'Resource not found';
+  } else if (err.code === '23505') {
+    // PostgreSQL unique constraint violation
+    statusCode = 409;
+    message = 'This resource already exists';
+  } else if (err.code === '23503') {
+    // PostgreSQL foreign key violation
+    statusCode = 400;
+    message = 'Invalid reference';
+  }
 
   const errorResponse: ErrorResponse = {
     error: message,

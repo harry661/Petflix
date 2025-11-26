@@ -26,14 +26,15 @@ import {
   getUserNotificationPreference,
 } from '../controllers/notificationController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
+import { authRateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
-// Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+// Public routes with rate limiting for auth endpoints
+router.post('/register', authRateLimiter, register);
+router.post('/login', authRateLimiter, login);
+router.post('/forgot-password', authRateLimiter, forgotPassword);
+router.post('/reset-password', authRateLimiter, resetPassword);
 router.get('/search', searchUsers);
 router.get('/most-popular-this-week', getMostPopularUserThisWeek);
 

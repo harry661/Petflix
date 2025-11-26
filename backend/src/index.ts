@@ -3,12 +3,16 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
+import { securityHeaders } from './middleware/securityHeaders';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
+// Security headers (applied to all routes)
+app.use(securityHeaders);
 
 // Middleware
 app.use(cors({

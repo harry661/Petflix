@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
 import VideoCard from '../components/VideoCard';
+import { VideoGridSkeleton } from '../components/LoadingSkeleton';
 import { Dog, Cat, Bird, Rabbit, Fish } from 'lucide-react';
 
 import { API_URL } from '../config/api';
@@ -353,10 +354,15 @@ export default function HomePage() {
           <div style={{
             minHeight: '100vh',
             backgroundColor: '#0F0F0F',
-            padding: '40px',
-            textAlign: 'center'
+            padding: '40px'
           }}>
-            <p style={{ color: '#ffffff' }}>Loading...</p>
+            <div className="content-container" style={{ 
+              maxWidth: '100%',
+              margin: '0 auto', 
+              padding: '0 40px',
+            }}>
+              <VideoGridSkeleton count={10} />
+            </div>
           </div>
         );
       }

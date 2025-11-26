@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ArrowUpDown, X, Clock } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
+import { VideoGridSkeleton } from '../components/LoadingSkeleton';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 import Dropdown from '../components/Dropdown';
 
 import { API_URL } from '../config/api';
 
 export default function SearchPage() {
   const { isAuthenticated } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'relevance');
@@ -33,11 +36,18 @@ export default function SearchPage() {
       
       if (response.ok) {
         setResults(data.videos || []);
+        if (data.videos && data.videos.length === 0) {
+          showError('No videos found. Try a different search term.');
+        }
       } else {
-        setError(data.error || 'Search failed');
+        const errorMsg = data.error || 'Search failed';
+        setError(errorMsg);
+        showError(errorMsg);
       }
     } catch (err: any) {
-      setError('Failed to search videos. Please try again.');
+      const errorMsg = 'Failed to search videos. Please try again.';
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -93,9 +103,10 @@ export default function SearchPage() {
 
       if (response.ok) {
         setSearchHistory([]);
+        showSuccess('Search history cleared');
       }
     } catch (err) {
-      // Silently fail
+      showError('Failed to clear search history');
     }
   };
 
@@ -321,7 +332,7 @@ export default function SearchPage() {
         )}
 
         {/* Results */}
-        {loading && <p style={{ color: '#ffffff' }}>Searching...</p>}
+        {loading && <VideoGridSkeleton count={10} />}
         
         {!loading && results.length === 0 && searchQuery && (
           <p style={{ color: '#ffffff', textAlign: 'center', padding: '40px' }}>
