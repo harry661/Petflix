@@ -611,7 +611,7 @@ export default function VideoDetailPage() {
   };
 
   const handleReportVideo = async () => {
-    if (!id || !reportReason.trim()) {
+    if (!reportReason.trim()) {
       return;
     }
 
@@ -623,7 +623,28 @@ export default function VideoDetailPage() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/videos/${id}/report`, {
+      // If this is a YouTube video (no Petflix ID), share it first
+      let videoId = id;
+      if (video?.source === 'youtube' && video?.youtubeVideoId && !videoId) {
+        const sharedId = await ensureYouTubeVideoShared(video.youtubeVideoId);
+        if (sharedId) {
+          videoId = sharedId;
+          // Update the URL and reload to show the Petflix version
+          window.location.href = `/video/${sharedId}`;
+          return;
+        } else {
+          alert('Failed to share video. Please try again.');
+          setReporting(false);
+          return;
+        }
+      }
+
+      if (!videoId) {
+        setReporting(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/v1/videos/${videoId}/report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -790,7 +811,7 @@ export default function VideoDetailPage() {
             if (deleteResponse.ok) {
               setIsReposted(false);
               window.dispatchEvent(new CustomEvent('video-reposted', { 
-                detail: { videoId: id, isReposted: false } 
+                detail: { videoId: videoId, isReposted: false } 
               }));
             }
           }
@@ -1505,7 +1526,24 @@ export default function VideoDetailPage() {
                     )}
                   </div>
                   <button
-                    onClick={() => setShowAddToPlaylistModal(true)}
+                    onClick={async () => {
+                      if (!isAuthenticated) return;
+                      
+                      // If this is a YouTube video (no Petflix ID), share it first
+                      if (video?.source === 'youtube' && video?.youtubeVideoId && !video.id) {
+                        const sharedId = await ensureYouTubeVideoShared(video.youtubeVideoId);
+                        if (sharedId) {
+                          // Update the URL and reload to show the Petflix version
+                          window.location.href = `/video/${sharedId}`;
+                          return;
+                        } else {
+                          alert('Failed to share video. Please try again.');
+                          return;
+                        }
+                      }
+                      
+                      setShowAddToPlaylistModal(true);
+                    }}
                     disabled={!isAuthenticated}
                     style={{
                       padding: '14px 24px',
@@ -2076,7 +2114,7 @@ export default function VideoDetailPage() {
       )}
 
       {/* Add to Playlist Modal */}
-      {video && (
+      {video && video.id && (
         <AddToPlaylistModal
           videoId={video.id}
           isOpen={showAddToPlaylistModal}
