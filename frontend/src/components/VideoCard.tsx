@@ -8,27 +8,29 @@ import { API_URL } from '../config/api';
 
 interface VideoCardProps {
   video: {
-    id: string;
+    id?: string | null; // Can be null for YouTube videos not yet shared
     youtubeVideoId?: string;
     title: string;
     description?: string;
     thumbnail?: string;
-    userId?: string; // User who shared/reposted this video
+    userId?: string | null; // User who shared/reposted this video (null for YouTube videos)
     user?: {
       id: string;
       username: string;
       profile_picture_url?: string | null;
-    };
+    } | null;
     originalUser?: {
       id: string;
       username: string;
       profile_picture_url?: string | null;
-    };
+    } | null;
     createdAt?: string;
     viewCount?: number | string;
     duration?: string; // Format: "MM:SS" or "H:MM:SS"
+    source?: 'petflix' | 'youtube'; // Indicates if video is from Petflix or YouTube search
+    channelTitle?: string; // YouTube channel name
   };
-  onVideoClick?: (videoId: string) => void; // Optional custom click handler
+  onVideoClick?: (videoId: string | null, youtubeVideoId?: string) => void; // Optional custom click handler
 }
 
 function VideoCard({ video, onVideoClick }: VideoCardProps) {
@@ -46,11 +48,15 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Check if this is a YouTube video (not yet shared on Petflix)
+  const isYouTubeVideo = video.source === 'youtube' || (!video.id && video.youtubeVideoId);
+  
   // Check if current user owns this video (can delete it)
   // video.userId is the person who shared/reposted it - if it matches current user, they can delete
   // Note: We only check video.userId, not originalUser, because you can only delete videos YOU shared/reposted
   // CRITICAL: This must be a boolean, not a truthy check, to ensure proper rendering
-  const canDelete = !!(isAuthenticated && user && video.userId === user.id);
+  // YouTube videos (source === 'youtube') don't have a userId, so canDelete will be false
+  const canDelete = !!(isAuthenticated && user && video.userId === user.id && !isYouTubeVideo);
 
   // Generate YouTube thumbnail URL if not provided
   // Use hqdefault as default (more reliable than maxresdefault)
@@ -129,7 +135,8 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
     // Reset canRepost state
     setCanRepost(null);
     
-    if (!isAuthenticated || !user || !video.id) {
+    // YouTube videos can't be reposted (they need to be shared first)
+    if (!isAuthenticated || !user || !video.id || isYouTubeVideo) {
       setCanRepost(false);
       return;
     }
@@ -204,10 +211,22 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
     if ((e.target as HTMLElement).closest('.video-menu')) {
       return;
     }
-    // Use custom click handler if provided, otherwise use default navigation
+    
+    // Use custom click handler if provided
     if (onVideoClick) {
-      onVideoClick(video.id);
-    } else {
+      onVideoClick(video.id || null, video.youtubeVideoId);
+      return;
+    }
+    
+    // If it's a YouTube video (no Petflix id), open YouTube directly
+    if (isYouTubeVideo && video.youtubeVideoId) {
+      // Open YouTube video in new tab
+      window.open(`https://www.youtube.com/watch?v=${video.youtubeVideoId}`, '_blank');
+      return;
+    }
+    
+    // Default: navigate to video detail page (Petflix videos only)
+    if (video.id) {
       navigate(`/video/${video.id}`);
     }
   };
@@ -750,8 +769,31 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
       <div style={{ padding: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           {/* User profile picture - clickable link */}
-          {/* For reposted videos, show original user's profile */}
+          {/* For YouTube videos, show channel info; for Petflix videos, show user profile */}
           {(() => {
+            if (isYouTubeVideo) {
+              // YouTube videos - show channel name
+              return (
+                <div style={{ flexShrink: 0 }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: 'bold'
+                  }}>
+                    YT
+                  </div>
+                </div>
+              );
+            }
+            
+            // Petflix videos - show user profile
             const displayUser = video.originalUser || video.user;
             return displayUser?.username ? (
               <Link
@@ -807,22 +849,44 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
                 {video.title}
               </h3>
 
-              {/* Action menu (3 dots) */}
-              <div
-                ref={menuRef}
-                className="video-menu"
-                style={{ position: 'relative', flexShrink: 0 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu(!showMenu);
-                }}
-              >
-                <MoreVertical
-                  size={20}
-                  color="#ffffff"
-                  style={{ cursor: 'pointer' }}
-                />
-                {showMenu && (
+              {/* Action menu (3 dots) - only show for Petflix videos */}
+              {!isYouTubeVideo && (
+                <div
+                  ref={menuRef}
+                  className="video-menu"
+                  style={{ position: 'relative', flexShrink: 0 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(!showMenu);
+                  }}
+                >
+                  <MoreVertical
+                    size={20}
+                    color="#ffffff"
+                    style={{ cursor: 'pointer' }}
+                  />
+                </div>
+              )}
+              
+              {/* YouTube badge for YouTube videos */}
+              {isYouTubeVideo && (
+                <div style={{
+                  flexShrink: 0,
+                  padding: '4px 8px',
+                  backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  color: '#ffffff',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  YouTube
+                </div>
+              )}
+              
+              {/* Menu dropdown - only show for Petflix videos */}
+              {!isYouTubeVideo && showMenu && (
                   <div style={{
                     position: 'absolute',
                     top: '100%',
@@ -981,9 +1045,26 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
               </div>
             </div>
 
-            {/* Username - clickable link */}
-            {/* For reposted videos, show original user's username */}
+            {/* Username/Channel - clickable link */}
+            {/* For YouTube videos, show channel name; for Petflix videos, show username */}
             {(() => {
+              if (isYouTubeVideo && video.channelTitle) {
+                return (
+                  <div style={{
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: '14px',
+                    marginTop: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <span>{video.channelTitle}</span>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px' }}>• YouTube</span>
+                  </div>
+                );
+              }
+              
+              // Petflix videos - show username
               const displayUser = video.originalUser || video.user;
               return displayUser?.username && (
                 <div style={{ marginBottom: '2px' }}>

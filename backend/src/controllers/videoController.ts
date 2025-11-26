@@ -10,7 +10,8 @@ import {
   ErrorResponse,
 } from '../types';
 // YouTube URL validation is handled in youtubeService
-import { getYouTubeVideoMetadata, getYouTubeVideoDetails } from '../services/youtubeService';
+import { getYouTubeVideoMetadata, getYouTubeVideoDetails, searchYouTubeVideos } from '../services/youtubeService';
+import { getCachedSearch, setCachedSearch } from '../services/searchCache';
 
 /**
  * Search for videos (YouTube + Petflix shared videos)
@@ -255,14 +256,87 @@ export const searchVideos = async (
       };
     });
 
-    // Only show videos shared by Petflix users (no YouTube videos)
-    const allVideos = sharedVideosFormatted;
+    // Combine Petflix videos with YouTube search results
+    let allVideos = sharedVideosFormatted;
+    let youtubeVideos: any[] = [];
+    
+    // Only search YouTube if:
+    // 1. We have fewer results than requested (need more content)
+    // 2. OR if no Petflix results at all (user searching for something new)
+    const needsMoreResults = allVideos.length < limit;
+    const hasNoResults = allVideos.length === 0;
+    
+    if ((needsMoreResults || hasNoResults) && process.env.YOUTUBE_API_KEY) {
+      try {
+        // Check cache first to avoid API calls
+        const cachedResults = getCachedSearch(query);
+        
+        if (cachedResults) {
+          console.log(`[Search] Using cached YouTube results for: "${query}"`);
+          youtubeVideos = cachedResults;
+        } else {
+          // Calculate how many YouTube results we need
+          const youtubeLimit = Math.min(limit - allVideos.length, 10); // Max 10 from YouTube per search
+          
+          if (youtubeLimit > 0) {
+            console.log(`[Search] Searching YouTube for: "${query}" (need ${youtubeLimit} more results)`);
+            
+            const youtubeResults = await searchYouTubeVideos(query, youtubeLimit);
+            
+            // Format YouTube videos to match our video format
+            youtubeVideos = youtubeResults.videos.map((video: any) => ({
+              id: null, // YouTube videos don't have Petflix IDs
+              youtubeVideoId: video.id,
+              title: video.title,
+              description: video.description || '',
+              userId: null,
+              createdAt: video.publishedAt,
+              updatedAt: video.publishedAt,
+              viewCount: parseInt(video.viewCount || '0'),
+              tags: [], // YouTube videos don't have tags in our system
+              user: null, // YouTube videos aren't shared by Petflix users
+              originalUser: null,
+              thumbnail: video.thumbnail,
+              source: 'youtube', // Mark as YouTube source
+              channelTitle: video.channelTitle,
+              likeCount: parseInt(video.likeCount || '0'),
+              commentCount: parseInt(video.commentCount || '0'),
+            }));
+            
+            // Cache the results
+            setCachedSearch(query, youtubeVideos);
+            console.log(`[Search] Cached ${youtubeVideos.length} YouTube results for: "${query}"`);
+          }
+        }
+      } catch (youtubeError: any) {
+        // Log error but don't fail the request - database results are still valid
+        console.error('[Search] YouTube search error:', youtubeError.message);
+        
+        // Check if it's a quota error
+        if (youtubeError.message?.includes('quota') || youtubeError.message?.includes('quotaExceeded')) {
+          console.warn('[Search] YouTube API quota exceeded - using database results only');
+        }
+        
+        // Continue with just database results
+      }
+    }
+    
+    // Combine results: Petflix videos first, then YouTube videos
+    // This prioritizes content already shared on the platform
+    allVideos = [...allVideos, ...youtubeVideos];
+    
+    // Limit to requested page size
+    allVideos = allVideos.slice(0, limit);
 
     res.json({
       videos: allVideos,
       total: allVideos.length,
       page,
       pageSize: limit,
+      sources: {
+        petflix: sharedVideosFormatted.length,
+        youtube: youtubeVideos.length,
+      },
     });
   } catch (error) {
     console.error('Search videos error:', error);
