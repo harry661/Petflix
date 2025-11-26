@@ -984,12 +984,18 @@ export const getVideosByUser = async (
         }
       }
 
+      // For reposted videos, we want to show the original uploader, not the reposter
+      // user_id is the reposter, original_user_id is the original Petflix sharer
+      // For YouTube videos, we show the original YouTube uploader
+      const isReposted = !!video.original_user_id;
+      
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
         title: video.title,
         description: video.description,
-        userId: video.user_id,
+        // For reposted videos, userId should be the original sharer, not the reposter
+        userId: isReposted ? (originalUserData?.id || video.user_id) : video.user_id,
         createdAt: displayDate,
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
@@ -997,13 +1003,15 @@ export const getVideosByUser = async (
         source: source,
         authorName: authorName,
         authorUrl: authorUrl,
-        user: userData ? {
+        // For reposted videos, user should be null (we show originalUser or YouTube uploader instead)
+        // For non-reposted videos, user is the sharer
+        user: isReposted ? null : (userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
-        } : null,
-        // For reposted YouTube videos, originalUser is null (we show YouTube uploader instead)
+        } : null),
+        // For reposted YouTube videos, originalUser is null (we show YouTube uploader via authorName)
         // For reposted Petflix videos, originalUser is the original Petflix sharer
         originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
           id: originalUserData.id,
