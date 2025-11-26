@@ -1096,7 +1096,6 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
