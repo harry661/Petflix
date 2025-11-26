@@ -267,12 +267,21 @@ export const searchVideos = async (
     const hasNoResults = allVideos.length === 0;
     
     // Log YouTube API key status for debugging
+    console.log('[Search] YouTube API key status:', {
+      hasKey: !!process.env.YOUTUBE_API_KEY,
+      keyPrefix: process.env.YOUTUBE_API_KEY ? process.env.YOUTUBE_API_KEY.substring(0, 10) + '...' : 'NOT SET',
+      petflixResults: allVideos.length,
+      requestedLimit: limit,
+      needsMoreResults,
+      hasNoResults,
+    });
+    
     if (!process.env.YOUTUBE_API_KEY) {
-      console.log('[Search] YouTube API key not configured - skipping YouTube search');
+      console.log('[Search] ⚠️ YouTube API key not configured - skipping YouTube search');
     }
     
     if ((needsMoreResults || hasNoResults) && process.env.YOUTUBE_API_KEY) {
-      console.log(`[Search] Attempting YouTube search - needsMoreResults: ${needsMoreResults}, hasNoResults: ${hasNoResults}`);
+      console.log(`[Search] ✅ Attempting YouTube search - needsMoreResults: ${needsMoreResults}, hasNoResults: ${hasNoResults}, query: "${query}"`);
       try {
         // Check cache first to avoid API calls
         const cachedResults = getCachedSearch(query);
