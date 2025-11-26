@@ -265,8 +265,16 @@ export default function HomePage() {
           const searchData = await searchResponse.json();
           if (searchData.videos && searchData.videos.length > 0) {
             // Filter out videos that are already in trending (to avoid duplicates)
-            const trendingVideoIds = new Set(trendingVideos.map(v => v.id));
-            const filtered = searchData.videos.filter((v: any) => !trendingVideoIds.has(v.id));
+            // Handle both Petflix videos (with id) and YouTube videos (with youtubeVideoId)
+            const trendingVideoIds = new Set(trendingVideos.map(v => v.id).filter(id => id != null));
+            const trendingYouTubeIds = new Set(trendingVideos.map(v => v.youtubeVideoId).filter(id => id != null));
+            const filtered = searchData.videos.filter((v: any) => {
+              // Skip if it's a Petflix video that's already in trending
+              if (v.id && trendingVideoIds.has(v.id)) return false;
+              // Skip if it's a YouTube video that's already in trending
+              if (v.youtubeVideoId && trendingYouTubeIds.has(v.youtubeVideoId)) return false;
+              return true;
+            });
             setRecommendedVideos(filtered.slice(0, 10));
             setRecommendedLoading(false);
             return;
@@ -281,8 +289,16 @@ export default function HomePage() {
         const allRecentVideos = recentData.videos || [];
         
         // Filter out videos that are already in trending (to avoid duplicates)
-        const trendingVideoIds = new Set(trendingVideos.map(v => v.id));
-        const filtered = allRecentVideos.filter((v: any) => !trendingVideoIds.has(v.id));
+        // Handle both Petflix videos (with id) and YouTube videos (with youtubeVideoId)
+        const trendingVideoIds = new Set(trendingVideos.map(v => v.id).filter(id => id != null));
+        const trendingYouTubeIds = new Set(trendingVideos.map(v => v.youtubeVideoId).filter(id => id != null));
+        const filtered = allRecentVideos.filter((v: any) => {
+          // Skip if it's a Petflix video that's already in trending
+          if (v.id && trendingVideoIds.has(v.id)) return false;
+          // Skip if it's a YouTube video that's already in trending
+          if (v.youtubeVideoId && trendingYouTubeIds.has(v.youtubeVideoId)) return false;
+          return true;
+        });
         
         setRecommendedVideos(filtered.slice(0, 10));
       } else {
@@ -753,7 +769,7 @@ export default function HomePage() {
                 transition: 'opacity 0.2s ease'
               }}>
                 {displayVideos.map((video) => (
-                  <VideoCard key={video.id} video={video} />
+                  <VideoCard key={video.id || `youtube_${video.youtubeVideoId}`} video={video} />
                 ))}
               </div>
             </div>
