@@ -266,7 +266,13 @@ export const searchVideos = async (
     const needsMoreResults = allVideos.length < limit;
     const hasNoResults = allVideos.length === 0;
     
+    // Log YouTube API key status for debugging
+    if (!process.env.YOUTUBE_API_KEY) {
+      console.log('[Search] YouTube API key not configured - skipping YouTube search');
+    }
+    
     if ((needsMoreResults || hasNoResults) && process.env.YOUTUBE_API_KEY) {
+      console.log(`[Search] Attempting YouTube search - needsMoreResults: ${needsMoreResults}, hasNoResults: ${hasNoResults}`);
       try {
         // Check cache first to avoid API calls
         const cachedResults = getCachedSearch(query);
