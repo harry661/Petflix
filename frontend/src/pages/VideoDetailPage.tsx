@@ -42,9 +42,14 @@ export default function VideoDetailPage() {
 
   useEffect(() => {
     if (id) {
-      loadVideo();
-      loadComments();
-      checkPlaylistContext();
+      // Check if this is a YouTube video (id starts with "youtube_")
+      if (id.startsWith('youtube_')) {
+        loadYouTubeVideo(id.replace('youtube_', ''));
+      } else {
+        loadVideo();
+        loadComments();
+        checkPlaylistContext();
+      }
     }
   }, [id]);
 
@@ -125,6 +130,56 @@ export default function VideoDetailPage() {
       }
     } catch (err) {
       // Silently fail - recommendations are optional
+    }
+  };
+
+  const loadYouTubeVideo = async (youtubeVideoId: string) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Use YouTube oEmbed API (free, no quota) to get video metadata
+      const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${youtubeVideoId}&format=json`;
+      const oembedResponse = await fetch(oembedUrl);
+      
+      if (!oembedResponse.ok) {
+        setError('Failed to load YouTube video');
+        return;
+      }
+      
+      const oembedData = await oembedResponse.json();
+      
+      // Format video data to match Petflix video structure
+      const videoData = {
+        id: null,
+        youtubeVideoId: youtubeVideoId,
+        title: oembedData.title,
+        description: '', // oEmbed doesn't provide description
+        thumbnail: oembedData.thumbnail_url,
+        userId: null,
+        user: null,
+        originalUser: null,
+        createdAt: new Date().toISOString(), // oEmbed doesn't provide publish date
+        viewCount: 0, // oEmbed doesn't provide view count
+        source: 'youtube',
+        authorName: oembedData.author_name,
+        authorUrl: oembedData.author_url,
+      };
+      
+      setVideo(videoData);
+      setIsLiked(false); // YouTube videos can't be liked on Petflix
+      setLikeCount(0);
+      setEditTitle(videoData.title);
+      setEditDescription(videoData.description);
+      setIsReposted(false);
+      
+      // Don't load comments for YouTube videos (they don't exist in Petflix)
+      setComments([]);
+    } catch (err: any) {
+      console.error('Error loading YouTube video:', err);
+      setError('Failed to load YouTube video');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -922,37 +977,83 @@ export default function VideoDetailPage() {
                   )}
                 </div>
 
-                {(video.user || video.originalUser) && (() => {
-                  const displayUser = video.originalUser || video.user;
-                  return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                      <Link
-                        to={`/user/${displayUser.username}`}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          textDecoration: 'none',
-                          color: 'rgba(255, 255, 255, 0.7)',
-                          fontSize: '14px',
-                          transition: 'opacity 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                      >
-                        <ProfilePicture
-                          src={displayUser.profile_picture_url}
+                {(() => {
+                  // For YouTube videos, show channel info
+                  if (video.source === 'youtube' && video.authorName) {
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                        <a
+                          href={video.authorUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            textDecoration: 'none',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: '14px',
+                            transition: 'opacity 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                        >
+                          <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ffffff',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            flexShrink: 0
+                          }}>
+                            YT
+                          </div>
+                          <span>{video.authorName}</span>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px' }}>• YouTube</span>
+                        </a>
+                      </div>
+                    );
+                  }
+                  
+                  // For Petflix videos, show user info
+                  if (video.user || video.originalUser) {
+                    const displayUser = video.originalUser || video.user;
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                        <Link
+                          to={`/user/${displayUser.username}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            textDecoration: 'none',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: '14px',
+                            transition: 'opacity 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                        >
+                          <ProfilePicture
+                            src={displayUser.profile_picture_url}
                           alt={displayUser.username}
                           size={24}
                           fallbackChar={displayUser.username?.charAt(0).toUpperCase() || 'U'}
                           style={{ cursor: 'pointer' }}
                         />
-                        <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                          Shared by <strong style={{ color: '#ffffff' }}>{displayUser.username}</strong>
-                        </span>
-                      </Link>
-                    </div>
-                  );
+                          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                            Shared by <strong style={{ color: '#ffffff' }}>{displayUser.username}</strong>
+                          </span>
+                        </Link>
+                      </div>
+                    );
+                  }
+                  return null;
                 })()}
 
                 {video.description && (

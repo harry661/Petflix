@@ -497,9 +497,9 @@ export default function Navigation() {
                       <div
                         key={video.id || video.youtubeVideoId || `video-${Math.random()}`}
                         onClick={() => {
-                          // For YouTube videos, open YouTube directly
+                          // For YouTube videos, navigate to Petflix video page with YouTube ID
                           if (isYouTubeVideo && video.youtubeVideoId) {
-                            window.open(`https://www.youtube.com/watch?v=${video.youtubeVideoId}`, '_blank');
+                            navigate(`/video/youtube_${video.youtubeVideoId}`);
                           } else if (video.id) {
                             // For Petflix videos, navigate to detail page
                             navigate(`/video/${video.id}`);

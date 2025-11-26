@@ -215,9 +215,9 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
       return;
     }
     
-    // For YouTube videos, open YouTube directly
+    // For YouTube videos, navigate to Petflix video page with YouTube ID
     if (isYouTubeVideo && video.youtubeVideoId) {
-      window.open(`https://www.youtube.com/watch?v=${video.youtubeVideoId}`, '_blank');
+      navigate(`/video/youtube_${video.youtubeVideoId}`);
       return;
     }
     
