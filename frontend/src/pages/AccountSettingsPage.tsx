@@ -296,12 +296,19 @@ export default function AccountSettingsPage() {
   };
 
   const handleSaveProfile = async () => {
+    await handleSaveProfileWithData(formData);
+  };
+
+  const handleSaveProfileWithData = async (dataToSave: { profile_picture_url: string; bio: string }) => {
     setError('');
     setSuccess('');
     setSaving(true);
 
     const token = localStorage.getItem('auth_token');
-    if (!token) return;
+    if (!token) {
+      setSaving(false);
+      return;
+    }
 
     try {
       const response = await fetch(`${API_URL}/api/v1/users/me`, {
@@ -311,8 +318,8 @@ export default function AccountSettingsPage() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          profile_picture_url: formData.profile_picture_url?.trim() || null,
-          bio: formData.bio || null,
+          profile_picture_url: dataToSave.profile_picture_url?.trim() || null,
+          bio: dataToSave.bio || null,
         }),
       });
 
@@ -530,11 +537,17 @@ export default function AccountSettingsPage() {
         }
       }
       
-      setFormData({ ...formData, profile_picture_url: urlValue.trim() || '' });
-      await handleSaveProfile();
+      // Update formData and save
+      const updatedFormData = { ...formData, profile_picture_url: urlValue.trim() || '' };
+      setFormData(updatedFormData);
+      await handleSaveProfileWithData(updatedFormData);
     } else if (field === 'bio') {
-      setFormData({ ...formData, bio: editValues[field] || '' });
-      await handleSaveProfile();
+      const bioValue = editValues[field] || '';
+      
+      // Update formData and save with the new bio value
+      const updatedFormData = { ...formData, bio: bioValue };
+      setFormData(updatedFormData);
+      await handleSaveProfileWithData(updatedFormData);
     }
     setEditingField(null);
     setEditValues({});
