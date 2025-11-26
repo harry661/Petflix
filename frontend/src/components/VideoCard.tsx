@@ -28,6 +28,8 @@ interface VideoCardProps {
     viewCount?: number | string;
     duration?: string; // Format: "MM:SS" or "H:MM:SS"
     source?: 'petflix' | 'youtube'; // Indicates if video is from Petflix or YouTube search
+    authorName?: string; // YouTube channel name (for directly liked YouTube videos)
+    authorUrl?: string; // YouTube channel URL (for directly liked YouTube videos)
   };
   onVideoClick?: (videoId: string | null, youtubeVideoId?: string) => void; // Optional custom click handler
 }
@@ -997,8 +999,35 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
             </div>
 
             {/* Username - clickable link */}
-            {/* For reposted videos, show original user's username */}
+            {/* For YouTube videos, show author name; for Petflix videos, show user's username */}
             {(() => {
+              // For YouTube videos with author info, show YouTube channel name
+              if (video.source === 'youtube' && video.authorName && !video.user) {
+                return (
+                  <div style={{ marginBottom: '2px' }}>
+                    <a
+                      href={video.authorUrl || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        fontSize: '13px',
+                        textDecoration: 'none',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#ADD8E6'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                    >
+                      {video.authorName}
+                      <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px', marginLeft: '4px' }}>• YouTube</span>
+                    </a>
+                  </div>
+                );
+              }
+              
+              // For Petflix videos, show original user's username (for reposted videos) or user's username
               const displayUser = video.originalUser || video.user;
               return displayUser?.username && (
                 <div style={{ marginBottom: '2px' }}>
