@@ -8,27 +8,28 @@ import { API_URL } from '../config/api';
 
 interface VideoCardProps {
   video: {
-    id: string;
+    id?: string | null; // Can be null for YouTube videos
     youtubeVideoId?: string;
     title: string;
     description?: string;
     thumbnail?: string;
-    userId?: string; // User who shared/reposted this video
+    userId?: string | null; // User who shared/reposted this video (null for YouTube videos)
     user?: {
       id: string;
       username: string;
       profile_picture_url?: string | null;
-    };
+    } | null;
     originalUser?: {
       id: string;
       username: string;
       profile_picture_url?: string | null;
-    };
+    } | null;
     createdAt?: string;
     viewCount?: number | string;
     duration?: string; // Format: "MM:SS" or "H:MM:SS"
+    source?: 'petflix' | 'youtube'; // Indicates if video is from Petflix or YouTube search
   };
-  onVideoClick?: (videoId: string) => void; // Optional custom click handler
+  onVideoClick?: (videoId: string | null, youtubeVideoId?: string) => void; // Optional custom click handler
 }
 
 function VideoCard({ video, onVideoClick }: VideoCardProps) {
@@ -204,10 +205,24 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
     if ((e.target as HTMLElement).closest('.video-menu')) {
       return;
     }
-    // Use custom click handler if provided, otherwise use default navigation
+    
+    // Check if this is a YouTube video (no Petflix ID)
+    const isYouTubeVideo = video.source === 'youtube' || (!video.id && video.youtubeVideoId);
+    
+    // Use custom click handler if provided
     if (onVideoClick) {
-      onVideoClick(video.id);
-    } else {
+      onVideoClick(video.id || null, video.youtubeVideoId);
+      return;
+    }
+    
+    // For YouTube videos, open YouTube directly
+    if (isYouTubeVideo && video.youtubeVideoId) {
+      window.open(`https://www.youtube.com/watch?v=${video.youtubeVideoId}`, '_blank');
+      return;
+    }
+    
+    // For Petflix videos, navigate to video detail page
+    if (video.id) {
       navigate(`/video/${video.id}`);
     }
   };

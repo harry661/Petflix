@@ -489,11 +489,21 @@ export default function Navigation() {
                     width: '100%',
                     minWidth: 0
                   }}>
-                    {searchResults.map((video) => (
+                    {searchResults.map((video) => {
+                      // Check if this is a YouTube video (no Petflix ID)
+                      const isYouTubeVideo = video.source === 'youtube' || (!video.id && video.youtubeVideoId);
+                      
+                      return (
                       <div
-                        key={video.id}
+                        key={video.id || video.youtubeVideoId || `video-${Math.random()}`}
                         onClick={() => {
-                          navigate(`/video/${video.id}`);
+                          // For YouTube videos, open YouTube directly
+                          if (isYouTubeVideo && video.youtubeVideoId) {
+                            window.open(`https://www.youtube.com/watch?v=${video.youtubeVideoId}`, '_blank');
+                          } else if (video.id) {
+                            // For Petflix videos, navigate to detail page
+                            navigate(`/video/${video.id}`);
+                          }
                           closeSearch();
                           setPreviousLocation(null);
                         }}
@@ -557,9 +567,22 @@ export default function Navigation() {
                               {video.user.username}
                             </p>
                           )}
+                          {isYouTubeVideo && (
+                            <p style={{
+                              color: 'rgba(255, 0, 0, 0.8)',
+                              margin: 0,
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              YouTube
+                            </p>
+                          )}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : searchQuery.trim() ? (
                   <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.7)' }}>
