@@ -122,12 +122,39 @@ export default function VideoDetailPage() {
   const loadRecommendedVideos = async () => {
     try {
       // Get recent videos as recommendations (excluding current video)
-      const response = await fetch(`${API_URL}/api/v1/videos/recent?limit=10`);
+      const response = await fetch(`${API_URL}/api/v1/videos/recent?limit=20`);
       if (response.ok) {
         const data = await response.json();
-        // Filter out the current video
-        const filtered = (data.videos || []).filter((v: any) => v.id !== id);
-        setRecommendedVideos(filtered.slice(0, 8)); // Show up to 8 recommendations
+        const videos = data.videos || [];
+        
+        // Get current video's YouTube ID if it's a YouTube video
+        const currentYouTubeId = video?.youtubeVideoId || (id?.startsWith('youtube_') ? id.replace('youtube_', '') : null);
+        
+        // Filter out the current video by both ID and YouTube ID
+        let filtered = videos.filter((v: any) => {
+          // Exclude by Petflix ID
+          if (v.id === id) return false;
+          // Exclude by YouTube ID if current video is a YouTube video
+          if (currentYouTubeId && v.youtubeVideoId === currentYouTubeId) return false;
+          return true;
+        });
+        
+        // Deduplicate by YouTube video ID (keep first occurrence)
+        const seenYouTubeIds = new Set<string>();
+        const deduplicated: any[] = [];
+        
+        for (const v of filtered) {
+          if (v.youtubeVideoId) {
+            // If we've seen this YouTube video ID before, skip it
+            if (seenYouTubeIds.has(v.youtubeVideoId)) {
+              continue;
+            }
+            seenYouTubeIds.add(v.youtubeVideoId);
+          }
+          deduplicated.push(v);
+        }
+        
+        setRecommendedVideos(deduplicated.slice(0, 8)); // Show up to 8 recommendations
       }
     } catch (err) {
       // Silently fail - recommendations are optional

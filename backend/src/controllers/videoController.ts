@@ -1164,9 +1164,24 @@ export const getRecentVideos = async (
       };
     });
 
+    // Deduplicate by YouTube video ID (keep the first occurrence - most popular/recent)
+    const seenYouTubeIds = new Set<string>();
+    const deduplicated: any[] = [];
+    
+    for (const video of videosFormatted) {
+      if (video.youtubeVideoId) {
+        // If we've seen this YouTube video ID before, skip it
+        if (seenYouTubeIds.has(video.youtubeVideoId)) {
+          continue;
+        }
+        seenYouTubeIds.add(video.youtubeVideoId);
+      }
+      deduplicated.push(video);
+    }
+
     // Only show videos shared by Petflix users (no YouTube API calls)
     // Videos are already sorted by view count and recency from the database query
-    const allVideos = videosFormatted;
+    const allVideos = deduplicated;
 
     res.json({
       videos: allVideos,
