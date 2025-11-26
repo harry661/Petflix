@@ -767,8 +767,46 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
       <div style={{ padding: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           {/* User profile picture - clickable link */}
-          {/* For reposted videos, show original user's profile */}
+          {/* For YouTube videos with author info (liked directly or reposted), show YouTube icon */}
           {(() => {
+            // For YouTube videos with author info, show YouTube icon
+            if (video.source === 'youtube' && video.authorName) {
+              return (
+                <a
+                  href={video.authorUrl || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    textDecoration: 'none',
+                    flexShrink: 0
+                  }}
+                >
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    flexShrink: 0,
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    YT
+                  </div>
+                </a>
+              );
+            }
+            
+            // For Petflix videos, show user profile picture
             const displayUser = video.originalUser || video.user;
             return displayUser?.username ? (
               <Link
