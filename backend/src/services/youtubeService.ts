@@ -109,7 +109,41 @@ export const searchYouTubeVideos = async (
     };
   } catch (error: any) {
     console.error('YouTube API error:', error.response?.data || error.message);
-    throw new Error('Failed to search YouTube videos');
+    
+    // Preserve actual error details for better error handling
+    if (error.response?.data?.error) {
+      const apiError = error.response.data.error;
+      const errorCode = apiError.code;
+      const errorReason = apiError.errors?.[0]?.reason;
+      const errorMessage = apiError.message || 'YouTube API error';
+      
+      // Check for quota exceeded
+      if (errorCode === 403 && errorReason === 'quotaExceeded') {
+        console.error('[YouTube Service] Quota exceeded - detailed error:', {
+          code: errorCode,
+          reason: errorReason,
+          message: errorMessage,
+          domain: apiError.errors?.[0]?.domain,
+        });
+        throw new Error('YouTube API quota exceeded. Please try again later.');
+      }
+      
+      // Check for API key issues
+      if (errorCode === 400 && (errorReason === 'keyInvalid' || errorMessage.includes('API key'))) {
+        console.error('[YouTube Service] API key error:', {
+          code: errorCode,
+          reason: errorReason,
+          message: errorMessage,
+        });
+        throw new Error('YouTube API key is invalid or not configured properly.');
+      }
+      
+      // Preserve the actual error message
+      throw new Error(`YouTube API error: ${errorMessage} (Code: ${errorCode}, Reason: ${errorReason})`);
+    }
+    
+    // For network errors or other issues
+    throw new Error(`Failed to search YouTube videos: ${error.message || 'Unknown error'}`);
   }
 };
 

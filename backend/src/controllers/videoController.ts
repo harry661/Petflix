@@ -309,15 +309,29 @@ export const searchVideos = async (
           }
         }
       } catch (youtubeError: any) {
-        // Log error but don't fail the request - database results are still valid
-        console.error('[Search] YouTube search error:', youtubeError.message);
+        // Log detailed error information
+        console.error('[Search] YouTube search error:', {
+          message: youtubeError.message,
+          stack: youtubeError.stack,
+          error: youtubeError,
+        });
         
         // Check if it's a quota error
-        if (youtubeError.message?.includes('quota') || youtubeError.message?.includes('quotaExceeded')) {
-          console.warn('[Search] YouTube API quota exceeded - using database results only');
+        const isQuotaError = youtubeError.message?.includes('quota') || 
+                           youtubeError.message?.includes('quotaExceeded') ||
+                           youtubeError.message?.includes('quota exceeded');
+        
+        if (isQuotaError) {
+          console.warn('[Search] ⚠️ YouTube API quota exceeded - using database results only');
+          console.warn('[Search] Quota resets at midnight Pacific Time');
+        } else {
+          // Log other errors for debugging
+          console.error('[Search] YouTube API error (non-quota):', youtubeError.message);
+          console.error('[Search] This could be: API key issue, network error, or API configuration problem');
         }
         
         // Continue with just database results
+        youtubeVideos = []; // Ensure it's empty array
       }
     }
     
