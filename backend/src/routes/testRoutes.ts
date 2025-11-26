@@ -12,6 +12,7 @@ router.get('/debug-env', (req, res) => {
     hasJwtSecret: !!process.env.JWT_SECRET,
     hasCorsOrigin: !!process.env.CORS_ORIGIN,
     hasYoutubeApiKey: !!process.env.YOUTUBE_API_KEY,
+    youtubeApiKeyPrefix: process.env.YOUTUBE_API_KEY ? process.env.YOUTUBE_API_KEY.substring(0, 10) + '...' : 'NOT SET',
     // Show first few chars to verify they're set (but not full values for security)
     supabaseUrlPrefix: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.substring(0, 20) + '...' : 'NOT SET',
     supabaseAnonKeyPrefix: process.env.SUPABASE_ANON_KEY ? process.env.SUPABASE_ANON_KEY.substring(0, 20) + '...' : 'NOT SET',
