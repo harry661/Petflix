@@ -90,17 +90,34 @@ export const uploadProfilePicture = async (req: Request, res: Response) => {
 
     if (uploadError) {
       console.error('Error uploading to Supabase Storage:', uploadError);
+      console.error('Upload error details:', {
+        message: uploadError.message,
+        statusCode: uploadError.statusCode,
+        error: uploadError,
+      });
       
       // If bucket doesn't exist, provide helpful error
-      if (uploadError.message?.includes('Bucket not found') || uploadError.statusCode === '404') {
+      const errorMessage = uploadError.message?.toLowerCase() || '';
+      const statusCode = uploadError.statusCode?.toString() || '';
+      
+      if (
+        errorMessage.includes('bucket not found') ||
+        errorMessage.includes('does not exist') ||
+        statusCode === '404' ||
+        errorMessage.includes('not found')
+      ) {
         res.status(500).json({ 
           error: 'Storage bucket not configured. Please create a "profile-pictures" bucket in Supabase Storage.',
-          details: 'The profile-pictures bucket needs to be created in your Supabase project with public access.'
+          details: 'The profile-pictures bucket needs to be created in your Supabase project with public access. See QUICK_SETUP_PROFILE_PICTURES.md for instructions.',
+          help: 'Go to Supabase Dashboard → Storage → New bucket → Name: "profile-pictures" → Check "Public bucket" → Create'
         });
         return;
       }
       
-      res.status(500).json({ error: 'Failed to upload image' });
+      res.status(500).json({ 
+        error: 'Failed to upload image',
+        details: uploadError.message || 'Unknown error occurred'
+      });
       return;
     }
 
