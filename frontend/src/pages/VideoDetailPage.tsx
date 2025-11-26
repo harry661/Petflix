@@ -133,10 +133,93 @@ export default function VideoDetailPage() {
     }
   };
 
+  // Helper function to ensure YouTube video is shared to Petflix (for likes/comments/reposts)
+  const ensureYouTubeVideoShared = async (youtubeVideoId: string): Promise<string | null> => {
+    if (!isAuthenticated || !user) {
+      return null;
+    }
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // Check if video is already shared by current user
+      const checkResponse = await fetch(`${API_URL}/api/v1/videos/user/${user.id}?type=shared`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json();
+        const existingVideo = checkData.videos?.find((v: any) => v.youtubeVideoId === youtubeVideoId);
+        if (existingVideo) {
+          return existingVideo.id;
+        }
+      }
+
+      // Video not shared yet, share it automatically
+      const shareResponse = await fetch(`${API_URL}/api/v1/videos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          youtubeVideoId: youtubeVideoId,
+        }),
+      });
+
+      if (shareResponse.ok) {
+        const shareData = await shareResponse.json();
+        return shareData.id;
+      } else {
+        // If sharing fails (e.g., already shared by someone else), try to find existing video
+        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(youtubeVideoId)}&limit=1`);
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json();
+          const foundVideo = searchData.videos?.find((v: any) => v.youtubeVideoId === youtubeVideoId);
+          if (foundVideo && foundVideo.id) {
+            return foundVideo.id;
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error ensuring YouTube video is shared:', err);
+    }
+
+    return null;
+  };
+
   const loadYouTubeVideo = async (youtubeVideoId: string) => {
     try {
       setLoading(true);
       setError('');
+      
+      // First, check if this video is already shared in Petflix
+      if (isAuthenticated && user) {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          try {
+            // Check if video exists in Petflix
+            const checkResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(youtubeVideoId)}&limit=1`, {
+              headers: { 'Authorization': `Bearer ${token}` },
+            });
+            
+            if (checkResponse.ok) {
+              const checkData = await checkResponse.json();
+              const existingVideo = checkData.videos?.find((v: any) => v.youtubeVideoId === youtubeVideoId);
+              if (existingVideo && existingVideo.id) {
+                // Video already exists in Petflix, load it normally
+                window.location.href = `/video/${existingVideo.id}`;
+                return;
+              }
+            }
+          } catch (err) {
+            // Continue with YouTube loading if check fails
+          }
+        }
+      }
       
       // Use YouTube oEmbed API (free, no quota) to get video metadata
       const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${youtubeVideoId}&format=json`;
@@ -167,13 +250,68 @@ export default function VideoDetailPage() {
       };
       
       setVideo(videoData);
-      setIsLiked(false); // YouTube videos can't be liked on Petflix
-      setLikeCount(0);
+      
+      // Check like status if authenticated (video might be shared by someone else)
+      if (isAuthenticated && user) {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          try {
+            // Try to find if video is shared and get like status
+            const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(youtubeVideoId)}&limit=1`, {
+              headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (searchResponse.ok) {
+              const searchData = await searchResponse.json();
+              const foundVideo = searchData.videos?.find((v: any) => v.youtubeVideoId === youtubeVideoId);
+              if (foundVideo && foundVideo.id) {
+                // Video exists, get like status
+                const likeStatusResponse = await fetch(`${API_URL}/api/v1/videos/${foundVideo.id}/like-status`, {
+                  headers: { 'Authorization': `Bearer ${token}` },
+                });
+                if (likeStatusResponse.ok) {
+                  const likeStatus = await likeStatusResponse.json();
+                  setIsLiked(likeStatus.isLiked || false);
+                  setLikeCount(likeStatus.likeCount || 0);
+                }
+              }
+            }
+          } catch (err) {
+            // Silently fail
+          }
+        }
+      } else {
+        setIsLiked(false);
+        setLikeCount(0);
+      }
+      
       setEditTitle(videoData.title);
       setEditDescription(videoData.description);
       setIsReposted(false);
       
-      // Don't load comments for YouTube videos (they don't exist in Petflix)
+      // Load comments if video is shared
+      if (isAuthenticated && user) {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          try {
+            const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(youtubeVideoId)}&limit=1`, {
+              headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (searchResponse.ok) {
+              const searchData = await searchResponse.json();
+              const foundVideo = searchData.videos?.find((v: any) => v.youtubeVideoId === youtubeVideoId);
+              if (foundVideo && foundVideo.id) {
+                // Video exists, load comments
+                loadCommentsForVideo(foundVideo.id);
+                return;
+              }
+            }
+          } catch (err) {
+            // Silently fail
+          }
+        }
+      }
+      
+      // No comments if video not shared
       setComments([]);
       
       // Load recommended videos for YouTube videos too
@@ -183,6 +321,18 @@ export default function VideoDetailPage() {
       setError('Failed to load YouTube video');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCommentsForVideo = async (videoId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/v1/comments/${videoId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data.comments || []);
+      }
+    } catch (err) {
+      // Silently fail
     }
   };
 
@@ -327,11 +477,6 @@ export default function VideoDetailPage() {
       return;
     }
 
-    if (!id) {
-      // No video ID available
-      return;
-    }
-
     setLiking(true);
     const token = localStorage.getItem('auth_token');
     if (!token) {
@@ -340,8 +485,29 @@ export default function VideoDetailPage() {
     }
 
     try {
+      // If this is a YouTube video (no Petflix ID), share it first
+      let videoId = id;
+      if (video?.source === 'youtube' && video?.youtubeVideoId && !videoId) {
+        const sharedId = await ensureYouTubeVideoShared(video.youtubeVideoId);
+        if (sharedId) {
+          videoId = sharedId;
+          // Update the URL and reload to show the Petflix version
+          window.location.href = `/video/${sharedId}`;
+          return;
+        } else {
+          alert('Failed to share video. Please try again.');
+          setLiking(false);
+          return;
+        }
+      }
+
+      if (!videoId) {
+        setLiking(false);
+        return;
+      }
+
       const endpoint = isLiked ? 'DELETE' : 'POST';
-      const response = await fetch(`${API_URL}/api/v1/videos/${id}/like`, {
+      const response = await fetch(`${API_URL}/api/v1/videos/${videoId}/like`, {
         method: endpoint,
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -355,7 +521,7 @@ export default function VideoDetailPage() {
         
         // Dispatch event to notify profile page to refresh
         window.dispatchEvent(new CustomEvent('video-liked', { 
-          detail: { videoId: id, isLiked: !isLiked } 
+          detail: { videoId: videoId, isLiked: !isLiked } 
         }));
       } else {
         // Try to parse error response
@@ -369,7 +535,7 @@ export default function VideoDetailPage() {
             setIsLiked(true);
             // Refresh like count
             try {
-              const statusRes = await fetch(`${API_URL}/api/v1/videos/${id}/like-status`, {
+              const statusRes = await fetch(`${API_URL}/api/v1/videos/${videoId}/like-status`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               });
               if (statusRes.ok) {
@@ -566,10 +732,6 @@ export default function VideoDetailPage() {
       return;
     }
 
-    if (!id) {
-      return;
-    }
-
     setReposting(true);
     const token = localStorage.getItem('auth_token');
     if (!token) {
@@ -578,6 +740,27 @@ export default function VideoDetailPage() {
     }
 
     try {
+      // If this is a YouTube video (no Petflix ID), share it first
+      let videoId = id;
+      if (video?.source === 'youtube' && video?.youtubeVideoId && !videoId) {
+        const sharedId = await ensureYouTubeVideoShared(video.youtubeVideoId);
+        if (sharedId) {
+          videoId = sharedId;
+          // Update the URL and reload to show the Petflix version
+          window.location.href = `/video/${sharedId}`;
+          return;
+        } else {
+          alert('Failed to share video. Please try again.');
+          setReposting(false);
+          return;
+        }
+      }
+
+      if (!videoId) {
+        setReposting(false);
+        return;
+      }
+
       if (isReposted) {
         // If already reposted, find and delete the reposted video
         // We need to find the video entry where user_id = current user and youtube_video_id matches
@@ -614,7 +797,7 @@ export default function VideoDetailPage() {
         }
       } else {
         // Create a repost
-        const response = await fetch(`${API_URL}/api/v1/videos/${id}/repost`, {
+        const response = await fetch(`${API_URL}/api/v1/videos/${videoId}/repost`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -624,7 +807,7 @@ export default function VideoDetailPage() {
         if (response.ok) {
           setIsReposted(true);
           window.dispatchEvent(new CustomEvent('video-reposted', { 
-            detail: { videoId: id, isReposted: true } 
+            detail: { videoId: videoId, isReposted: true } 
           }));
         } else {
           // Silently handle 409 (already reposted) - just update state
@@ -655,6 +838,26 @@ export default function VideoDetailPage() {
     if (!token) return;
 
     try {
+      // If this is a YouTube video (no Petflix ID), share it first
+      let videoId = id;
+      if (video?.source === 'youtube' && video?.youtubeVideoId && !videoId) {
+        const sharedId = await ensureYouTubeVideoShared(video.youtubeVideoId);
+        if (sharedId) {
+          videoId = sharedId;
+          // Update the URL and reload to show the Petflix version
+          window.location.href = `/video/${sharedId}`;
+          return;
+        } else {
+          alert('Failed to share video. Please try again.');
+          return;
+        }
+      }
+
+      if (!videoId) {
+        alert('Video ID not available');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/api/v1/comments`, {
         method: 'POST',
         headers: {
@@ -662,7 +865,7 @@ export default function VideoDetailPage() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          videoId: id,
+          videoId: videoId,
           text: newComment,
         }),
       });
