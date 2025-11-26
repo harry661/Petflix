@@ -523,27 +523,10 @@ export default function VideoDetailPage() {
     }
 
     try {
-      // Check if this is a YouTube video (id starts with "youtube_" or video.source is "youtube")
-      const isYouTubeVideo = id?.startsWith('youtube_') || video?.source === 'youtube';
+      // Use the video ID directly - YouTube videos can be liked without sharing
+      const videoId = id;
       
-      // If this is a YouTube video, automatically share it in the background to get a Petflix ID
-      // This is transparent - the video gets shared automatically so likes/comments can work
-      let videoId = id;
-      if (isYouTubeVideo && video?.youtubeVideoId) {
-        const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
-        const sharedId = await ensureYouTubeVideoShared(youtubeVideoId);
-        if (sharedId) {
-          videoId = sharedId;
-          // Update URL without reloading (seamless experience)
-          window.history.replaceState({}, '', `/video/${sharedId}`);
-        } else {
-          alert('Failed to process video. Please try again.');
-          setLiking(false);
-          return;
-        }
-      }
-
-      if (!videoId || videoId.startsWith('youtube_')) {
+      if (!videoId) {
         setLiking(false);
         return;
       }
@@ -668,24 +651,10 @@ export default function VideoDetailPage() {
       // Check if this is a YouTube video (id starts with "youtube_" or video.source is "youtube")
       const isYouTubeVideo = id?.startsWith('youtube_') || video?.source === 'youtube';
       
-      // If this is a YouTube video, automatically share it in the background to get a Petflix ID
-      // This is transparent - the video gets shared automatically so reports can work
-      let videoId = id;
-      if (isYouTubeVideo && video?.youtubeVideoId) {
-        const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
-        const sharedId = await ensureYouTubeVideoShared(youtubeVideoId);
-        if (sharedId) {
-          videoId = sharedId;
-          // Update URL without reloading (seamless experience)
-          window.history.replaceState({}, '', `/video/${sharedId}`);
-        } else {
-          alert('Failed to process video. Please try again.');
-          setReporting(false);
-          return;
-        }
-      }
+      // Use the video ID directly - YouTube videos can be reported without sharing
+      const videoId = id;
 
-      if (!videoId || videoId.startsWith('youtube_')) {
+      if (!videoId) {
         setReporting(false);
         return;
       }
@@ -810,9 +779,10 @@ export default function VideoDetailPage() {
       // Check if this is a YouTube video (id starts with "youtube_" or video.source is "youtube")
       const isYouTubeVideo = id?.startsWith('youtube_') || video?.source === 'youtube';
       
-      // If this is a YouTube video, automatically share it in the background to get a Petflix ID
-      // This is transparent - the video gets shared automatically so reposts can work
+      // For reposts, we still need to share the video to Petflix
+      // But we can do it seamlessly without redirecting
       let videoId = id;
+      
       if (isYouTubeVideo && video?.youtubeVideoId) {
         const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
         const sharedId = await ensureYouTubeVideoShared(youtubeVideoId);
@@ -912,25 +882,10 @@ export default function VideoDetailPage() {
       // Check if this is a YouTube video (id starts with "youtube_" or video.source is "youtube")
       const isYouTubeVideo = id?.startsWith('youtube_') || video?.source === 'youtube';
       
-      // If this is a YouTube video, automatically share it in the background to get a Petflix ID
-      // This is transparent - the video gets shared automatically so comments can work
-      let videoId = id;
-      if (isYouTubeVideo && video?.youtubeVideoId) {
-        const youtubeVideoId = video.youtubeVideoId || id?.replace('youtube_', '');
-        const sharedId = await ensureYouTubeVideoShared(youtubeVideoId);
-        if (sharedId) {
-          videoId = sharedId;
-          // Update URL without reloading (seamless experience)
-          window.history.replaceState({}, '', `/video/${sharedId}`);
-          // Reload comments now that we have a Petflix ID
-          loadCommentsForVideo(sharedId);
-        } else {
-          alert('Failed to process video. Please try again.');
-          return;
-        }
-      }
+      // Use the video ID directly - YouTube videos can be commented on without sharing
+      const videoId = id;
 
-      if (!videoId || videoId.startsWith('youtube_')) {
+      if (!videoId) {
         alert('Video ID not available');
         return;
       }

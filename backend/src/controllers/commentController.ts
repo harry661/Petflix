@@ -38,11 +38,69 @@ export const createComment = async (
     // Sanitize comment text
     const sanitizedText = sanitizeInput(text);
 
+    // Check if this is a YouTube video ID (starts with "youtube_")
+    const isYouTubeVideo = videoId.startsWith('youtube_');
+    const youtubeVideoId = isYouTubeVideo ? videoId.replace('youtube_', '') : null;
+
+    let petflixVideoId: string | null = null;
+    let videoData: any = null;
+
+    if (isYouTubeVideo) {
+      // For YouTube videos, create comment directly with YouTube video ID
+      const { data: newComment, error: insertError } = await supabaseAdmin!
+        .from('comments')
+        .insert({
+          video_id: null,
+          youtube_video_id: youtubeVideoId,
+          user_id: req.user.userId,
+          text: sanitizedText,
+          parent_comment_id: parentCommentId || null,
+        })
+        .select('id, video_id, youtube_video_id, user_id, text, parent_comment_id, created_at, updated_at')
+        .single();
+
+      if (insertError || !newComment) {
+        console.error('Error creating comment on YouTube video:', insertError);
+        res.status(500).json({ error: 'Failed to create comment' });
+        return;
+      }
+
+      // For YouTube videos, we can't notify the owner since there's no Petflix user
+      // Just return the comment
+      res.status(201).json({
+        id: newComment.id,
+        videoId: newComment.video_id,
+        youtubeVideoId: newComment.youtube_video_id,
+        userId: newComment.user_id,
+        text: newComment.text,
+        parentCommentId: newComment.parent_comment_id,
+        createdAt: newComment.created_at,
+        updatedAt: newComment.updated_at,
+      });
+      return;
+    }
+
+    // For Petflix videos, get video owner info for notification
+    const { data: video } = await supabaseAdmin!
+      .from('videos')
+      .select('user_id, title')
+      .eq('id', videoId)
+      .single();
+
+    if (!video) {
+      res.status(404).json({ error: 'Video not found' });
+      return;
+    }
+
+    petflixVideoId = videoId;
+    videoData = video;
+
     // Create comment
     const { data: newComment, error: insertError } = await supabaseAdmin!
       .from('comments')
       .insert({
-        video_id: videoId,
+        video_id: petflixVideoId,
+        youtube_video_id: null,
         user_id: req.user.userId,
         text: sanitizedText,
         parent_comment_id: parentCommentId || null,
@@ -55,13 +113,6 @@ export const createComment = async (
       res.status(500).json({ error: 'Failed to create comment' });
       return;
     }
-
-    // Get video owner and commenter info for notification
-    const { data: videoData } = await supabaseAdmin!
-      .from('videos')
-      .select('user_id, title')
-      .eq('id', videoId)
-      .single();
 
     const { data: commenterData } = await supabaseAdmin!
       .from('users')
@@ -116,11 +167,16 @@ export const getCommentsByVideo = async (
   try {
     const { videoId } = req.params;
 
-    const { data: comments, error } = await supabaseAdmin!
+    // Check if this is a YouTube video ID (starts with "youtube_")
+    const isYouTubeVideo = videoId.startsWith('youtube_');
+    const youtubeVideoId = isYouTubeVideo ? videoId.replace('youtube_', '') : null;
+
+    let query = supabaseAdmin!
       .from('comments')
       .select(`
         id,
         video_id,
+        youtube_video_id,
         user_id,
         text,
         parent_comment_id,
@@ -131,9 +187,15 @@ export const getCommentsByVideo = async (
           username,
           profile_picture_url
         )
-      `)
-      .eq('video_id', videoId)
-      .order('created_at', { ascending: true });
+      `);
+
+    if (isYouTubeVideo) {
+      query = query.eq('youtube_video_id', youtubeVideoId);
+    } else {
+      query = query.eq('video_id', videoId);
+    }
+
+    const { data: comments, error } = await query.order('created_at', { ascending: true });
 
     if (error) {
       res.status(500).json({ error: 'Failed to load comments' });
@@ -143,6 +205,7 @@ export const getCommentsByVideo = async (
     const formattedComments = (comments || []).map((comment: any) => ({
       id: comment.id,
       videoId: comment.video_id,
+      youtubeVideoId: comment.youtube_video_id,
       userId: comment.user_id,
       text: comment.text,
       parentCommentId: comment.parent_comment_id,

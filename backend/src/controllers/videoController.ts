@@ -1195,10 +1195,59 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
     const { id } = req.params;
     const userId = req.user.userId;
 
-    // Check if video exists
+    // Check if this is a YouTube video ID (starts with "youtube_")
+    const isYouTubeVideo = id.startsWith('youtube_');
+    const youtubeVideoId = isYouTubeVideo ? id.replace('youtube_', '') : null;
+
+    let videoId: string | null = null;
+    let videoData: any = null;
+
+    if (isYouTubeVideo) {
+      // For YouTube videos, we can like them directly without a Petflix video entry
+      // Check if already liked by YouTube ID
+      const { data: existingLike, error: checkError } = await supabaseAdmin!
+        .from('likes')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('youtube_video_id', youtubeVideoId)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking existing like:', checkError);
+      }
+
+      if (existingLike) {
+        res.status(409).json({ error: 'Video already liked' });
+        return;
+      }
+
+      // Create like with YouTube video ID
+      const { error: likeError } = await supabaseAdmin!
+        .from('likes')
+        .insert({
+          user_id: userId,
+          video_id: null,
+          youtube_video_id: youtubeVideoId,
+        })
+        .select();
+
+      if (likeError) {
+        console.error('Error liking YouTube video:', JSON.stringify(likeError, null, 2));
+        res.status(500).json({ 
+          error: 'Failed to like video',
+          details: likeError.message || likeError.code || 'Unknown error'
+        });
+        return;
+      }
+
+      res.status(201).json({ message: 'Video liked successfully' });
+      return;
+    }
+
+    // For Petflix videos, check if video exists
     const { data: video, error: videoError } = await supabaseAdmin!
       .from('videos')
-      .select('id')
+      .select('id, user_id, title')
       .eq('id', id)
       .single();
 
@@ -1207,12 +1256,15 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
       return;
     }
 
+    videoId = video.id;
+    videoData = video;
+
     // Check if already liked (use maybeSingle to avoid error if not found)
     const { data: existingLike, error: checkError } = await supabaseAdmin!
       .from('likes')
       .select('id')
       .eq('user_id', userId)
-      .eq('video_id', id)
+      .eq('video_id', videoId)
       .maybeSingle();
 
     // If there's an error other than "not found", log it but continue
@@ -1225,19 +1277,13 @@ export const likeVideo = async (req: Request<{ id: string }>, res: Response) => 
       return;
     }
 
-    // Get video owner info for notification
-    const { data: videoData } = await supabaseAdmin!
-      .from('videos')
-      .select('user_id, title')
-      .eq('id', id)
-      .single();
-
     // Create like (trigger will update like_count)
     const { error: likeError, data: likeData } = await supabaseAdmin!
       .from('likes')
       .insert({
         user_id: userId,
-        video_id: id,
+        video_id: videoId,
+        youtube_video_id: null,
       })
       .select();
 
@@ -1302,7 +1348,29 @@ export const unlikeVideo = async (req: Request<{ id: string }>, res: Response) =
     const { id } = req.params;
     const userId = req.user.userId;
 
-    // Delete like (trigger will update like_count)
+    // Check if this is a YouTube video ID (starts with "youtube_")
+    const isYouTubeVideo = id.startsWith('youtube_');
+    const youtubeVideoId = isYouTubeVideo ? id.replace('youtube_', '') : null;
+
+    if (isYouTubeVideo) {
+      // Delete like by YouTube video ID
+      const { error: unlikeError } = await supabaseAdmin!
+        .from('likes')
+        .delete()
+        .eq('user_id', userId)
+        .eq('youtube_video_id', youtubeVideoId);
+
+      if (unlikeError) {
+        console.error('Error unliking YouTube video:', unlikeError);
+        res.status(500).json({ error: 'Failed to unlike video' });
+        return;
+      }
+
+      res.json({ message: 'Video unliked successfully' });
+      return;
+    }
+
+    // Delete like by Petflix video ID (trigger will update like_count)
     const { error: unlikeError } = await supabaseAdmin!
       .from('likes')
       .delete()
@@ -1336,19 +1404,50 @@ export const getLikeStatus = async (req: Request<{ id: string }>, res: Response)
     const { id } = req.params;
     const userId = req.user.userId;
 
-    // Check if user has liked the video
-    const { data: like } = await supabaseAdmin!
-      .from('likes')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('video_id', id)
-      .single();
+    // Check if this is a YouTube video ID (starts with "youtube_")
+    const isYouTubeVideo = id.startsWith('youtube_');
+    const youtubeVideoId = isYouTubeVideo ? id.replace('youtube_', '') : null;
 
-    // Get like count
-    const { count: likeCount } = await supabaseAdmin!
-      .from('likes')
-      .select('*', { count: 'exact', head: true })
-      .eq('video_id', id);
+    let like: any = null;
+    let likeCount = 0;
+
+    if (isYouTubeVideo) {
+      // Check if user has liked the YouTube video
+      const { data: youtubeLike } = await supabaseAdmin!
+        .from('likes')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('youtube_video_id', youtubeVideoId)
+        .maybeSingle();
+
+      like = youtubeLike;
+
+      // Get like count for YouTube video
+      const { count } = await supabaseAdmin!
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('youtube_video_id', youtubeVideoId);
+      
+      likeCount = count || 0;
+    } else {
+      // Check if user has liked the Petflix video
+      const { data: petflixLike } = await supabaseAdmin!
+        .from('likes')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('video_id', id)
+        .maybeSingle();
+
+      like = petflixLike;
+
+      // Get like count for Petflix video
+      const { count } = await supabaseAdmin!
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('video_id', id);
+      
+      likeCount = count || 0;
+    }
 
     res.json({
       isLiked: !!like,
@@ -1893,7 +1992,46 @@ export const reportVideo = async (
       return;
     }
 
-    // Check if video exists
+    // Check if this is a YouTube video ID (starts with "youtube_")
+    const isYouTubeVideo = id.startsWith('youtube_');
+    const youtubeVideoId = isYouTubeVideo ? id.replace('youtube_', '') : null;
+
+    if (isYouTubeVideo) {
+      // For YouTube videos, check if user already reported
+      const { data: existingReport } = await supabaseAdmin!
+        .from('reported_videos')
+        .select('id')
+        .eq('youtube_video_id', youtubeVideoId)
+        .eq('reported_by_user_id', req.user.userId)
+        .maybeSingle();
+
+      if (existingReport) {
+        res.status(409).json({ error: 'You have already reported this video' });
+        return;
+      }
+
+      // Create report for YouTube video
+      const { error: reportError } = await supabaseAdmin!
+        .from('reported_videos')
+        .insert({
+          video_id: null,
+          youtube_video_id: youtubeVideoId,
+          reported_by_user_id: req.user.userId,
+          reason: reason.trim(),
+          status: 'pending',
+        });
+
+      if (reportError) {
+        console.error('Error creating YouTube video report:', reportError);
+        res.status(500).json({ error: 'Failed to submit report' });
+        return;
+      }
+
+      res.status(201).json({ message: 'Video reported successfully' });
+      return;
+    }
+
+    // For Petflix videos, check if video exists
     const { data: video, error: videoError } = await supabaseAdmin!
       .from('videos')
       .select('id')
