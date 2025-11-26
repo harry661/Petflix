@@ -67,6 +67,7 @@ export default function AccountSettingsPage() {
     checkPushSupport();
     if (isAuthenticated) {
       loadPushSubscriptionStatus();
+      loadNotificationPreferences();
     }
   }, [isAuthenticated, authLoading, navigate, justSaved]);
 
@@ -498,9 +499,13 @@ export default function AccountSettingsPage() {
     const token = localStorage.getItem('auth_token');
     if (!token) return;
 
+    const newState = !notificationPreferences.enabled;
+    setSubscribing(true);
+    setError('');
+
     try {
-      const newState = !notificationPreferences.enabled;
-      const response = await fetch(`${API_URL}/api/v1/users/me/notification-preference`, {
+      // Update global notification preference
+      const prefResponse = await fetch(`${API_URL}/api/v1/users/me/notification-preference`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -509,17 +514,120 @@ export default function AccountSettingsPage() {
         body: JSON.stringify({ enabled: newState }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setNotificationPreferences({ enabled: data.notificationsEnabled });
-        setSuccess(`Notifications ${data.notificationsEnabled ? 'enabled' : 'disabled'}`);
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        setError(errorData.error || 'Failed to update notification preferences');
+      if (!prefResponse.ok) {
+        const errorData = await prefResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to update notification preferences');
       }
-    } catch (err) {
-      setError('Failed to update notification preferences');
+
+      const prefData = await prefResponse.json();
+      setNotificationPreferences({ enabled: prefData.notificationsEnabled });
+
+      // If enabling and push is supported, subscribe to push notifications
+      if (newState && pushSubscriptionStatus.supported && !pushSubscriptionStatus.subscribed) {
+        try {
+          // Get VAPID public key
+          const keyResponse = await fetch(`${API_URL}/api/v1/push_notifications/vapid-key`);
+          if (keyResponse.ok) {
+            const { publicKey } = await keyResponse.json();
+
+            // Convert base64url to Uint8Array
+            const urlBase64ToUint8Array = (base64String: string) => {
+              const padding = '='.repeat((4 - base64String.length % 4) % 4);
+              const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+              const rawData = window.atob(base64);
+              const outputArray = new Uint8Array(rawData.length);
+              for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+              }
+              return outputArray;
+            };
+
+            const applicationServerKey = urlBase64ToUint8Array(publicKey);
+
+            // Request notification permission
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+              throw new Error('Notification permission denied');
+            }
+
+            // Get service worker registration
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: applicationServerKey,
+            });
+
+            const p256dh = subscription.getKey('p256dh');
+            const auth = subscription.getKey('auth');
+            
+            if (!p256dh || !auth) {
+              throw new Error('Failed to get subscription keys');
+            }
+
+            // Send subscription to backend
+            const pushResponse = await fetch(`${API_URL}/api/v1/push_notifications`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                endpoint: subscription.endpoint,
+                keys: {
+                  p256dh: btoa(String.fromCharCode(...new Uint8Array(p256dh))),
+                  auth: btoa(String.fromCharCode(...new Uint8Array(auth))),
+                },
+              }),
+            });
+
+            if (pushResponse.ok) {
+              await loadPushSubscriptionStatus();
+            }
+          }
+        } catch (pushErr: any) {
+          // Push subscription failed, but global preference was updated
+          console.error('Failed to subscribe to push notifications:', pushErr);
+        }
+      }
+
+      // If disabling, unsubscribe from push notifications
+      if (!newState && pushSubscriptionStatus.subscribed) {
+        try {
+          const unsubscribeResponse = await fetch(`${API_URL}/api/v1/push_notifications`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (unsubscribeResponse.ok) {
+            // Unsubscribe from service worker
+            try {
+              const registration = await navigator.serviceWorker.ready;
+              const subscription = await registration.pushManager.getSubscription();
+              if (subscription) {
+                await subscription.unsubscribe();
+              }
+            } catch (swErr) {
+              // Service worker unsubscribe failed, but backend unsubscribe succeeded
+            }
+
+            await loadPushSubscriptionStatus();
+          }
+        } catch (unsubErr) {
+          // Unsubscribe failed, but global preference was updated
+          console.error('Failed to unsubscribe from push notifications:', unsubErr);
+        }
+      }
+
+      setSuccess(`Notifications ${newState ? 'enabled' : 'disabled'}`);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update notifications');
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -1229,7 +1337,7 @@ export default function AccountSettingsPage() {
                 </form>
               </div>
 
-              {/* Notification Preferences */}
+              {/* Notifications */}
               <div style={{ marginBottom: '40px' }}>
                 <h2 style={{
                   color: '#ffffff',
@@ -1268,11 +1376,16 @@ export default function AccountSettingsPage() {
                       margin: 0,
                       fontSize: '14px'
                     }}>
-                      Receive notifications when users you follow share videos
+                      {pushSubscriptionStatus.supported
+                        ? notificationPreferences.enabled && pushSubscriptionStatus.subscribed
+                          ? `Receive notifications when users you follow share videos (Push enabled on ${pushSubscriptionStatus.subscriptionCount} device${pushSubscriptionStatus.subscriptionCount !== 1 ? 's' : ''})`
+                          : 'Receive notifications when users you follow share videos'
+                        : 'Receive notifications when users you follow share videos'}
                     </p>
                   </div>
                   <button
                     onClick={handleToggleNotifications}
+                    disabled={subscribing}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: notificationPreferences.enabled ? '#ADD8E6' : 'transparent',
@@ -1281,113 +1394,17 @@ export default function AccountSettingsPage() {
                       borderRadius: '6px',
                       fontSize: '14px',
                       fontWeight: 'bold',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+                      cursor: subscribing ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s ease',
+                      opacity: subscribing ? 0.6 : 1
                     }}
                   >
-                    {notificationPreferences.enabled ? 'Enabled' : 'Disabled'}
+                    {subscribing
+                      ? 'Processing...'
+                      : notificationPreferences.enabled
+                      ? 'Enabled'
+                      : 'Disabled'}
                   </button>
-                </div>
-              </div>
-
-              {/* Push Notifications */}
-              <div style={{
-                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                paddingTop: '40px',
-                marginTop: '40px'
-              }}>
-                <h2 style={{
-                  color: '#ffffff',
-                  marginBottom: '24px',
-                  fontSize: '20px',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Bell size={20} />
-                  Push Notifications
-                </h2>
-
-                <div style={{
-                  padding: '20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '16px'
-                  }}>
-                    <div>
-                      <h3 style={{
-                        color: '#ffffff',
-                        margin: 0,
-                        marginBottom: '4px',
-                        fontSize: '16px',
-                        fontWeight: '500'
-                      }}>
-                        Browser Push Notifications
-                      </h3>
-                      <p style={{
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        margin: 0,
-                        fontSize: '14px'
-                      }}>
-                        {pushSubscriptionStatus.supported
-                          ? pushSubscriptionStatus.subscribed
-                            ? `Subscribed on ${pushSubscriptionStatus.subscriptionCount} device(s)`
-                            : 'Receive push notifications in your browser'
-                          : 'Push notifications are not supported in your browser'}
-                      </p>
-                    </div>
-                    {pushSubscriptionStatus.supported && (
-                      <button
-                        onClick={pushSubscriptionStatus.subscribed ? handleUnsubscribeFromPush : handleSubscribeToPush}
-                        disabled={subscribing}
-                        style={{
-                          padding: '10px 20px',
-                          backgroundColor: pushSubscriptionStatus.subscribed ? 'transparent' : '#ADD8E6',
-                          color: pushSubscriptionStatus.subscribed ? '#ffffff' : '#0F0F0F',
-                          border: pushSubscriptionStatus.subscribed ? '1px solid rgba(255, 255, 255, 0.3)' : 'none',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          cursor: subscribing ? 'not-allowed' : 'pointer',
-                          transition: 'all 0.2s ease',
-                          opacity: subscribing ? 0.6 : 1
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!subscribing) {
-                            if (pushSubscriptionStatus.subscribed) {
-                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                            } else {
-                              e.currentTarget.style.backgroundColor = '#87CEEB';
-                            }
-                            e.currentTarget.style.transform = 'scale(1.02)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!subscribing) {
-                            if (pushSubscriptionStatus.subscribed) {
-                              e.currentTarget.style.backgroundColor = 'transparent';
-                            } else {
-                              e.currentTarget.style.backgroundColor = '#ADD8E6';
-                            }
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }
-                        }}
-                      >
-                        {subscribing
-                          ? 'Processing...'
-                          : pushSubscriptionStatus.subscribed
-                          ? 'Unsubscribe'
-                          : 'Subscribe'}
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
 
