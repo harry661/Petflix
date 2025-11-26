@@ -92,13 +92,13 @@ export const uploadProfilePicture = async (req: Request, res: Response) => {
       console.error('Error uploading to Supabase Storage:', uploadError);
       console.error('Upload error details:', {
         message: uploadError.message,
-        statusCode: uploadError.statusCode,
         error: uploadError,
       });
       
       // If bucket doesn't exist, provide helpful error
       const errorMessage = uploadError.message?.toLowerCase() || '';
-      const statusCode = uploadError.statusCode?.toString() || '';
+      // StorageError doesn't have statusCode, check message instead
+      const statusCode = (uploadError as any).statusCode?.toString() || '';
       
       if (
         errorMessage.includes('bucket not found') ||
