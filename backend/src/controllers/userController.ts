@@ -732,7 +732,7 @@ export const forgotPassword = async (
       // In production, you'd want to store this in a separate table with expiration
 
       // Send email with reset link
-      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+      const resetUrl = `${process.env.FRONTEND_URL || 'https://petflix-weld.vercel.app'}/reset-password?token=${resetToken}`;
       
       console.log('[Password Reset] Token generated for user:', user.email);
       console.log('[Password Reset] Reset URL:', resetUrl);
