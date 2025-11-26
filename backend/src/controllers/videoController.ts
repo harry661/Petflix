@@ -2150,8 +2150,6 @@ export const getLikedVideos = async (
 
     // Get YouTube videos metadata (videos liked directly without being shared)
     if (youtubeVideoIds.length > 0) {
-      const { getYouTubeVideoMetadata } = await import('../services/youtubeService');
-      
       // Fetch metadata for YouTube videos in parallel (limit to avoid too many requests)
       const youtubeVideoPromises = youtubeVideoIds.slice(0, 50).map(async (youtubeVideoId: string) => {
         try {
