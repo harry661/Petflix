@@ -9,7 +9,7 @@ import {
   ErrorResponse,
 } from '../types';
 import { validateEmail, validatePassword, validateUsername, sanitizeInput } from '../middleware/validation';
-import { sendSignupAttemptEmail, sendLoginAttemptEmail } from '../services/emailService';
+import { sendSignupAttemptEmail, sendLoginAttemptEmail, sendPasswordResetEmail } from '../services/emailService';
 
 /**
  * Register a new user
@@ -741,24 +741,20 @@ export const forgotPassword = async (
       // Fire and forget, but ensure the promise is created and started immediately
       console.log('[Password Reset] Initiating email send...');
       
-      // Import and start the email promise immediately
-      import('../services/emailService').then(({ sendPasswordResetEmail }) => {
-        sendPasswordResetEmail(user.email, user.username, resetUrl)
-          .then(() => {
-            console.log('[Password Reset] ✅ Email sent successfully');
-          })
-          .catch((emailError: any) => {
-            console.error('[Password Reset] ❌ Failed to send email:', emailError);
-            console.error('[Password Reset] Error details:', {
-              message: emailError?.message,
-              code: emailError?.code,
-              response: emailError?.response,
-              stack: emailError?.stack,
-            });
+      // Start the email promise immediately
+      sendPasswordResetEmail(user.email, user.username, resetUrl)
+        .then(() => {
+          console.log('[Password Reset] ✅ Email sent successfully');
+        })
+        .catch((emailError: any) => {
+          console.error('[Password Reset] ❌ Failed to send email:', emailError);
+          console.error('[Password Reset] Error details:', {
+            message: emailError?.message,
+            code: emailError?.code,
+            response: emailError?.response,
+            stack: emailError?.stack,
           });
-      }).catch((importError: any) => {
-        console.error('[Password Reset] ❌ Failed to import email service:', importError);
-      });
+        });
     }
 
     // Always return success to prevent email enumeration
