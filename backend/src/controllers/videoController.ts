@@ -407,13 +407,16 @@ export const shareVideo = async (
       console.log('YouTube Data API not available for view count (quota exceeded or API key missing). Using 0 as default.');
     }
 
-    // Check if video already shared by this user
+    // Check if video already shared by this user (only check for shared videos, not reposts)
+    // A shared video has original_user_id IS NULL
+    // Users can share a video even if they've reposted it - they're different actions
     const { data: existingVideo } = await supabaseAdmin!
       .from('videos')
       .select('id')
       .eq('youtube_video_id', youtubeVideoId)
       .eq('user_id', req.user.userId)
-      .single();
+      .is('original_user_id', null) // Only check for existing shared videos
+      .maybeSingle();
 
     if (existingVideo) {
       res.status(409).json({ error: 'You have already shared this video' });
