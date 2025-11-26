@@ -49,6 +49,9 @@ export default function AccountSettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (authLoading) {
@@ -344,6 +347,100 @@ export default function AccountSettingsPage() {
   const handleEditField = (field: string, currentValue: string) => {
     setEditingField(field);
     setEditValues({ ...editValues, [field]: currentValue });
+    if (field === 'profile_picture_url') {
+      setPreviewUrl(null);
+      setSelectedFile(null);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Invalid file type. Please select a JPEG, PNG, GIF, or WebP image.');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File size must be less than 5MB.');
+      return;
+    }
+
+    setSelectedFile(file);
+    setError('');
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUploadProfilePicture = async () => {
+    if (!selectedFile) {
+      setError('Please select an image file.');
+      return;
+    }
+
+    setUploadingPicture(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setError('Authentication required');
+        setUploadingPicture(false);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('profilePicture', selectedFile);
+
+      const response = await fetch(`${API_URL}/api/v1/users/me/profile-picture`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to upload profile picture');
+        setUploadingPicture(false);
+        return;
+      }
+
+      // Update user data with new profile picture URL
+      setUser((prev: any) => ({
+        ...prev,
+        profile_picture_url: data.profile_picture_url,
+      }));
+      setFormData((prev) => ({
+        ...prev,
+        profile_picture_url: data.profile_picture_url || '',
+      }));
+
+      // Update auth context if available
+      window.dispatchEvent(new Event('auth-changed'));
+
+      setSuccess('Profile picture uploaded successfully!');
+      setEditingField(null);
+      setPreviewUrl(null);
+      setSelectedFile(null);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      setError('Failed to upload profile picture. Please try again.');
+    } finally {
+      setUploadingPicture(false);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -960,41 +1057,47 @@ export default function AccountSettingsPage() {
               }}>
                 <div style={{ position: 'relative' }}>
                   <ProfilePicture
-                    src={user.profile_picture_url}
+                    src={previewUrl || user.profile_picture_url}
                     alt={user.username}
                     size={120}
                     style={{ border: '3px solid rgba(255, 255, 255, 0.2)' }}
                     fallbackChar={user.username.charAt(0).toUpperCase()}
                   />
-                  <button
-                    onClick={() => handleEditField('profile_picture_url', formData.profile_picture_url)}
-                    style={{
-                      position: 'absolute',
-                      bottom: '0',
-                      right: '0',
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      backgroundColor: '#ADD8E6',
-                      color: '#0F0F0F',
-                      border: '3px solid #0F0F0F',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#87CEEB';
-                      e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#ADD8E6';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <Camera size={18} />
-                  </button>
+                  {!editingField && (
+                    <button
+                      onClick={() => {
+                        setEditingField('profile_picture_url');
+                        setPreviewUrl(null);
+                        setSelectedFile(null);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        bottom: '0',
+                        right: '0',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        backgroundColor: '#ADD8E6',
+                        color: '#0F0F0F',
+                        border: '3px solid #0F0F0F',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#87CEEB';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ADD8E6';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <Camera size={18} />
+                    </button>
+                  )}
                 </div>
                 {editingField === 'profile_picture_url' && (
                   <div style={{
@@ -1004,73 +1107,105 @@ export default function AccountSettingsPage() {
                     flexDirection: 'column',
                     gap: '12px'
                   }}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <input
-                          type="url"
-                          placeholder="https://images.unsplash.com/photo-..."
-                          value={editValues['profile_picture_url'] !== undefined ? editValues['profile_picture_url'] : formData.profile_picture_url}
-                          onChange={(e) => setEditValues({ ...editValues, profile_picture_url: e.target.value })}
-                          style={{
-                            width: '100%',
-                            padding: '12px',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                            borderRadius: '4px',
-                            fontSize: '14px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                            color: '#fff',
-                            outline: 'none'
-                          }}
-                          autoFocus
-                        />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <label
+                        htmlFor="profile-picture-upload"
+                        style={{
+                          display: 'inline-block',
+                          padding: '12px 20px',
+                          backgroundColor: 'rgba(173, 216, 230, 0.2)',
+                          color: '#ADD8E6',
+                          border: '2px dashed rgba(173, 216, 230, 0.5)',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(173, 216, 230, 0.3)';
+                          e.currentTarget.style.borderColor = '#ADD8E6';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(173, 216, 230, 0.2)';
+                          e.currentTarget.style.borderColor = 'rgba(173, 216, 230, 0.5)';
+                        }}
+                      >
+                        {selectedFile ? `Selected: ${selectedFile.name}` : 'Choose Image File'}
+                      </label>
+                      <input
+                        id="profile-picture-upload"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        onChange={handleFileSelect}
+                        style={{ display: 'none' }}
+                      />
+                      {selectedFile && (
                         <p style={{
                           margin: 0,
-                          fontSize: '11px',
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontStyle: 'italic',
-                          lineHeight: '1.4'
+                          fontSize: '12px',
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          textAlign: 'center'
                         }}>
-                          Tip: Use image hosting services that allow hotlinking (imgur.com, imgbb.com, postimg.cc) or Unsplash (images.unsplash.com). Some CDN URLs may be blocked.
+                          File size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', paddingTop: '12px' }}>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveField('profile_picture_url')}
-                          disabled={saving}
-                          style={{
-                            padding: '12px 20px',
-                            backgroundColor: '#ADD8E6',
-                            color: '#0F0F0F',
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            cursor: saving ? 'not-allowed' : 'pointer',
-                            opacity: saving ? 0.6 : 1,
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCancelEdit}
-                          style={{
-                            padding: '12px 20px',
-                            backgroundColor: 'transparent',
-                            color: '#fff',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                            borderRadius: '4px',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      )}
+                      <p style={{
+                        margin: 0,
+                        fontSize: '11px',
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontStyle: 'italic',
+                        lineHeight: '1.4',
+                        textAlign: 'center'
+                      }}>
+                        Supported formats: JPEG, PNG, GIF, WebP (max 5MB)
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={handleUploadProfilePicture}
+                        disabled={uploadingPicture || !selectedFile}
+                        style={{
+                          padding: '12px 20px',
+                          backgroundColor: '#ADD8E6',
+                          color: '#0F0F0F',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: (uploadingPicture || !selectedFile) ? 'not-allowed' : 'pointer',
+                          opacity: (uploadingPicture || !selectedFile) ? 0.6 : 1,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {uploadingPicture ? 'Uploading...' : 'Upload'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingField(null);
+                          setPreviewUrl(null);
+                          setSelectedFile(null);
+                          setError('');
+                        }}
+                        disabled={uploadingPicture}
+                        style={{
+                          padding: '12px 20px',
+                          backgroundColor: 'transparent',
+                          color: '#fff',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: '4px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: uploadingPicture ? 'not-allowed' : 'pointer',
+                          opacity: uploadingPicture ? 0.6 : 1,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 )}

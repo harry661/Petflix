@@ -42,6 +42,10 @@ router.get('/me', authenticate, getCurrentUser);
 router.put('/me', authenticate, updateProfile);
 router.put('/me/password', authenticate, changePassword);
 router.delete('/me', authenticate, deleteAccount);
+
+// Profile picture upload route
+import { uploadProfilePicture, uploadMiddleware } from '../controllers/uploadController';
+router.post('/me/profile-picture', authenticate, uploadMiddleware, uploadProfilePicture);
 router.get('/me/notification-preference', authenticate, getGlobalNotificationPreference);
 router.put('/me/notification-preference', authenticate, updateGlobalNotificationPreference);
 
