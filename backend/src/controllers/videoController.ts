@@ -1150,7 +1150,9 @@ export const getVideosByUser = async (
         : null;
 
       // Determine if this is a repost
-      const isReposted = video.original_user_id !== null || 
+      // CRITICAL: Reposts ALWAYS have original_user_id IS NOT NULL
+      // Shares ALWAYS have original_user_id IS NULL
+      const isReposted = video.original_user_id !== null; 
                         (video.original_user_id === null && video.youtube_video_id && type === 'reposted');
       
       // For shared videos (type === 'shared'), show the user who shared it prominently
