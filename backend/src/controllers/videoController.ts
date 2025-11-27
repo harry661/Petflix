@@ -2734,3 +2734,563 @@ export const getMostPopularVideoThisWeek = async (req: Request, res: Response) =
   }
 };
 
+/**
+ * Get trending videos (mix of Petflix and YouTube, sorted by popularity)
+ * GET /api/v1/videos/trending?limit=10&tag=dogs
+ */
+export const getTrendingVideos = async (
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string; tag?: string }>,
+  res: Response
+) => {
+  try {
+    const limit = parseInt(req.query.limit || '10');
+    const tagFilter = req.query.tag;
+
+    // Get popular Petflix videos (sorted by view count, then recency)
+    let petflixQuery = supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        original_user_id,
+        created_at,
+        updated_at,
+        view_count,
+        users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        ),
+        original_user:original_user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        )
+      `)
+      .order('view_count', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit * 2); // Get more to allow for tag filtering and variety
+
+    // Apply tag filter if provided
+    if (tagFilter && tagFilter.trim()) {
+      const tagMap: { [key: string]: string[] } = {
+        'dogs': ['Dog', 'Dogs', 'Puppy', 'Puppies', 'Canine'],
+        'cats': ['Cat', 'Cats', 'Kitten', 'Kittens', 'Feline'],
+        'birds': ['Bird', 'Birds', 'Parrot', 'Parrots', 'Canary'],
+        'small and fluffy': ['Hamster', 'Rabbit', 'Guinea Pig', 'Chinchilla'],
+        'underwater': ['Fish', 'Goldfish', 'Aquarium', 'Turtle']
+      };
+
+      const filterLower = tagFilter.toLowerCase();
+      const tagNames = tagMap[filterLower] || [tagFilter];
+
+      const { data: taggedVideos } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('video_id')
+        .in('tag_name', tagNames);
+
+      if (taggedVideos && taggedVideos.length > 0) {
+        const videoIds = taggedVideos.map((tv: any) => tv.video_id);
+        petflixQuery = petflixQuery.in('id', videoIds);
+      } else {
+        petflixQuery = petflixQuery.eq('id', '00000000-0000-0000-0000-000000000000');
+      }
+    }
+
+    const { data: petflixVideos, error: petflixError } = await petflixQuery;
+
+    if (petflixError) {
+      console.error('Error fetching Petflix videos:', petflixError);
+    }
+
+    // Get tags for Petflix videos
+    const petflixVideoIds = (petflixVideos || []).map((v: any) => v.id);
+    let videoTagsMap: { [key: string]: string[] } = {};
+    
+    if (petflixVideoIds.length > 0) {
+      const { data: allTags } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('video_id, tag_name')
+        .in('video_id', petflixVideoIds);
+      
+      if (allTags) {
+        allTags.forEach((tagRow: any) => {
+          if (!videoTagsMap[tagRow.video_id]) {
+            videoTagsMap[tagRow.video_id] = [];
+          }
+          videoTagsMap[tagRow.video_id].push(tagRow.tag_name);
+        });
+      }
+    }
+
+    // Format Petflix videos
+    const petflixFormatted = await Promise.all((petflixVideos || []).map(async (video: any) => {
+      const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      const originalUserData = video.original_user_id 
+        ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+        : null;
+      
+      let thumbnail: string | null = null;
+      if (video.youtube_video_id) {
+        if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+          thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+        }
+      }
+
+      let authorName: string | undefined;
+      let authorUrl: string | undefined;
+      let source: 'petflix' | 'youtube' = 'petflix';
+      
+      if (video.youtube_video_id) {
+        try {
+          const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+          if (metadata?.authorName) {
+            authorName = metadata.authorName;
+            authorUrl = metadata.authorUrl;
+            source = 'youtube';
+          }
+        } catch (err) {
+          // Silently fail
+        }
+      }
+
+      const isReposted = video.original_user_id !== null;
+
+      return {
+        id: video.id,
+        youtubeVideoId: video.youtube_video_id,
+        title: video.title,
+        description: video.description,
+        userId: video.user_id,
+        createdAt: video.created_at,
+        updatedAt: video.updated_at,
+        viewCount: video.view_count || 0,
+        tags: videoTagsMap[video.id] || [],
+        thumbnail: thumbnail,
+        source: source,
+        authorName: authorName,
+        authorUrl: authorUrl,
+        user: isReposted ? null : (userData ? {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          profile_picture_url: userData.profile_picture_url,
+        } : null),
+        originalUser: isReposted ? ((source === 'youtube' && authorName) ? null : (originalUserData ? {
+          id: originalUserData.id,
+          username: originalUserData.username,
+          email: originalUserData.email,
+          profile_picture_url: originalUserData.profile_picture_url,
+        } : null)) : null,
+      };
+    }));
+
+    // Get YouTube videos to mix in (if API key is available)
+    let youtubeVideos: any[] = [];
+    if (process.env.YOUTUBE_API_KEY) {
+      try {
+        // Search for popular pet videos based on tag filter or general pet content
+        const searchQuery = tagFilter 
+          ? `${tagFilter} pets animals`
+          : 'popular pets animals trending';
+        
+        const youtubeLimit = Math.max(5, Math.floor(limit / 2)); // Mix 50/50 or at least 5 YouTube videos
+        const youtubeResults = await searchYouTubeVideos(searchQuery, youtubeLimit);
+        
+        youtubeVideos = youtubeResults.videos.map((video: any) => ({
+          id: null,
+          youtubeVideoId: video.id,
+          title: video.title,
+          description: video.description || '',
+          userId: null,
+          createdAt: video.publishedAt,
+          updatedAt: video.publishedAt,
+          viewCount: parseInt(video.viewCount || '0'),
+          tags: [],
+          user: null,
+          originalUser: null,
+          thumbnail: video.thumbnail,
+          source: 'youtube',
+          authorName: video.channelTitle,
+          authorUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(video.channelTitle || '')}`,
+        }));
+      } catch (err: any) {
+        console.log('YouTube search error for trending:', err.message);
+        // Continue without YouTube videos
+      }
+    }
+
+    // Combine and shuffle for variety (mix Petflix and YouTube)
+    let allVideos = [...petflixFormatted, ...youtubeVideos];
+    
+    // Sort by view count (popularity)
+    allVideos.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+    
+    // Add some randomization: shuffle top 20% to keep it fresh
+    const topCount = Math.floor(allVideos.length * 0.2);
+    if (topCount > 1) {
+      const topVideos = allVideos.slice(0, topCount);
+      const restVideos = allVideos.slice(topCount);
+      
+      // Shuffle top videos slightly
+      for (let i = topVideos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [topVideos[i], topVideos[j]] = [topVideos[j], topVideos[i]];
+      }
+      
+      allVideos = [...topVideos, ...restVideos];
+    }
+
+    // Limit to requested amount
+    allVideos = allVideos.slice(0, limit);
+
+    res.json({ videos: allVideos });
+  } catch (error) {
+    console.error('Get trending videos error:', error);
+    res.status(500).json({ error: 'Failed to load trending videos' });
+  }
+};
+
+/**
+ * Get recommended videos (personalized based on user interests)
+ * GET /api/v1/videos/recommended?limit=10
+ */
+export const getRecommendedVideos = async (
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string }>,
+  res: Response
+) => {
+  try {
+    const limit = parseInt(req.query.limit || '10');
+    const userId = req.user?.userId;
+
+    let preferredTags: string[] = [];
+    let recommendedVideos: any[] = [];
+
+    // If user is authenticated, get their preferences from liked videos
+    if (userId) {
+      try {
+        const { data: likedVideos } = await supabaseAdmin!
+          .from('likes')
+          .select(`
+            video_id,
+            videos:video_id (
+              id,
+              youtube_video_id
+            )
+          `)
+          .eq('user_id', userId)
+          .limit(50);
+
+        if (likedVideos && likedVideos.length > 0) {
+          const videoIds = likedVideos
+            .map((l: any) => l.videos?.id)
+            .filter((id: any) => id != null);
+
+          if (videoIds.length > 0) {
+            const { data: tags } = await supabaseAdmin!
+              .from('video_tags_direct')
+              .select('tag_name')
+              .in('video_id', videoIds);
+
+            if (tags) {
+              const tagCounts: { [key: string]: number } = {};
+              tags.forEach((t: any) => {
+                tagCounts[t.tag_name] = (tagCounts[t.tag_name] || 0) + 1;
+              });
+
+              preferredTags = Object.entries(tagCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([tag]) => tag);
+            }
+          }
+        }
+      } catch (err) {
+        console.log('Error getting user preferences:', err);
+      }
+    }
+
+    // Get recommended Petflix videos based on preferences or popular videos
+    if (preferredTags.length > 0) {
+      // Get videos with preferred tags
+      const { data: taggedVideos } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('video_id')
+        .in('tag_name', preferredTags.slice(0, 3));
+
+      if (taggedVideos && taggedVideos.length > 0) {
+        const videoIds = taggedVideos.map((tv: any) => tv.video_id);
+        const { data: videos } = await supabaseAdmin!
+          .from('videos')
+          .select(`
+            id,
+            youtube_video_id,
+            title,
+            description,
+            user_id,
+            original_user_id,
+            created_at,
+            updated_at,
+            view_count,
+            users:user_id (
+              id,
+              username,
+              email,
+              profile_picture_url
+            ),
+            original_user:original_user_id (
+              id,
+              username,
+              email,
+              profile_picture_url
+            )
+          `)
+          .in('id', videoIds)
+          .order('view_count', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(limit * 2);
+
+        if (videos) {
+          // Get tags
+          const vidIds = videos.map((v: any) => v.id);
+          let videoTagsMap: { [key: string]: string[] } = {};
+          
+          if (vidIds.length > 0) {
+            const { data: allTags } = await supabaseAdmin!
+              .from('video_tags_direct')
+              .select('video_id, tag_name')
+              .in('video_id', vidIds);
+            
+            if (allTags) {
+              allTags.forEach((tagRow: any) => {
+                if (!videoTagsMap[tagRow.video_id]) {
+                  videoTagsMap[tagRow.video_id] = [];
+                }
+                videoTagsMap[tagRow.video_id].push(tagRow.tag_name);
+              });
+            }
+          }
+
+          // Format videos
+          recommendedVideos = await Promise.all(videos.map(async (video: any) => {
+            const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+            const originalUserData = video.original_user_id 
+              ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+              : null;
+            
+            let thumbnail: string | null = null;
+            if (video.youtube_video_id) {
+              if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+                thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+              }
+            }
+
+            let authorName: string | undefined;
+            let authorUrl: string | undefined;
+            let source: 'petflix' | 'youtube' = 'petflix';
+            
+            if (video.youtube_video_id) {
+              try {
+                const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+                if (metadata?.authorName) {
+                  authorName = metadata.authorName;
+                  authorUrl = metadata.authorUrl;
+                  source = 'youtube';
+                }
+              } catch (err) {
+                // Silently fail
+              }
+            }
+
+            const isReposted = video.original_user_id !== null;
+
+            return {
+              id: video.id,
+              youtubeVideoId: video.youtube_video_id,
+              title: video.title,
+              description: video.description,
+              userId: video.user_id,
+              createdAt: video.created_at,
+              updatedAt: video.updated_at,
+              viewCount: video.view_count || 0,
+              tags: videoTagsMap[video.id] || [],
+              thumbnail: thumbnail,
+              source: source,
+              authorName: authorName,
+              authorUrl: authorUrl,
+              user: isReposted ? null : (userData ? {
+                id: userData.id,
+                username: userData.username,
+                email: userData.email,
+                profile_picture_url: userData.profile_picture_url,
+              } : null),
+              originalUser: isReposted ? ((source === 'youtube' && authorName) ? null : (originalUserData ? {
+                id: originalUserData.id,
+                username: originalUserData.username,
+                email: originalUserData.email,
+                profile_picture_url: originalUserData.profile_picture_url,
+              } : null)) : null,
+            };
+          }));
+        }
+      }
+    }
+
+    // If not enough recommendations, add popular videos
+    if (recommendedVideos.length < limit) {
+      const { data: popularVideos } = await supabaseAdmin!
+        .from('videos')
+        .select(`
+          id,
+          youtube_video_id,
+          title,
+          description,
+          user_id,
+          original_user_id,
+          created_at,
+          updated_at,
+          view_count,
+          users:user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          ),
+          original_user:original_user_id (
+            id,
+            username,
+            email,
+            profile_picture_url
+          )
+        `)
+        .order('view_count', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(limit * 2);
+
+      if (popularVideos) {
+        const existingIds = new Set(recommendedVideos.map((v: any) => v.id).filter((id: any) => id != null));
+        const additional = popularVideos
+          .filter((v: any) => !existingIds.has(v.id))
+          .slice(0, limit - recommendedVideos.length);
+
+        // Format additional videos
+        const additionalFormatted = await Promise.all(additional.map(async (video: any) => {
+          const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+          const originalUserData = video.original_user_id 
+            ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+            : null;
+          
+          let thumbnail: string | null = null;
+          if (video.youtube_video_id) {
+            if (/^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+              thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+            }
+          }
+
+          let authorName: string | undefined;
+          let authorUrl: string | undefined;
+          let source: 'petflix' | 'youtube' = 'petflix';
+          
+          if (video.youtube_video_id) {
+            try {
+              const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+              if (metadata?.authorName) {
+                authorName = metadata.authorName;
+                authorUrl = metadata.authorUrl;
+                source = 'youtube';
+              }
+            } catch (err) {
+              // Silently fail
+            }
+          }
+
+          const isReposted = video.original_user_id !== null;
+
+          return {
+            id: video.id,
+            youtubeVideoId: video.youtube_video_id,
+            title: video.title,
+            description: video.description,
+            userId: video.user_id,
+            createdAt: video.created_at,
+            updatedAt: video.updated_at,
+            viewCount: video.view_count || 0,
+            tags: [],
+            thumbnail: thumbnail,
+            source: source,
+            authorName: authorName,
+            authorUrl: authorUrl,
+            user: isReposted ? null : (userData ? {
+              id: userData.id,
+              username: userData.username,
+              email: userData.email,
+              profile_picture_url: userData.profile_picture_url,
+            } : null),
+            originalUser: isReposted ? ((source === 'youtube' && authorName) ? null : (originalUserData ? {
+              id: originalUserData.id,
+              username: originalUserData.username,
+              email: originalUserData.email,
+              profile_picture_url: originalUserData.profile_picture_url,
+            } : null)) : null,
+          };
+        }));
+
+        recommendedVideos = [...recommendedVideos, ...additionalFormatted];
+      }
+    }
+
+    // Add YouTube videos for variety (if API key available)
+    if (process.env.YOUTUBE_API_KEY && recommendedVideos.length < limit) {
+      try {
+        const searchQuery = preferredTags.length > 0
+          ? `${preferredTags[0]} pets animals`
+          : 'cute pets animals';
+        
+        const youtubeLimit = Math.max(3, limit - recommendedVideos.length);
+        const youtubeResults = await searchYouTubeVideos(searchQuery, youtubeLimit);
+        
+        const youtubeFormatted = youtubeResults.videos.map((video: any) => ({
+          id: null,
+          youtubeVideoId: video.id,
+          title: video.title,
+          description: video.description || '',
+          userId: null,
+          createdAt: video.publishedAt,
+          updatedAt: video.publishedAt,
+          viewCount: parseInt(video.viewCount || '0'),
+          tags: [],
+          user: null,
+          originalUser: null,
+          thumbnail: video.thumbnail,
+          source: 'youtube',
+          authorName: video.channelTitle,
+          authorUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(video.channelTitle || '')}`,
+        }));
+
+        recommendedVideos = [...recommendedVideos, ...youtubeFormatted];
+      } catch (err: any) {
+        console.log('YouTube search error for recommended:', err.message);
+      }
+    }
+
+    // Shuffle for freshness (randomize order)
+    for (let i = recommendedVideos.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [recommendedVideos[i], recommendedVideos[j]] = [recommendedVideos[j], recommendedVideos[i]];
+    }
+
+    // Limit to requested amount
+    recommendedVideos = recommendedVideos.slice(0, limit);
+
+    res.json({ videos: recommendedVideos });
+  } catch (error) {
+    console.error('Get recommended videos error:', error);
+    res.status(500).json({ error: 'Failed to load recommended videos' });
+  }
+};
+

@@ -19,6 +19,8 @@ import {
   canRepostVideo,
   getLikedVideos,
   getMostPopularVideoThisWeek,
+  getTrendingVideos,
+  getRecommendedVideos,
 } from '../controllers/videoController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 
@@ -27,6 +29,8 @@ const router = Router();
 // Public routes
 router.get('/search', optionalAuthenticate, searchVideos);
 router.get('/recent', optionalAuthenticate, getRecentVideos);
+router.get('/trending', optionalAuthenticate, getTrendingVideos);
+router.get('/recommended', optionalAuthenticate, getRecommendedVideos);
 router.get('/most-popular-this-week', optionalAuthenticate, getMostPopularVideoThisWeek);
 router.get('/user/:userId', optionalAuthenticate, getVideosByUser);
 router.get('/liked/:userId', optionalAuthenticate, getLikedVideos);

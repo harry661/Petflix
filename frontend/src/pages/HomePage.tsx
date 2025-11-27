@@ -148,17 +148,17 @@ export default function HomePage() {
       
       // Build URL with tag filter if selected
       // Limit to 10 videos for 2 rows on home page (5 per row on larger screens)
-      let url = `${API_URL}/api/v1/videos/recent?limit=10`;
+      let url = `${API_URL}/api/v1/videos/trending?limit=10`;
       if (filter) {
         url += `&tag=${encodeURIComponent(filter)}`;
       }
       
-      // Get recent videos (with tag filter if selected)
-      const recentResponse = await fetch(url);
-      if (recentResponse.ok) {
-        const recentData = await recentResponse.json();
-        if (recentData.videos && recentData.videos.length > 0) {
-          setTrendingVideos(recentData.videos);
+      // Get trending videos (mix of Petflix and YouTube, sorted by popularity)
+      const trendingResponse = await fetch(url);
+      if (trendingResponse.ok) {
+        const trendingData = await trendingResponse.json();
+        if (trendingData.videos && trendingData.videos.length > 0) {
+          setTrendingVideos(trendingData.videos);
           if (isFilterChange) {
             setFilterLoading(false);
           } else {
@@ -168,7 +168,6 @@ export default function HomePage() {
         }
       }
       
-      // No fallback to YouTube search - only show Petflix users' shared/reposted videos
       // If no results, set empty array
       setTrendingVideos([]);
     } catch (err) {
@@ -199,96 +198,39 @@ export default function HomePage() {
       setRecommendedLoading(true);
       const token = localStorage.getItem('auth_token');
       
-      // First, try to get user's liked videos to understand their preferences
-      let preferredTags: string[] = [];
+      // Build URL with authentication if available
+      let url = `${API_URL}/api/v1/videos/recommended?limit=10`;
       
-      if (token && user) {
-        try {
-          const likedResponse = await fetch(`${API_URL}/api/v1/videos/liked/${user.id}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-            credentials: 'include',
+      // Get personalized recommended videos (mix of Petflix and YouTube based on user interests)
+      const recommendedResponse = await fetch(url, {
+        headers: token ? {
+          'Authorization': `Bearer ${token}`,
+        } : {},
+        credentials: 'include',
+      });
+      
+      if (recommendedResponse.ok) {
+        const recommendedData = await recommendedResponse.json();
+        if (recommendedData.videos && recommendedData.videos.length > 0) {
+          // Filter out videos that are already in trending (to avoid duplicates)
+          const trendingVideoIds = new Set(trendingVideos.map(v => v.id).filter(id => id != null));
+          const trendingYouTubeIds = new Set(trendingVideos.map(v => v.youtubeVideoId).filter(id => id != null));
+          const filtered = recommendedData.videos.filter((v: any) => {
+            // Skip if it's a Petflix video that's already in trending
+            if (v.id && trendingVideoIds.has(v.id)) return false;
+            // Skip if it's a YouTube video that's already in trending
+            if (v.youtubeVideoId && trendingYouTubeIds.has(v.youtubeVideoId)) return false;
+            return true;
           });
           
-          if (likedResponse.ok) {
-            const likedData = await likedResponse.json();
-            const likedVideos = likedData.videos || [];
-            
-            // Extract tags from liked videos
-            likedVideos.forEach((video: any) => {
-              if (video.tags && Array.isArray(video.tags)) {
-                preferredTags.push(...video.tags);
-              }
-            });
-            
-            // Get unique tags and take top 3 most common
-            const tagCounts: { [key: string]: number } = {};
-            preferredTags.forEach(tag => {
-              tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-            });
-            
-            const sortedTags = Object.entries(tagCounts)
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 3)
-              .map(([tag]) => tag);
-            
-            preferredTags = sortedTags;
-          }
-        } catch (err) {
-          // Silently fail - will fall back to popular videos
+          setRecommendedVideos(filtered.slice(0, 10));
+          setRecommendedLoading(false);
+          return;
         }
       }
       
-      // If we have preferred tags, search for videos with those tags
-      if (preferredTags.length > 0) {
-        // Try to get videos with preferred tags
-        const tagQuery = preferredTags.slice(0, 1).join(' '); // Use most preferred tag
-        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(tagQuery)}&limit=20`);
-        
-        if (searchResponse.ok) {
-          const searchData = await searchResponse.json();
-          if (searchData.videos && searchData.videos.length > 0) {
-            // Filter out videos that are already in trending (to avoid duplicates)
-            // Handle both Petflix videos (with id) and YouTube videos (with youtubeVideoId)
-            const trendingVideoIds = new Set(trendingVideos.map(v => v.id).filter(id => id != null));
-            const trendingYouTubeIds = new Set(trendingVideos.map(v => v.youtubeVideoId).filter(id => id != null));
-            const filtered = searchData.videos.filter((v: any) => {
-              // Skip if it's a Petflix video that's already in trending
-              if (v.id && trendingVideoIds.has(v.id)) return false;
-              // Skip if it's a YouTube video that's already in trending
-              if (v.youtubeVideoId && trendingYouTubeIds.has(v.youtubeVideoId)) return false;
-              return true;
-            });
-            setRecommendedVideos(filtered.slice(0, 10));
-            setRecommendedLoading(false);
-            return;
-          }
-        }
-      }
-      
-      // Fallback: Get popular/recent videos (excluding already shown trending videos)
-      const recentResponse = await fetch(`${API_URL}/api/v1/videos/recent?limit=20`);
-      if (recentResponse.ok) {
-        const recentData = await recentResponse.json();
-        const allRecentVideos = recentData.videos || [];
-        
-        // Filter out videos that are already in trending (to avoid duplicates)
-        // Handle both Petflix videos (with id) and YouTube videos (with youtubeVideoId)
-        const trendingVideoIds = new Set(trendingVideos.map(v => v.id).filter(id => id != null));
-        const trendingYouTubeIds = new Set(trendingVideos.map(v => v.youtubeVideoId).filter(id => id != null));
-        const filtered = allRecentVideos.filter((v: any) => {
-          // Skip if it's a Petflix video that's already in trending
-          if (v.id && trendingVideoIds.has(v.id)) return false;
-          // Skip if it's a YouTube video that's already in trending
-          if (v.youtubeVideoId && trendingYouTubeIds.has(v.youtubeVideoId)) return false;
-          return true;
-        });
-        
-        setRecommendedVideos(filtered.slice(0, 10));
-      } else {
-        setRecommendedVideos([]);
-      }
+      // If no results, set empty array
+      setRecommendedVideos([]);
     } catch (err) {
       // Error loading recommended videos - set empty array
       setRecommendedVideos([]);
