@@ -1002,13 +1002,12 @@ export const getVideosByUser = async (
     // IMPORTANT: YouTube reposts use a special UUID '00000000-0000-0000-0000-000000000000' as original_user_id
     // This marks them as reposts even though there's no Petflix user who originally shared them
     if (type === 'reposted') {
-      // Include videos with original_user_id set (including the special YouTube marker)
+      // Include videos with original_user_id set (including the special YouTube marker UUID)
       query = query.not('original_user_id', 'is', null);
     } else {
       // Default to 'shared' - videos where user_id is the original sharer
-      // Exclude YouTube reposts (those with the special UUID)
-      query = query.is('original_user_id', null)
-        .or('original_user_id.neq.00000000-0000-0000-0000-000000000000');
+      // Only include videos where original_user_id IS NULL (excludes YouTube reposts with special UUID)
+      query = query.is('original_user_id', null);
     }
 
     const { data: videos, error } = await query.order('created_at', { ascending: false });
