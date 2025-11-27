@@ -807,6 +807,10 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
             }
             
             // For Petflix videos, show user profile picture
+            // IMPORTANT: For reposted videos, always show original uploader, not the reposter
+            // originalUser is set when video.original_user_id exists (repost)
+            // user is the person who shared/reposted it
+            // For display, we want to show the original uploader if it's a repost
             const displayUser = video.originalUser || video.user;
             return displayUser?.username ? (
               <Link
@@ -1066,6 +1070,10 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
               }
               
               // For Petflix videos, show original user's username (for reposted videos) or user's username
+              // IMPORTANT: For reposted videos, always show original uploader, not the reposter
+              // originalUser is set when video.original_user_id exists (repost)
+              // user is the person who shared/reposted it
+              // For display, we want to show the original uploader if it's a repost
               const displayUser = video.originalUser || video.user;
               return displayUser?.username && (
                 <div style={{ marginBottom: '2px' }}>

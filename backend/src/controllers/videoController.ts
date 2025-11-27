@@ -833,6 +833,7 @@ export const getFeed = async (req: Request, res: Response) => {
     console.log('Following user IDs:', followingIds);
 
     // Get videos from followed users
+    // IMPORTANT: Include original_user_id and original_user to show original uploader for reposted videos
     const { data: videos, error: videosError } = await supabaseAdmin!
       .from('videos')
       .select(`
@@ -841,10 +842,17 @@ export const getFeed = async (req: Request, res: Response) => {
         title,
         description,
         user_id,
+        original_user_id,
         created_at,
         updated_at,
         view_count,
         users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        ),
+        original_user:original_user_id (
           id,
           username,
           email,
@@ -908,6 +916,10 @@ export const getFeed = async (req: Request, res: Response) => {
       // Use created_at as display date
       const displayDate = video.created_at;
 
+      // For reposted videos, user should be null (we show originalUser instead)
+      // For non-reposted videos, user is the sharer
+      const isReposted = !!video.original_user_id;
+      
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
@@ -918,12 +930,15 @@ export const getFeed = async (req: Request, res: Response) => {
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
         thumbnail: thumbnail,
-        user: userData ? {
+        // For reposted videos, set user to null so frontend shows originalUser
+        // For non-reposted videos, user is the sharer
+        user: isReposted ? null : (userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
-        } : null,
+        } : null),
+        // Always set originalUser for reposted videos so frontend can show original uploader
         originalUser: originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
@@ -1231,6 +1246,9 @@ export const getRecentVideos = async (
 
     const videosFormatted = (videos || []).map((video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+      const originalUserData = video.original_user_id 
+        ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+        : null;
       // Generate thumbnail URL directly from YouTube video ID
       let thumbnail: string | null = null;
       if (video.youtube_video_id) {
@@ -1238,6 +1256,10 @@ export const getRecentVideos = async (
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
+      // For reposted videos, user should be null (we show originalUser instead)
+      // For non-reposted videos, user is the sharer
+      const isReposted = !!video.original_user_id;
+      
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
@@ -1248,11 +1270,20 @@ export const getRecentVideos = async (
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
         tags: videoTagsMap[video.id] || [],
-        user: userData ? {
+        // For reposted videos, set user to null so frontend shows originalUser
+        // For non-reposted videos, user is the sharer
+        user: isReposted ? null : (userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
+        } : null),
+        // Always set originalUser for reposted videos so frontend can show original uploader
+        originalUser: originalUserData ? {
+          id: originalUserData.id,
+          username: originalUserData.username,
+          email: originalUserData.email,
+          profile_picture_url: originalUserData.profile_picture_url,
         } : null,
         thumbnail: thumbnail,
         source: 'petflix',
