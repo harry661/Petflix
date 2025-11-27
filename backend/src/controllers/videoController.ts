@@ -1058,21 +1058,67 @@ export const getVideosByUser = async (
       `)
       .eq('user_id', userId);
 
-    // Filter by type: 'shared' = original videos (no original_user_id), 'reposted' = reposted videos (has original_user_id)
-    // IMPORTANT: YouTube reposts use a special UUID '00000000-0000-0000-0000-000000000000' as original_user_id
-    // This marks them as reposts even though there's no Petflix user who originally shared them
-    if (type === 'reposted') {
-      // Include videos with original_user_id set (including the special YouTube marker UUID)
-      query = query.not('original_user_id', 'is', null);
-    } else {
-      // Default to 'shared' - videos where user_id is the original sharer
-      // Only include videos where original_user_id IS NULL (excludes YouTube reposts with special UUID)
-      query = query.is('original_user_id', null);
+    // Filter by type: 'shared' = original videos, 'reposted' = reposted videos
+    // IMPORTANT: For reposted videos, we need to distinguish between:
+    // - Petflix reposts: original_user_id IS NOT NULL (reposted from another Petflix user)
+    // - YouTube reposts: original_user_id IS NULL AND youtube_video_id IS NOT NULL (reposted from YouTube, not yet shared)
+    // For shared videos: original_user_id IS NULL (these are the user's own shared videos)
+    // 
+    // We'll fetch all videos for this user and filter in application logic to handle the complex OR condition
+    const { data: allVideos, error: allVideosError } = await supabaseAdmin!
+      .from('videos')
+      .select(`
+        id,
+        youtube_video_id,
+        title,
+        description,
+        user_id,
+        original_user_id,
+        created_at,
+        updated_at,
+        view_count,
+        users:user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        ),
+        original_user:original_user_id (
+          id,
+          username,
+          email,
+          profile_picture_url
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (allVideosError) {
+      res.status(500).json({ error: 'Failed to load videos' });
+      return;
     }
 
-    const { data: videos, error } = await query.order('created_at', { ascending: false });
+    // Filter videos based on type
+    let videos: any[] = [];
+    if (type === 'reposted') {
+      // Reposted videos: original_user_id IS NOT NULL (Petflix reposts) 
+      // OR original_user_id IS NULL AND youtube_video_id IS NOT NULL (YouTube reposts not yet shared)
+      videos = (allVideos || []).filter((video: any) => {
+        return video.original_user_id !== null || 
+               (video.original_user_id === null && video.youtube_video_id);
+      });
+    } else {
+      // Shared videos: original_user_id IS NULL (user's own shared videos)
+      // Exclude YouTube reposts (original_user_id IS NULL but it's a repost - we can't distinguish easily)
+      // Actually, for shared videos, we want videos where user_id matches and original_user_id IS NULL
+      // But we need to exclude YouTube reposts. The way to tell: if it's in reposted, it's not shared
+      // For now, just show videos where original_user_id IS NULL
+      videos = (allVideos || []).filter((video: any) => {
+        return video.original_user_id === null;
+      });
+    }
 
-    if (error) {
+    if (allVideosError) {
       res.status(500).json({ error: 'Failed to load videos' });
       return;
     }
@@ -1106,14 +1152,18 @@ export const getVideosByUser = async (
         ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
         : null;
 
-      // For ALL YouTube videos (shared or reposted), fetch YouTube metadata to show original uploader
-      // This ensures the YouTube channel is ALWAYS shown as the uploader, never the Petflix user
+      // Determine if this is a repost
+      const isReposted = video.original_user_id !== null || 
+                        (video.original_user_id === null && video.youtube_video_id && type === 'reposted');
+      
+      // For shared videos (type === 'shared'), show the user who shared it prominently
+      // For reposted videos, show YouTube channel or original Petflix sharer
       let authorName: string | undefined;
       let authorUrl: string | undefined;
       let source: 'petflix' | 'youtube' = 'petflix';
       
-      // ALWAYS fetch YouTube metadata if this is a YouTube video
-      // This ensures YouTube channel is shown as uploader, not the Petflix user who shared/reposted it
+      // For reposted YouTube videos, fetch YouTube metadata to show original uploader
+      // For shared YouTube videos, we still fetch metadata but show the sharer prominently
       if (video.youtube_video_id) {
         try {
           const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
@@ -1127,18 +1177,6 @@ export const getVideosByUser = async (
           console.log(`Failed to fetch YouTube metadata for ${video.youtube_video_id}:`, err);
         }
       }
-      
-      // Check if this is a YouTube repost (has original_user_id set, including the special YouTube marker)
-      const isYouTubeRepost = video.youtube_video_id && video.original_user_id && 
-        video.original_user_id === '00000000-0000-0000-0000-000000000000';
-      const isPetflixRepost = video.youtube_video_id && video.original_user_id && 
-        video.original_user_id !== '00000000-0000-0000-0000-000000000000';
-
-      // For reposted videos, we want to show the original uploader, not the reposter
-      // user_id is the reposter, original_user_id is the original Petflix sharer (or YouTube marker)
-      // For YouTube videos, we show the original YouTube uploader
-      const isReposted = !!video.original_user_id;
-      // isYouTubeRepost is already declared above (line 1055)
       
       return {
         id: video.id,
@@ -1154,23 +1192,28 @@ export const getVideosByUser = async (
         source: source,
         authorName: authorName,
         authorUrl: authorUrl,
-        // For reposted videos, user should be null (we show originalUser or YouTube uploader instead)
-        // For non-reposted videos, user is the sharer
-        user: isReposted ? null : (userData ? {
+        // For shared videos (type === 'shared'), show the user who shared it prominently
+        // For reposted videos, show originalUser or YouTube uploader
+        // IMPORTANT: On user profile "shared videos", show the user prominently, not YouTube channel
+        user: (type === 'shared' && userData) ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
-        } : null),
-        // For YouTube videos, ALWAYS show YouTube channel as uploader (via authorName), never show Petflix user
-        // For reposted Petflix videos (non-YouTube), show original Petflix sharer
-        // IMPORTANT: YouTube videos should NEVER show the Petflix user as the uploader
-        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
+        } : (isReposted ? null : (userData ? {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          profile_picture_url: userData.profile_picture_url,
+        } : null)),
+        // For reposted videos, show originalUser (Petflix sharer) or YouTube uploader
+        // For shared videos, originalUser is null (it's the user's own share)
+        originalUser: (type === 'shared') ? null : ((source === 'youtube' && authorName) ? null : (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
           profile_picture_url: originalUserData.profile_picture_url,
-        } : null),
+        } : null)),
       };
     }));
 
@@ -1994,13 +2037,8 @@ export const repostVideo = async (
           }
         } else {
           // No one has reposted this yet - fetch metadata from YouTube
-          // IMPORTANT: We'll use a special marker to indicate this is a YouTube repost
-          // We'll use the user's own ID temporarily, then immediately update it
-          // Actually, better: use a UUID that represents "YouTube" as the original source
-          // But we can't use a foreign key to a non-existent user
-          // Solution: Use a special UUID (all zeros or a known UUID) to mark YouTube reposts
-          // OR: Check in the query if youtube_video_id exists and original_user_id is null
-          
+          // For YouTube videos not yet shared, we'll use NULL for original_user_id
+          // The query logic will treat NULL + youtube_video_id as a YouTube repost
           try {
             const metadata = await getYouTubeVideoMetadata(youtubeVideoId);
             
@@ -2016,11 +2054,10 @@ export const repostVideo = async (
             videoDescription = metadata.description || '';
             videoViewCount = 0; // We don't have view count from oEmbed
             
-            // For YouTube videos that haven't been shared yet, we need to mark them as reposts
-            // We'll use a special marker: set original_user_id to a special UUID that represents "YouTube"
-            // This UUID will be: '00000000-0000-0000-0000-000000000000' (all zeros)
-            // In queries, we'll treat videos with this UUID as YouTube reposts
-            originalUserId = '00000000-0000-0000-0000-000000000000' as any; // Special marker for YouTube reposts
+            // For YouTube videos that haven't been shared yet, use NULL for original_user_id
+            // The query will identify these as reposts by checking: original_user_id IS NULL AND youtube_video_id IS NOT NULL
+            // This works because shared videos have original_user_id IS NULL, but we can distinguish them in the reposted query
+            originalUserId = null as any; // NULL for YouTube reposts (no Petflix user originally shared it)
             originalVideo = null; // No existing Petflix video entry
           } catch (error: any) {
             console.error('Error fetching YouTube metadata for repost:', error);

@@ -1041,9 +1041,60 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
             </div>
 
             {/* Username - clickable link */}
-            {/* For YouTube videos, show author name; for Petflix videos, show user's username */}
+            {/* For shared videos, show user prominently with YouTube channel as secondary */}
+            {/* For reposted videos, show original uploader (YouTube channel or Petflix user) */}
             {(() => {
-              // For YouTube videos with author info (liked directly or reposted), show YouTube channel name
+              // If this is a shared video (user exists and no originalUser), show user prominently
+              // with YouTube channel as smaller secondary text
+              if (video.user && !video.originalUser) {
+                return (
+                  <div style={{ marginBottom: '2px' }}>
+                    <Link
+                      to={`/user/${video.user.username}`}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        fontSize: '13px',
+                        textDecoration: 'none',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s',
+                        fontWeight: '500'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#ADD8E6'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                    >
+                      {video.user.username}
+                    </Link>
+                    {/* Show YouTube channel as smaller secondary text if available */}
+                    {video.source === 'youtube' && video.authorName && (
+                      <span style={{ 
+                        color: 'rgba(255, 255, 255, 0.5)', 
+                        fontSize: '11px', 
+                        marginLeft: '6px' 
+                      }}>
+                        from{' '}
+                        <a
+                          href={video.authorUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            textDecoration: 'none',
+                            cursor: 'pointer'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)'}
+                        >
+                          {video.authorName}
+                        </a>
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+              
+              // For YouTube videos with author info (reposted), show YouTube channel name
               if (video.source === 'youtube' && video.authorName) {
                 return (
                   <div style={{ marginBottom: '2px' }}>
@@ -1070,10 +1121,6 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
               }
               
               // For Petflix videos, show original user's username (for reposted videos) or user's username
-              // IMPORTANT: For reposted videos, always show original uploader, not the reposter
-              // originalUser is set when video.original_user_id exists (repost)
-              // user is the person who shared/reposted it
-              // For display, we want to show the original uploader if it's a repost
               const displayUser = video.originalUser || video.user;
               return displayUser?.username && (
                 <div style={{ marginBottom: '2px' }}>
