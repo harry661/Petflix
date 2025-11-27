@@ -1075,7 +1075,7 @@ export const getVideosByUser = async (
       // user_id is the reposter, original_user_id is the original Petflix sharer (or YouTube marker)
       // For YouTube videos, we show the original YouTube uploader
       const isReposted = !!video.original_user_id;
-      const isYouTubeRepost = video.original_user_id === '00000000-0000-0000-0000-000000000000';
+      // isYouTubeRepost is already declared above (line 1055)
       
       return {
         id: video.id,
