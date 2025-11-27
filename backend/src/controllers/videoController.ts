@@ -970,10 +970,9 @@ export const getFeed = async (req: Request, res: Response) => {
         }
       }
 
-      // For reposted videos, user should be null (we show originalUser instead)
-      // For non-reposted videos, user is the sharer
-      // IMPORTANT: For YouTube videos, NEVER show Petflix user as uploader
-      const isReposted = !!video.original_user_id;
+      // Determine if this is a repost
+      // CRITICAL: Reposts ALWAYS have original_user_id IS NOT NULL
+      const isReposted = video.original_user_id !== null;
       
       return {
         id: video.id,
@@ -988,23 +987,24 @@ export const getFeed = async (req: Request, res: Response) => {
         source: source,
         authorName: authorName,
         authorUrl: authorUrl,
-        // For YouTube videos, set user to null so frontend shows YouTube channel
-        // For reposted videos, set user to null so frontend shows originalUser
-        // For non-reposted Petflix videos, show the sharer
-        user: (source === 'youtube' && authorName) ? null : (isReposted ? null : (userData ? {
+        // For the Following feed, ALWAYS show the Petflix user who shared/reposted it
+        // Shared videos: show the user who shared it
+        // Reposted videos: show the user who reposted it (they're the one in your feed)
+        // IMPORTANT: On Following page, show Petflix users prominently, not YouTube channels
+        user: userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
-        } : null)),
-        // For YouTube videos, originalUser is null (we show YouTube uploader via authorName)
-        // For reposted Petflix videos, originalUser is the original Petflix sharer
-        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
+        } : null,
+        // For reposted videos, also include originalUser for secondary attribution
+        // For shared videos, originalUser is null
+        originalUser: isReposted ? (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
           profile_picture_url: originalUserData.profile_picture_url,
-        } : null),
+        } : null) : null,
         tags: videoTagsMap[video.id] || [],
       };
     }));
