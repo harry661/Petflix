@@ -168,24 +168,8 @@ export default function HomePage() {
         }
       }
       
-      // Fallback: try to search for trending pet videos (only if no filter is selected)
-      if (!filter) {
-        const searchResponse = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent('cats dogs pets')}&limit=12`);
-        if (searchResponse.ok) {
-          const searchData = await searchResponse.json();
-          if (searchData.videos && searchData.videos.length > 0) {
-            setTrendingVideos(searchData.videos);
-            if (isFilterChange) {
-              setFilterLoading(false);
-            } else {
-              setLoading(false);
-            }
-            return;
-          }
-        }
-      }
-      
-      // If still no results, set empty array
+      // No fallback to YouTube search - only show Petflix users' shared/reposted videos
+      // If no results, set empty array
       setTrendingVideos([]);
     } catch (err) {
       // Error loading trending videos - set empty array
