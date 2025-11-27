@@ -2298,13 +2298,24 @@ export const canRepostVideo = async (
     const originalUserId = video.original_user_id || video.user_id;
 
     // Check if user owns this video (either as original sharer or reposter)
-    if (video.user_id === req.user.userId || originalUserId === req.user.userId) {
+    // BUT allow self-repost markers for YouTube videos (original_user_id === user_id is OK for YouTube reposts)
+    // Only prevent if it's a Petflix video (has an actual video.id, not just youtube_video_id)
+    if (video.user_id === req.user.userId) {
+      // User owns this video - check if it's a Petflix video or a YouTube repost marker
+      if (video.original_user_id === req.user.userId && !video.youtube_video_id) {
+        // This is a self-repost of a Petflix video - not allowed
+        res.json({ canRepost: false, reason: 'You cannot repost your own video' });
+        return;
+      }
+      // If it's a YouTube video with self-repost marker, allow it (it's a repost, not a share)
+    } else if (originalUserId === req.user.userId && video.original_user_id) {
+      // User is the original sharer of a reposted video - not allowed
       res.json({ canRepost: false, reason: 'You cannot repost your own video' });
       return;
     }
 
-    // Check if user has already reposted this video (only check for reposts, not shared videos)
-    // A repost has original_user_id set (IS NOT NULL)
+    // Check if user has already reposted this video
+    // A repost ALWAYS has original_user_id IS NOT NULL
     // Users can repost videos they've already shared - it will create a new entry in "reposted videos"
     const { data: existingRepost, error: existingError } = await supabaseAdmin!
       .from('videos')
