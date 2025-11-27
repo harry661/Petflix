@@ -999,11 +999,16 @@ export const getVideosByUser = async (
       .eq('user_id', userId);
 
     // Filter by type: 'shared' = original videos (no original_user_id), 'reposted' = reposted videos (has original_user_id)
+    // IMPORTANT: YouTube reposts use a special UUID '00000000-0000-0000-0000-000000000000' as original_user_id
+    // This marks them as reposts even though there's no Petflix user who originally shared them
     if (type === 'reposted') {
+      // Include videos with original_user_id set (including the special YouTube marker)
       query = query.not('original_user_id', 'is', null);
     } else {
       // Default to 'shared' - videos where user_id is the original sharer
-      query = query.is('original_user_id', null);
+      // Exclude YouTube reposts (those with the special UUID)
+      query = query.is('original_user_id', null)
+        .or('original_user_id.neq.00000000-0000-0000-0000-000000000000');
     }
 
     const { data: videos, error } = await query.order('created_at', { ascending: false });
@@ -1047,7 +1052,13 @@ export const getVideosByUser = async (
       let authorUrl: string | undefined;
       let source: 'petflix' | 'youtube' = 'petflix';
       
-      if (video.youtube_video_id && video.original_user_id) {
+      // Check if this is a YouTube repost (has original_user_id set, including the special YouTube marker)
+      const isYouTubeRepost = video.youtube_video_id && video.original_user_id && 
+        video.original_user_id === '00000000-0000-0000-0000-000000000000';
+      const isPetflixRepost = video.youtube_video_id && video.original_user_id && 
+        video.original_user_id !== '00000000-0000-0000-0000-000000000000';
+      
+      if (isYouTubeRepost || isPetflixRepost) {
         // This is a reposted YouTube video - fetch original YouTube uploader info
         try {
           const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
@@ -1062,9 +1073,10 @@ export const getVideosByUser = async (
       }
 
       // For reposted videos, we want to show the original uploader, not the reposter
-      // user_id is the reposter, original_user_id is the original Petflix sharer
+      // user_id is the reposter, original_user_id is the original Petflix sharer (or YouTube marker)
       // For YouTube videos, we show the original YouTube uploader
       const isReposted = !!video.original_user_id;
+      const isYouTubeRepost = video.original_user_id === '00000000-0000-0000-0000-000000000000';
       
       return {
         id: video.id,
@@ -1088,9 +1100,9 @@ export const getVideosByUser = async (
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
         } : null),
-        // For reposted YouTube videos, originalUser is null (we show YouTube uploader via authorName)
+        // For reposted YouTube videos (with special UUID), originalUser is null (we show YouTube uploader via authorName)
         // For reposted Petflix videos, originalUser is the original Petflix sharer
-        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
+        originalUser: (isYouTubeRepost || (source === 'youtube' && authorName)) ? null : (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
@@ -1848,34 +1860,87 @@ export const repostVideo = async (
           return;
         }
       } else {
-        // Video not shared yet - fetch metadata from YouTube and allow repost
-        // This allows users to repost YouTube videos directly, even if they haven't been shared to Petflix
-        try {
-          const metadata = await getYouTubeVideoMetadata(youtubeVideoId);
+        // Video not shared yet - check if anyone else has reposted it
+        // If someone else has reposted it, we can use their user_id as the "original" for consistency
+        const { data: existingReposts } = await supabaseAdmin!
+          .from('videos')
+          .select('user_id, original_user_id')
+          .eq('youtube_video_id', youtubeVideoId)
+          .neq('user_id', req.user.userId) // Exclude current user
+          .order('created_at', { ascending: true })
+          .limit(1);
+        
+        if (existingReposts && existingReposts.length > 0) {
+          // Someone else has already reposted this - use their user_id as original_user_id
+          // This ensures it shows up in "reposted" videos, not "shared" videos
+          const firstReposter = existingReposts[0];
+          originalUserId = firstReposter.user_id;
           
-          if (!metadata) {
-            res.status(404).json({ 
-              error: 'Could not fetch video information from YouTube. Please check the video ID.' 
+          // Get the first reposter's video data
+          const { data: firstRepostVideo } = await supabaseAdmin!
+            .from('videos')
+            .select('title, description, view_count')
+            .eq('youtube_video_id', youtubeVideoId)
+            .eq('user_id', originalUserId)
+            .maybeSingle();
+          
+          if (firstRepostVideo) {
+            videoTitle = firstRepostVideo.title;
+            videoDescription = firstRepostVideo.description;
+            videoViewCount = firstRepostVideo.view_count || 0;
+            originalVideo = { id: null, youtube_video_id: youtubeVideoId, user_id: originalUserId };
+          } else {
+            // Fallback: fetch from YouTube
+            const metadata = await getYouTubeVideoMetadata(youtubeVideoId);
+            if (!metadata) {
+              res.status(404).json({ 
+                error: 'Could not fetch video information from YouTube. Please check the video ID.' 
+              });
+              return;
+            }
+            videoTitle = metadata.title || 'Untitled Video';
+            videoDescription = metadata.description || '';
+            videoViewCount = 0;
+            originalVideo = { id: null, youtube_video_id: youtubeVideoId, user_id: originalUserId };
+          }
+        } else {
+          // No one has reposted this yet - fetch metadata from YouTube
+          // IMPORTANT: We'll use a special marker to indicate this is a YouTube repost
+          // We'll use the user's own ID temporarily, then immediately update it
+          // Actually, better: use a UUID that represents "YouTube" as the original source
+          // But we can't use a foreign key to a non-existent user
+          // Solution: Use a special UUID (all zeros or a known UUID) to mark YouTube reposts
+          // OR: Check in the query if youtube_video_id exists and original_user_id is null
+          
+          try {
+            const metadata = await getYouTubeVideoMetadata(youtubeVideoId);
+            
+            if (!metadata) {
+              res.status(404).json({ 
+                error: 'Could not fetch video information from YouTube. Please check the video ID.' 
+              });
+              return;
+            }
+            
+            // Use YouTube metadata for the repost
+            videoTitle = metadata.title || 'Untitled Video';
+            videoDescription = metadata.description || '';
+            videoViewCount = 0; // We don't have view count from oEmbed
+            
+            // For YouTube videos that haven't been shared yet, we need to mark them as reposts
+            // We'll use a special marker: set original_user_id to a special UUID that represents "YouTube"
+            // This UUID will be: '00000000-0000-0000-0000-000000000000' (all zeros)
+            // In queries, we'll treat videos with this UUID as YouTube reposts
+            originalUserId = '00000000-0000-0000-0000-000000000000' as any; // Special marker for YouTube reposts
+            originalVideo = null; // No existing Petflix video entry
+          } catch (error: any) {
+            console.error('Error fetching YouTube metadata for repost:', error);
+            res.status(500).json({ 
+              error: 'Failed to fetch video information from YouTube',
+              details: error?.message || 'Unknown error'
             });
             return;
           }
-          
-          // Use YouTube metadata for the repost
-          videoTitle = metadata.title || 'Untitled Video';
-          videoDescription = metadata.description || '';
-          videoViewCount = 0; // We don't have view count from oEmbed
-          
-          // For YouTube videos that haven't been shared yet, set original_user_id to null
-          // The frontend will show the YouTube channel as the original uploader via authorName
-          originalUserId = null as any; // No Petflix user originally shared this
-          originalVideo = null; // No existing Petflix video entry
-        } catch (error: any) {
-          console.error('Error fetching YouTube metadata for repost:', error);
-          res.status(500).json({ 
-            error: 'Failed to fetch video information from YouTube',
-            details: error?.message || 'Unknown error'
-          });
-          return;
         }
       }
     } else {
