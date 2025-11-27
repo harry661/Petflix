@@ -1836,6 +1836,10 @@ export const repostVideo = async (
           // Video is already shared by someone else, repost that video
           originalVideo = otherUserShare;
           originalUserId = otherUserShare.user_id;
+          youtubeVideoId = originalVideo.youtube_video_id;
+          videoTitle = originalVideo.title;
+          videoDescription = originalVideo.description;
+          videoViewCount = originalVideo.view_count || 0;
         } else {
           // Only the current user has shared it - we can't repost our own video
           res.status(400).json({ 
@@ -1843,17 +1847,36 @@ export const repostVideo = async (
           });
           return;
         }
-        
-        youtubeVideoId = originalVideo.youtube_video_id;
-        videoTitle = originalVideo.title;
-        videoDescription = originalVideo.description;
-        videoViewCount = originalVideo.view_count || 0;
       } else {
-        // Video not shared yet - we can't repost it without an original sharer
-        res.status(400).json({ 
-          error: 'This video has not been shared to Petflix yet. Please share it first, or wait for someone else to share it.' 
-        });
-        return;
+        // Video not shared yet - fetch metadata from YouTube and allow repost
+        // This allows users to repost YouTube videos directly, even if they haven't been shared to Petflix
+        try {
+          const metadata = await getYouTubeVideoMetadata(youtubeVideoId);
+          
+          if (!metadata) {
+            res.status(404).json({ 
+              error: 'Could not fetch video information from YouTube. Please check the video ID.' 
+            });
+            return;
+          }
+          
+          // Use YouTube metadata for the repost
+          videoTitle = metadata.title || 'Untitled Video';
+          videoDescription = metadata.description || '';
+          videoViewCount = 0; // We don't have view count from oEmbed
+          
+          // For YouTube videos that haven't been shared yet, set original_user_id to null
+          // The frontend will show the YouTube channel as the original uploader via authorName
+          originalUserId = null as any; // No Petflix user originally shared this
+          originalVideo = null; // No existing Petflix video entry
+        } catch (error: any) {
+          console.error('Error fetching YouTube metadata for repost:', error);
+          res.status(500).json({ 
+            error: 'Failed to fetch video information from YouTube',
+            details: error?.message || 'Unknown error'
+          });
+          return;
+        }
       }
     } else {
       // Handle repost of existing Petflix video
@@ -1886,36 +1909,42 @@ export const repostVideo = async (
       originalUserId = videoData.original_user_id || videoData.user_id;
     }
 
-    // Prevent reposting your own videos
-    if (originalUserId === req.user.userId) {
+    // Prevent reposting your own videos (only if originalUserId is set)
+    if (originalUserId && originalUserId === req.user.userId) {
       res.status(400).json({ error: 'You cannot repost your own video' });
       return;
     }
 
     // Check if user has already reposted this video (only check for reposts, not shared videos)
-    // A repost has original_user_id set (IS NOT NULL)
+    // A repost has original_user_id set (IS NOT NULL) OR is a YouTube video repost (original_user_id IS NULL but user_id matches)
+    // For YouTube videos not yet shared, we need to check if user has already reposted it
     const { data: existingRepost, error: existingError } = await supabaseAdmin!
       .from('videos')
-      .select('id')
-      .eq('youtube_video_id', originalVideo.youtube_video_id)
+      .select('id, original_user_id')
+      .eq('youtube_video_id', youtubeVideoId)
       .eq('user_id', req.user.userId)
-      .not('original_user_id', 'is', null) // Only check for existing reposts
       .maybeSingle();
+    
+    // If it's a repost (original_user_id is not null) or if it's a YouTube video repost (original_user_id is null but video exists)
+    if (existingRepost) {
+      // Check if it's already a repost (original_user_id is not null) or if it's a YouTube video that user already reposted
+      if (existingRepost.original_user_id !== null || originalUserId === null) {
+        res.status(409).json({ error: 'You have already reposted this video' });
+        return;
+      }
+    }
 
     // Only log errors other than "not found"
     if (existingError && existingError.code !== 'PGRST116') {
       console.error('Error checking existing repost:', existingError);
-    }
-
-    if (existingRepost) {
-      res.status(409).json({ error: 'You have already reposted this video' });
-      return;
     }
     
     // Note: If user has already shared this video (original_user_id IS NULL), 
     // they can still repost it - it will create a new entry in "reposted videos"
 
     // Create reposted video entry
+    // For YouTube videos not yet shared (originalUserId is null), we still create a repost entry
+    // The frontend will show the YouTube channel as the original uploader
     const { data: newVideo, error: insertError } = await supabaseAdmin!
       .from('videos')
       .insert({
@@ -1923,7 +1952,7 @@ export const repostVideo = async (
         title: videoTitle,
         description: videoDescription,
         user_id: req.user.userId, // Current user is reposting
-        original_user_id: originalUserId, // Credit the original sharer
+        original_user_id: originalUserId, // Credit the original sharer (null for YouTube videos not yet shared)
         view_count: videoViewCount,
       })
       .select('id, youtube_video_id, title, description, user_id, original_user_id, created_at, updated_at, view_count')
@@ -1951,14 +1980,20 @@ export const repostVideo = async (
       return;
     }
 
-    // Copy tags from original video (use originalVideo.id if it exists, otherwise use the found video's id)
-    const sourceVideoId = originalVideo?.id || id;
-    const { data: originalTags } = await supabaseAdmin!
-      .from('video_tags_direct')
-      .select('tag_name')
-      .eq('video_id', sourceVideoId);
+    // Copy tags from original video (use originalVideo.id if it exists, otherwise skip)
+    // For YouTube videos not yet shared, there are no tags to copy
+    let originalTags: any[] = [];
+    if (originalVideo?.id) {
+      const { data: tags } = await supabaseAdmin!
+        .from('video_tags_direct')
+        .select('tag_name')
+        .eq('video_id', originalVideo.id);
+      if (tags) {
+        originalTags = tags;
+      }
+    }
 
-    if (originalTags && originalTags.length > 0) {
+    if (originalTags.length > 0) {
       const tagInserts = originalTags.map(tag => ({
         video_id: newVideo.id,
         tag_name: tag.tag_name,
@@ -1975,14 +2010,17 @@ export const repostVideo = async (
     }
 
     // Notify followers that this user reposted a video (async, don't wait)
-    notifyFollowersOfVideoShare(
-      req.user!.userId,
-      newVideo.id,
-      originalVideo.title
-    ).catch((err: any) => {
-      console.error('Error notifying followers:', err);
-      // Non-critical error, don't affect response
-    });
+    // Only notify if we have a video title (skip for YouTube videos not yet shared if metadata fetch failed)
+    if (videoTitle) {
+      notifyFollowersOfVideoShare(
+        req.user!.userId,
+        newVideo.id,
+        videoTitle
+      ).catch((err: any) => {
+        console.error('Error notifying followers:', err);
+        // Non-critical error, don't affect response
+      });
+    }
 
     res.status(201).json({
       id: newVideo.id,
@@ -2015,7 +2053,38 @@ export const canRepostVideo = async (
 
     const { id } = req.params;
 
-    // Get the video
+    // Check if this is a YouTube video ID (starts with "youtube_" or is a YouTube video ID format)
+    const isYouTubeId = id.startsWith('youtube_') || (/^[a-zA-Z0-9_-]{11}$/.test(id) && !id.includes('-') && id.length === 11);
+    
+    if (isYouTubeId) {
+      // For YouTube videos, check if user has already reposted it
+      const youtubeVideoId = id.startsWith('youtube_') ? id.replace('youtube_', '') : id;
+      
+      const { data: existingRepost } = await supabaseAdmin!
+        .from('videos')
+        .select('id, original_user_id')
+        .eq('youtube_video_id', youtubeVideoId)
+        .eq('user_id', req.user.userId)
+        .maybeSingle();
+      
+      if (existingRepost) {
+        // Check if it's already a repost (original_user_id is not null) or if it's a YouTube video that user already reposted
+        if (existingRepost.original_user_id !== null) {
+          res.json({ canRepost: false, reason: 'You have already reposted this video' });
+          return;
+        } else {
+          // User has already shared this YouTube video
+          res.json({ canRepost: false, reason: 'You cannot repost a video that you have already shared' });
+          return;
+        }
+      }
+      
+      // YouTube video can be reposted (even if not shared yet)
+      res.json({ canRepost: true });
+      return;
+    }
+
+    // Get the video (Petflix video)
     const { data: video, error: videoError } = await supabaseAdmin!
       .from('videos')
       .select(`
