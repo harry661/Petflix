@@ -212,7 +212,9 @@ export const searchVideos = async (
       }
     }
 
-    const sharedVideosFormatted = sharedVideos.map((video: any) => {
+    // Format videos - for YouTube videos, we need to fetch metadata to show YouTube channel
+    // IMPORTANT: YouTube videos should ALWAYS show YouTube channel as uploader, not Petflix user
+    const sharedVideosFormatted = await Promise.all(sharedVideos.map(async (video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
       const originalUserData = video.original_user_id 
         ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
@@ -229,6 +231,29 @@ export const searchVideos = async (
       // Use created_at as display date
       const displayDate = video.created_at;
 
+      // For YouTube videos, ALWAYS fetch metadata to show YouTube channel as uploader
+      let authorName: string | undefined;
+      let authorUrl: string | undefined;
+      let source: 'petflix' | 'youtube' = 'petflix';
+      
+      if (video.youtube_video_id) {
+        try {
+          const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+          if (metadata?.authorName) {
+            authorName = metadata.authorName;
+            authorUrl = metadata.authorUrl;
+            source = 'youtube';
+          }
+        } catch (err) {
+          // Silently fail - will show Petflix user as fallback
+        }
+      }
+
+      // For reposted videos, user should be null (we show originalUser or YouTube uploader instead)
+      // For non-reposted videos, user is the sharer
+      // IMPORTANT: For YouTube videos, NEVER show Petflix user as uploader
+      const isReposted = !!video.original_user_id;
+
       return {
         id: video.id,
         youtubeVideoId: video.youtube_video_id,
@@ -239,22 +264,29 @@ export const searchVideos = async (
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
         tags: videoTagsMap[video.id] || [],
-        user: userData ? {
+        // For YouTube videos, set user to null so frontend shows YouTube channel
+        // For reposted videos, set user to null so frontend shows originalUser
+        // For non-reposted Petflix videos, show the sharer
+        user: (source === 'youtube' && authorName) ? null : (isReposted ? null : (userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
-        } : null,
-        originalUser: originalUserData ? {
+        } : null)),
+        // For YouTube videos, originalUser is null (we show YouTube uploader via authorName)
+        // For reposted Petflix videos, originalUser is the original Petflix sharer
+        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
           profile_picture_url: originalUserData.profile_picture_url,
-        } : null,
+        } : null),
         thumbnail: thumbnail,
-        source: 'petflix',
+        source: source,
+        authorName: authorName,
+        authorUrl: authorUrl,
       };
-    });
+    }));
 
     // Combine Petflix videos with YouTube search results
     let allVideos = sharedVideosFormatted;
@@ -670,9 +702,11 @@ export const getVideoById = async (
       source: source,
       authorName: authorName,
       authorUrl: authorUrl,
-      // For reposted videos, user should be null (we show originalUser or YouTube uploader instead)
-      // For non-reposted videos, user is the sharer
-      user: isReposted ? undefined : (userData ? {
+      // For YouTube videos, ALWAYS set user to null so frontend shows YouTube channel
+      // For reposted videos, set user to null so frontend shows originalUser or YouTube uploader
+      // For non-reposted Petflix videos, user is the sharer
+      // IMPORTANT: YouTube videos should NEVER show Petflix user as uploader
+      user: (source === 'youtube' && authorName) ? undefined : (isReposted ? undefined : (userData ? {
         id: userData.id,
         username: userData.username,
         email: userData.email,
@@ -680,9 +714,10 @@ export const getVideoById = async (
         bio: (userData as any).bio || null,
         created_at: (userData as any).created_at || video.created_at,
         updated_at: (userData as any).updated_at || video.updated_at,
-      } : undefined),
-      // For reposted YouTube videos, originalUser is undefined (we show YouTube uploader via authorName)
+      } : undefined)),
+      // For YouTube videos, originalUser is undefined (we show YouTube uploader via authorName)
       // For reposted Petflix videos, originalUser is the original Petflix sharer
+      // IMPORTANT: YouTube videos should NEVER show Petflix user as uploader
       originalUser: (source === 'youtube' && authorName) ? undefined : (originalUserData ? {
         id: originalUserData.id,
         username: originalUserData.username,
@@ -900,8 +935,9 @@ export const getFeed = async (req: Request, res: Response) => {
       }
     }
 
-    // Format videos with thumbnails (generate directly from video IDs)
-    const videosFormatted = (videos || []).map((video: any) => {
+    // Format videos with thumbnails - for YouTube videos, fetch metadata to show YouTube channel
+    // IMPORTANT: YouTube videos should ALWAYS show YouTube channel as uploader, not Petflix user
+    const videosFormatted = await Promise.all((videos || []).map(async (video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
       const originalUserData = video.original_user_id 
         ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
@@ -916,8 +952,27 @@ export const getFeed = async (req: Request, res: Response) => {
       // Use created_at as display date
       const displayDate = video.created_at;
 
+      // For YouTube videos, ALWAYS fetch metadata to show YouTube channel as uploader
+      let authorName: string | undefined;
+      let authorUrl: string | undefined;
+      let source: 'petflix' | 'youtube' = 'petflix';
+      
+      if (video.youtube_video_id) {
+        try {
+          const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+          if (metadata?.authorName) {
+            authorName = metadata.authorName;
+            authorUrl = metadata.authorUrl;
+            source = 'youtube';
+          }
+        } catch (err) {
+          // Silently fail - will show Petflix user as fallback
+        }
+      }
+
       // For reposted videos, user should be null (we show originalUser instead)
       // For non-reposted videos, user is the sharer
+      // IMPORTANT: For YouTube videos, NEVER show Petflix user as uploader
       const isReposted = !!video.original_user_id;
       
       return {
@@ -930,24 +985,29 @@ export const getFeed = async (req: Request, res: Response) => {
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
         thumbnail: thumbnail,
+        source: source,
+        authorName: authorName,
+        authorUrl: authorUrl,
+        // For YouTube videos, set user to null so frontend shows YouTube channel
         // For reposted videos, set user to null so frontend shows originalUser
-        // For non-reposted videos, user is the sharer
-        user: isReposted ? null : (userData ? {
+        // For non-reposted Petflix videos, show the sharer
+        user: (source === 'youtube' && authorName) ? null : (isReposted ? null : (userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
-        } : null),
-        // Always set originalUser for reposted videos so frontend can show original uploader
-        originalUser: originalUserData ? {
+        } : null)),
+        // For YouTube videos, originalUser is null (we show YouTube uploader via authorName)
+        // For reposted Petflix videos, originalUser is the original Petflix sharer
+        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
           profile_picture_url: originalUserData.profile_picture_url,
-        } : null,
+        } : null),
         tags: videoTagsMap[video.id] || [],
       };
-    });
+    }));
 
     console.log(`Returning ${videosFormatted.length} formatted videos`);
     res.json({
@@ -1046,19 +1106,15 @@ export const getVideosByUser = async (
         ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
         : null;
 
-      // For reposted YouTube videos, fetch YouTube metadata to show original uploader
+      // For ALL YouTube videos (shared or reposted), fetch YouTube metadata to show original uploader
+      // This ensures the YouTube channel is ALWAYS shown as the uploader, never the Petflix user
       let authorName: string | undefined;
       let authorUrl: string | undefined;
       let source: 'petflix' | 'youtube' = 'petflix';
       
-      // Check if this is a YouTube repost (has original_user_id set, including the special YouTube marker)
-      const isYouTubeRepost = video.youtube_video_id && video.original_user_id && 
-        video.original_user_id === '00000000-0000-0000-0000-000000000000';
-      const isPetflixRepost = video.youtube_video_id && video.original_user_id && 
-        video.original_user_id !== '00000000-0000-0000-0000-000000000000';
-      
-      if (isYouTubeRepost || isPetflixRepost) {
-        // This is a reposted YouTube video - fetch original YouTube uploader info
+      // ALWAYS fetch YouTube metadata if this is a YouTube video
+      // This ensures YouTube channel is shown as uploader, not the Petflix user who shared/reposted it
+      if (video.youtube_video_id) {
         try {
           const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
           if (metadata?.authorName) {
@@ -1067,9 +1123,16 @@ export const getVideosByUser = async (
             source = 'youtube';
           }
         } catch (err) {
-          // Silently fail - will show Petflix user instead
+          // Silently fail - will show Petflix user as fallback
+          console.log(`Failed to fetch YouTube metadata for ${video.youtube_video_id}:`, err);
         }
       }
+      
+      // Check if this is a YouTube repost (has original_user_id set, including the special YouTube marker)
+      const isYouTubeRepost = video.youtube_video_id && video.original_user_id && 
+        video.original_user_id === '00000000-0000-0000-0000-000000000000';
+      const isPetflixRepost = video.youtube_video_id && video.original_user_id && 
+        video.original_user_id !== '00000000-0000-0000-0000-000000000000';
 
       // For reposted videos, we want to show the original uploader, not the reposter
       // user_id is the reposter, original_user_id is the original Petflix sharer (or YouTube marker)
@@ -1099,9 +1162,10 @@ export const getVideosByUser = async (
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
         } : null),
-        // For reposted YouTube videos (with special UUID), originalUser is null (we show YouTube uploader via authorName)
-        // For reposted Petflix videos, originalUser is the original Petflix sharer
-        originalUser: (isYouTubeRepost || (source === 'youtube' && authorName)) ? null : (originalUserData ? {
+        // For YouTube videos, ALWAYS show YouTube channel as uploader (via authorName), never show Petflix user
+        // For reposted Petflix videos (non-YouTube), show original Petflix sharer
+        // IMPORTANT: YouTube videos should NEVER show the Petflix user as the uploader
+        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
@@ -1255,7 +1319,9 @@ export const getRecentVideos = async (
       }
     });
 
-    const videosFormatted = (videos || []).map((video: any) => {
+    // Format videos - for YouTube videos, fetch metadata to show YouTube channel
+    // IMPORTANT: YouTube videos should ALWAYS show YouTube channel as uploader, not Petflix user
+    const videosFormatted = await Promise.all((videos || []).map(async (video: any) => {
       const userData = Array.isArray(video.users) ? video.users[0] : video.users;
       const originalUserData = video.original_user_id 
         ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
@@ -1267,8 +1333,28 @@ export const getRecentVideos = async (
           thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
         }
       }
+      
+      // For YouTube videos, ALWAYS fetch metadata to show YouTube channel as uploader
+      let authorName: string | undefined;
+      let authorUrl: string | undefined;
+      let source: 'petflix' | 'youtube' = 'petflix';
+      
+      if (video.youtube_video_id) {
+        try {
+          const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+          if (metadata?.authorName) {
+            authorName = metadata.authorName;
+            authorUrl = metadata.authorUrl;
+            source = 'youtube';
+          }
+        } catch (err) {
+          // Silently fail - will show Petflix user as fallback
+        }
+      }
+      
       // For reposted videos, user should be null (we show originalUser instead)
       // For non-reposted videos, user is the sharer
+      // IMPORTANT: For YouTube videos, NEVER show Petflix user as uploader
       const isReposted = !!video.original_user_id;
       
       return {
@@ -1281,25 +1367,29 @@ export const getRecentVideos = async (
         updatedAt: video.updated_at,
         viewCount: video.view_count || 0,
         tags: videoTagsMap[video.id] || [],
+        source: source,
+        authorName: authorName,
+        authorUrl: authorUrl,
+        // For YouTube videos, set user to null so frontend shows YouTube channel
         // For reposted videos, set user to null so frontend shows originalUser
-        // For non-reposted videos, user is the sharer
-        user: isReposted ? null : (userData ? {
+        // For non-reposted Petflix videos, show the sharer
+        user: (source === 'youtube' && authorName) ? null : (isReposted ? null : (userData ? {
           id: userData.id,
           username: userData.username,
           email: userData.email,
           profile_picture_url: userData.profile_picture_url,
-        } : null),
-        // Always set originalUser for reposted videos so frontend can show original uploader
-        originalUser: originalUserData ? {
+        } : null)),
+        // For YouTube videos, originalUser is null (we show YouTube uploader via authorName)
+        // For reposted Petflix videos, originalUser is the original Petflix sharer
+        originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
           id: originalUserData.id,
           username: originalUserData.username,
           email: originalUserData.email,
           profile_picture_url: originalUserData.profile_picture_url,
-        } : null,
+        } : null),
         thumbnail: thumbnail,
-        source: 'petflix',
       };
-    });
+    }));
 
     // Deduplicate by YouTube video ID (keep the first occurrence - most popular/recent)
     const seenYouTubeIds = new Set<string>();
