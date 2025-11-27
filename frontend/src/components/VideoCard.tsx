@@ -767,10 +767,36 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
       <div style={{ padding: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           {/* User profile picture - clickable link */}
-          {/* For YouTube videos with author info (liked directly or reposted), show YouTube icon */}
+          {/* Profile picture or YouTube icon */}
           {(() => {
-            // For YouTube videos with author info, show YouTube icon
-            if (video.source === 'youtube' && video.authorName) {
+            // For shared videos (user exists and no originalUser), ALWAYS show user's profile picture
+            // This is the user who shared it - they should be prominently displayed
+            if (video.user && !video.originalUser) {
+              return (
+                <Link
+                  to={`/user/${video.user.username}`}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    textDecoration: 'none',
+                    flexShrink: 0
+                  }}
+                >
+                  <ProfilePicture
+                    src={video.user.profile_picture_url}
+                    alt={video.user.username}
+                    size={36}
+                    fallbackChar={video.user.username?.charAt(0).toUpperCase() || 'U'}
+                    style={{
+                      cursor: 'pointer',
+                      transition: 'opacity 0.2s'
+                    }}
+                  />
+                </Link>
+              );
+            }
+            
+            // For reposted YouTube videos, show YouTube icon
+            if (video.source === 'youtube' && video.authorName && video.originalUser === null) {
               return (
                 <a
                   href={video.authorUrl || '#'}
@@ -806,11 +832,7 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
               );
             }
             
-            // For Petflix videos, show user profile picture
-            // IMPORTANT: For reposted videos, always show original uploader, not the reposter
-            // originalUser is set when video.original_user_id exists (repost)
-            // user is the person who shared/reposted it
-            // For display, we want to show the original uploader if it's a repost
+            // For reposted Petflix videos, show original uploader's profile picture
             const displayUser = video.originalUser || video.user;
             return displayUser?.username ? (
               <Link

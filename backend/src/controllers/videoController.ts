@@ -1108,13 +1108,45 @@ export const getVideosByUser = async (
                (video.original_user_id === null && video.youtube_video_id);
       });
     } else {
-      // Shared videos: original_user_id IS NULL (user's own shared videos)
-      // Exclude YouTube reposts (original_user_id IS NULL but it's a repost - we can't distinguish easily)
-      // Actually, for shared videos, we want videos where user_id matches and original_user_id IS NULL
-      // But we need to exclude YouTube reposts. The way to tell: if it's in reposted, it's not shared
-      // For now, just show videos where original_user_id IS NULL
+      // Shared videos: original_user_id IS NULL AND it's a genuine share (not a repost)
+      // To distinguish YouTube reposts from shares:
+      // - If original_user_id IS NULL and it's a YouTube video, check if there's an earlier
+      //   shared version by the same user. If yes, this later one is a repost.
+      // - If original_user_id IS NULL and it's a YouTube video with no earlier share, 
+      //   check if someone else has shared it. If yes, this is a repost.
       videos = (allVideos || []).filter((video: any) => {
-        return video.original_user_id === null;
+        if (video.original_user_id !== null) {
+          return false; // Not a shared video (has original_user_id)
+        }
+        // original_user_id IS NULL - could be share or repost
+        // For YouTube videos, we need to check if this is actually a repost
+        if (video.youtube_video_id) {
+          // Check if there's an earlier shared version by this user
+          const earlierShareByUser = (allVideos || []).find((v: any) => {
+            return v.youtube_video_id === video.youtube_video_id &&
+                   v.user_id === video.user_id &&
+                   v.original_user_id === null &&
+                   v.id !== video.id &&
+                   new Date(v.created_at) < new Date(video.created_at);
+          });
+          // If user has an earlier share, this later one is a repost
+          if (earlierShareByUser) {
+            return false;
+          }
+          
+          // Check if someone else has shared this video (making this a repost)
+          const shareByOtherUser = (allVideos || []).find((v: any) => {
+            return v.youtube_video_id === video.youtube_video_id &&
+                   v.user_id !== video.user_id &&
+                   v.original_user_id === null &&
+                   new Date(v.created_at) < new Date(video.created_at);
+          });
+          // If someone else shared it first, this is a repost
+          if (shareByOtherUser) {
+            return false;
+          }
+        }
+        return true; // It's a genuine share
       });
     }
 
