@@ -1099,54 +1099,19 @@ export const getVideosByUser = async (
     }
 
     // Filter videos based on type
+    // CRITICAL: Reposts ALWAYS have original_user_id IS NOT NULL
+    // Shares ALWAYS have original_user_id IS NULL
+    // This is the fundamental distinction - we must never set original_user_id = NULL for reposts
     let videos: any[] = [];
     if (type === 'reposted') {
-      // Reposted videos: original_user_id IS NOT NULL (Petflix reposts) 
-      // OR original_user_id IS NULL AND youtube_video_id IS NOT NULL (YouTube reposts not yet shared)
+      // Reposted videos: original_user_id IS NOT NULL (always, for both Petflix and YouTube reposts)
       videos = (allVideos || []).filter((video: any) => {
-        return video.original_user_id !== null || 
-               (video.original_user_id === null && video.youtube_video_id);
+        return video.original_user_id !== null;
       });
     } else {
-      // Shared videos: original_user_id IS NULL AND it's a genuine share (not a repost)
-      // To distinguish YouTube reposts from shares:
-      // - If original_user_id IS NULL and it's a YouTube video, check if there's an earlier
-      //   shared version by the same user. If yes, this later one is a repost.
-      // - If original_user_id IS NULL and it's a YouTube video with no earlier share, 
-      //   check if someone else has shared it. If yes, this is a repost.
+      // Shared videos: original_user_id IS NULL (always - shares never have original_user_id set)
       videos = (allVideos || []).filter((video: any) => {
-        if (video.original_user_id !== null) {
-          return false; // Not a shared video (has original_user_id)
-        }
-        // original_user_id IS NULL - could be share or repost
-        // For YouTube videos, we need to check if this is actually a repost
-        if (video.youtube_video_id) {
-          // Check if there's an earlier shared version by this user
-          const earlierShareByUser = (allVideos || []).find((v: any) => {
-            return v.youtube_video_id === video.youtube_video_id &&
-                   v.user_id === video.user_id &&
-                   v.original_user_id === null &&
-                   v.id !== video.id &&
-                   new Date(v.created_at) < new Date(video.created_at);
-          });
-          // If user has an earlier share, this later one is a repost
-          if (earlierShareByUser) {
-            return false;
-          }
-          
-          // Check if someone else has shared this video (making this a repost)
-          const shareByOtherUser = (allVideos || []).find((v: any) => {
-            return v.youtube_video_id === video.youtube_video_id &&
-                   v.user_id !== video.user_id &&
-                   v.original_user_id === null &&
-                   new Date(v.created_at) < new Date(video.created_at);
-          });
-          // If someone else shared it first, this is a repost
-          if (shareByOtherUser) {
-            return false;
-          }
-        }
-        return true; // It's a genuine share
+        return video.original_user_id === null;
       });
     }
 
@@ -2068,9 +2033,10 @@ export const repostVideo = async (
             originalVideo = { id: null, youtube_video_id: youtubeVideoId, user_id: originalUserId };
           }
         } else {
-          // No one has reposted this yet - fetch metadata from YouTube
-          // For YouTube videos not yet shared, we'll use NULL for original_user_id
-          // The query logic will treat NULL + youtube_video_id as a YouTube repost
+          // No one has shared or reposted this yet
+          // IMPORTANT: When reposting, we MUST set original_user_id to something non-NULL
+          // to distinguish it from a share. We'll use the user's own ID as a marker.
+          // This creates a "self-repost" which is still a repost, not a share.
           try {
             const metadata = await getYouTubeVideoMetadata(youtubeVideoId);
             
@@ -2086,10 +2052,12 @@ export const repostVideo = async (
             videoDescription = metadata.description || '';
             videoViewCount = 0; // We don't have view count from oEmbed
             
-            // For YouTube videos that haven't been shared yet, use NULL for original_user_id
-            // The query will identify these as reposts by checking: original_user_id IS NULL AND youtube_video_id IS NOT NULL
-            // This works because shared videos have original_user_id IS NULL, but we can distinguish them in the reposted query
-            originalUserId = null as any; // NULL for YouTube reposts (no Petflix user originally shared it)
+            // CRITICAL: For reposts, we MUST set original_user_id to a non-NULL value
+            // to distinguish it from shares. We'll use the user's own ID as a marker.
+            // This marks it as a repost (original_user_id IS NOT NULL) even though
+            // it's technically a self-repost. The key is: reposts have original_user_id set,
+            // shares have original_user_id IS NULL.
+            originalUserId = req.user.userId; // Use own ID as marker for YouTube repost
             originalVideo = null; // No existing Petflix video entry
           } catch (error: any) {
             console.error('Error fetching YouTube metadata for repost:', error);
@@ -2132,29 +2100,29 @@ export const repostVideo = async (
       originalUserId = videoData.original_user_id || videoData.user_id;
     }
 
-    // Prevent reposting your own videos (only if originalUserId is set)
-    if (originalUserId && originalUserId === req.user.userId) {
+    // Prevent reposting your own Petflix videos
+    // BUT allow self-repost markers for YouTube videos that haven't been shared
+    // (originalUserId === req.user.userId is OK if originalVideo is null - it's a YouTube repost marker)
+    if (originalUserId && originalUserId === req.user.userId && originalVideo && originalVideo.id) {
+      // This is a repost of the user's own Petflix video - not allowed
       res.status(400).json({ error: 'You cannot repost your own video' });
       return;
     }
 
-    // Check if user has already reposted this video (only check for reposts, not shared videos)
-    // A repost has original_user_id set (IS NOT NULL) OR is a YouTube video repost (original_user_id IS NULL but user_id matches)
-    // For YouTube videos not yet shared, we need to check if user has already reposted it
+    // Check if user has already reposted this video
+    // A repost ALWAYS has original_user_id IS NOT NULL (we fixed this above)
     const { data: existingRepost, error: existingError } = await supabaseAdmin!
       .from('videos')
       .select('id, original_user_id')
       .eq('youtube_video_id', youtubeVideoId)
       .eq('user_id', req.user.userId)
+      .not('original_user_id', 'is', null) // Only check reposts (original_user_id IS NOT NULL)
       .maybeSingle();
     
-    // If it's a repost (original_user_id is not null) or if it's a YouTube video repost (original_user_id is null but video exists)
+    // If user has already reposted this video
     if (existingRepost) {
-      // Check if it's already a repost (original_user_id is not null) or if it's a YouTube video that user already reposted
-      if (existingRepost.original_user_id !== null || originalUserId === null) {
-        res.status(409).json({ error: 'You have already reposted this video' });
-        return;
-      }
+      res.status(409).json({ error: 'You have already reposted this video' });
+      return;
     }
 
     // Only log errors other than "not found"
