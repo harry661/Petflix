@@ -1260,8 +1260,9 @@ export const getRecentVideos = async (
           email,
           profile_picture_url
         )
-      `)
-      .is('original_user_id', null); // Only show original shares, not reposts
+      `);
+      // Show BOTH shared videos (original_user_id IS NULL) AND reposted videos (original_user_id IS NOT NULL)
+      // This ensures we only show Petflix users' videos, not direct YouTube videos
 
     // If tag filter is provided, join with video_tags_direct and filter
     if (tagFilter && tagFilter.trim()) {
@@ -1309,13 +1310,12 @@ export const getRecentVideos = async (
         .in('tag_name', tagNames);
 
       // If there are tagged videos, filter by them
-      // If not, we'll still try to get YouTube results
+      // Only show videos that have been shared/reposted by Petflix users (no YouTube fallback)
       if (taggedVideos && taggedVideos.length > 0) {
         const videoIds = taggedVideos.map((tv: any) => tv.video_id);
         query = query.in('id', videoIds);
       } else {
-        // No tagged videos in database, but we'll still try YouTube
-        // Set query to return no results from database (we'll rely on YouTube)
+        // No tagged videos in database - return empty (don't fall back to YouTube)
         query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // Impossible ID to return empty
       }
     }
