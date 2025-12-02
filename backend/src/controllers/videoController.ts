@@ -18,13 +18,14 @@ import { getCachedSearch, setCachedSearch } from '../services/searchCache';
  * GET /api/v1/videos/search
  */
 export const searchVideos = async (
-  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { q?: string; page?: string; limit?: string; sort?: string }>,
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { q?: string; page?: string; limit?: string; sort?: string; offset?: string }>,
   res: Response
 ) => {
   try {
     const query = req.query.q;
     const page = parseInt(req.query.page || '1');
-    const limit = parseInt(req.query.limit || '10');
+    const limit = parseInt(req.query.limit || '20');
+    const offset = parseInt(req.query.offset || '0');
     const sort = req.query.sort || 'relevance'; // relevance, recency, views, engagement
 
     if (!query || query.trim() === '') {
@@ -181,7 +182,9 @@ export const searchVideos = async (
       });
     }
     
-    sharedVideos = sharedVideos.slice(0, limit);
+    // Apply pagination to shared videos
+    const totalShared = sharedVideos.length;
+    sharedVideos = sharedVideos.slice(offset, offset + limit);
 
     // Refresh view counts for videos with 0 views (async, don't wait)
     sharedVideos.forEach((video: any) => {
@@ -386,14 +389,17 @@ export const searchVideos = async (
     // This prioritizes content already shared on the platform
     allVideos = [...allVideos, ...youtubeVideos];
     
-    // Limit to requested page size
-    allVideos = allVideos.slice(0, limit);
+    // Apply pagination
+    const totalVideos = allVideos.length;
+    const paginatedVideos = allVideos.slice(offset, offset + limit);
+    const hasMore = offset + limit < totalVideos;
 
     res.json({
-      videos: allVideos,
-      total: allVideos.length,
+      videos: paginatedVideos,
+      total: totalVideos,
       page,
       pageSize: limit,
+      hasMore: hasMore,
       sources: {
         petflix: sharedVideosFormatted.length,
         youtube: youtubeVideos.length,
@@ -2736,14 +2742,15 @@ export const getMostPopularVideoThisWeek = async (req: Request, res: Response) =
 
 /**
  * Get trending videos (mix of Petflix and YouTube, sorted by popularity)
- * GET /api/v1/videos/trending?limit=10&tag=dogs
+ * GET /api/v1/videos/trending?limit=20&tag=dogs&offset=0
  */
 export const getTrendingVideos = async (
-  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string; tag?: string }>,
+  req: Request<{}, VideoSearchResponse | ErrorResponse, {}, { limit?: string; tag?: string; offset?: string }>,
   res: Response
 ) => {
   try {
-    const limit = parseInt(req.query.limit || '10');
+    const limit = parseInt(req.query.limit || '20');
+    const offset = parseInt(req.query.offset || '0');
     const tagFilter = req.query.tag;
 
     // Get popular Petflix videos (sorted by view count, then recency)
@@ -2774,7 +2781,7 @@ export const getTrendingVideos = async (
       `)
       .order('view_count', { ascending: false })
       .order('created_at', { ascending: false })
-      .limit(limit * 2); // Get more to allow for tag filtering and variety
+      .range(offset, offset + (limit * 3) - 1); // Get more to allow for tag filtering, variety, and YouTube mixing
 
     // Apply tag filter if provided
     if (tagFilter && tagFilter.trim()) {
@@ -2891,15 +2898,34 @@ export const getTrendingVideos = async (
     }));
 
     // Get YouTube videos to mix in (if API key is available)
+    // For pagination, we need to fetch more YouTube videos to ensure we have enough content
     let youtubeVideos: any[] = [];
     if (process.env.YOUTUBE_API_KEY) {
       try {
         // Search for popular pet videos based on tag filter or general pet content
-        const searchQuery = tagFilter 
-          ? `${tagFilter} pets animals`
-          : 'popular pets animals trending';
+        // Use different search terms for different pages to get variety
+        const searchTerms = tagFilter 
+          ? [
+              `${tagFilter} pets animals`,
+              `${tagFilter} funny pets`,
+              `${tagFilter} cute pets`,
+              `trending ${tagFilter} videos`,
+              `viral ${tagFilter} pets`
+            ]
+          : [
+              'popular pets animals trending',
+              'funny pet videos',
+              'cute pet videos',
+              'viral pet videos',
+              'pet compilation'
+            ];
         
-        const youtubeLimit = Math.max(5, Math.floor(limit / 2)); // Mix 50/50 or at least 5 YouTube videos
+        // Use offset to determine which search term to use (rotate through them)
+        const searchIndex = Math.floor(offset / limit) % searchTerms.length;
+        const searchQuery = searchTerms[searchIndex];
+        
+        // Fetch more YouTube videos to ensure we have enough after deduplication
+        const youtubeLimit = Math.max(limit, 20); // Fetch at least as many as requested, or 20
         const youtubeResults = await searchYouTubeVideos(searchQuery, youtubeLimit);
         
         youtubeVideos = youtubeResults.videos.map((video: any) => ({
@@ -2990,10 +3016,16 @@ export const getTrendingVideos = async (
       allVideos = [...topVideos, ...restVideos];
     }
 
-    // Limit to requested amount
-    allVideos = allVideos.slice(0, limit);
+    // Apply pagination (offset and limit)
+    const totalVideos = allVideos.length;
+    const paginatedVideos = allVideos.slice(offset, offset + limit);
+    const hasMore = offset + limit < totalVideos;
 
-    res.json({ videos: allVideos });
+    res.json({ 
+      videos: paginatedVideos,
+      hasMore: hasMore,
+      total: totalVideos
+    });
   } catch (error) {
     console.error('Get trending videos error:', error);
     res.status(500).json({ error: 'Failed to load trending videos' });

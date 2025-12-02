@@ -31,8 +31,8 @@ export default function TrendingPage() {
       
       const limit = 20; // Load 20 videos at a time
       
-      // Build URL with tag filter and pagination
-      let url = `${API_URL}/api/v1/videos/recent?limit=${limit}&offset=${currentOffset}`;
+      // Build URL with tag filter and pagination - use trending endpoint for YouTube mix
+      let url = `${API_URL}/api/v1/videos/trending?limit=${limit}&offset=${currentOffset}`;
       if (tagFilter) {
         url += `&tag=${encodeURIComponent(tagFilter)}`;
       }
@@ -50,7 +50,8 @@ export default function TrendingPage() {
           setOffset(prev => prev + newVideos.length);
         }
         
-        setHasMore(data.hasMore !== false && newVideos.length === limit);
+        // Check if there are more videos to load
+        setHasMore(data.hasMore !== false && newVideos.length === limit && (data.total || 0) > offset + newVideos.length);
       } else {
         setError('Failed to load trending videos');
       }

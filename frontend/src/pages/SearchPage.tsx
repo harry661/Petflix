@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ArrowUpDown, X, Clock } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
@@ -17,41 +17,91 @@ export default function SearchPage() {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'relevance');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  const handleSearch = async (e?: React.FormEvent, newSort?: string) => {
+  const handleSearch = async (e?: React.FormEvent, newSort?: string, reset: boolean = true) => {
     e?.preventDefault();
     if (!searchQuery.trim()) return;
 
     const currentSort = newSort || sortBy;
-    setLoading(true);
+    const currentOffset = reset ? 0 : offset;
+    
+    if (reset) {
+      setLoading(true);
+      setResults([]);
+      setOffset(0);
+    } else {
+      setLoadingMore(true);
+    }
     setError('');
     setSearchParams({ q: searchQuery, sort: currentSort });
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(searchQuery)}&sort=${currentSort}`);
+      const response = await fetch(`${API_URL}/api/v1/videos/search?q=${encodeURIComponent(searchQuery)}&sort=${currentSort}&limit=20&offset=${currentOffset}`);
       const data = await response.json();
       
       if (response.ok) {
-        setResults(data.videos || []);
-        if (data.videos && data.videos.length === 0) {
+        const newVideos = data.videos || [];
+        if (reset) {
+          setResults(newVideos);
+          setOffset(newVideos.length);
+        } else {
+          setResults(prev => [...prev, ...newVideos]);
+          setOffset(prev => prev + newVideos.length);
+        }
+        
+        setHasMore(data.hasMore !== false && newVideos.length === 20);
+        
+        if (reset && newVideos.length === 0) {
           showError('No videos found. Try a different search term.');
         }
       } else {
         const errorMsg = data.error || 'Search failed';
         setError(errorMsg);
-        showError(errorMsg);
+        if (reset) {
+          showError(errorMsg);
+        }
       }
     } catch (err: any) {
       const errorMsg = 'Failed to search videos. Please try again.';
       setError(errorMsg);
-      showError(errorMsg);
+      if (reset) {
+        showError(errorMsg);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  // Infinite scroll for search results
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore && searchQuery.trim()) {
+          handleSearch(undefined, sortBy, false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, loadingMore, searchQuery, sortBy]);
 
   useEffect(() => {
     const query = searchParams.get('q');
@@ -341,15 +391,39 @@ export default function SearchPage() {
         )}
 
         {!loading && results.length > 0 && (
-          <div className="video-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '20px'
-          }}>
-            {results.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))}
-          </div>
+          <>
+            <div className="video-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '20px'
+            }}>
+              {results.map((video, index) => (
+                <VideoCard key={video.id || video.youtubeVideoId || `video-${index}`} video={video} />
+              ))}
+            </div>
+
+            {/* Infinite scroll trigger */}
+            <div ref={observerTarget} style={{ height: '20px', marginTop: '20px' }}>
+              {loadingMore && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: '#ffffff'
+                }}>
+                  <p>Loading more results...</p>
+                </div>
+              )}
+              {!hasMore && results.length > 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: 'rgba(255, 255, 255, 0.7)'
+                }}>
+                  <p>No more results found.</p>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {!searchQuery && (
