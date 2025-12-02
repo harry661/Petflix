@@ -108,9 +108,11 @@ export const searchVideos = async (
 
     // If there are tag matches, include them using a union approach
     // We'll combine results after fetching
+    // Fetch more videos than needed to account for deduplication and YouTube mixing
+    const fetchLimit = limit * 3; // Fetch 3x the limit to ensure we have enough after processing
     const { data: titleDescVideos, error: titleDescError } = await videoQuery
       .order(orderBy, { ascending })
-      .range(offset, offset + (limit * 2) - 1); // Get more to account for deduplication
+      .range(offset, offset + fetchLimit - 1);
 
     // Get videos by tag match if there are any
     let tagVideos: any[] = [];
@@ -143,7 +145,7 @@ export const searchVideos = async (
         .in('id', tagMatchedVideoIds)
         .is('original_user_id', null) // Only show original shares, not reposts
         .order(orderBy, { ascending })
-        .range(offset, offset + (limit * 2) - 1);
+        .range(offset, offset + fetchLimit - 1);
 
       if (!tagVideosError && tagMatchedVideos) {
         tagVideos = tagMatchedVideos;
@@ -182,10 +184,6 @@ export const searchVideos = async (
       });
     }
     
-    // Apply pagination to shared videos
-    const totalShared = sharedVideos.length;
-    sharedVideos = sharedVideos.slice(offset, offset + limit);
-
     // Refresh view counts for videos with 0 views (async, don't wait)
     sharedVideos.forEach((video: any) => {
       if ((video.view_count || 0) === 0 && video.youtube_video_id) {
@@ -295,43 +293,36 @@ export const searchVideos = async (
     let allVideos = sharedVideosFormatted;
     let youtubeVideos: any[] = [];
     
-    // Only search YouTube if:
-    // 1. We have fewer results than requested (need more content)
-    // 2. OR if no Petflix results at all (user searching for something new)
-    const needsMoreResults = allVideos.length < limit;
-    const hasNoResults = allVideos.length === 0;
-    
-    // Log YouTube API key status for debugging
-    console.log('[Search] YouTube API key status:', {
-      hasKey: !!process.env.YOUTUBE_API_KEY,
-      keyPrefix: process.env.YOUTUBE_API_KEY ? process.env.YOUTUBE_API_KEY.substring(0, 10) + '...' : 'NOT SET',
-      petflixResults: allVideos.length,
-      requestedLimit: limit,
-      needsMoreResults,
-      hasNoResults,
-    });
-    
-    if (!process.env.YOUTUBE_API_KEY) {
-      console.log('[Search] ⚠️ YouTube API key not configured - skipping YouTube search');
-    }
-    
-    if ((needsMoreResults || hasNoResults) && process.env.YOUTUBE_API_KEY) {
-      console.log(`[Search] ✅ Attempting YouTube search - needsMoreResults: ${needsMoreResults}, hasNoResults: ${hasNoResults}, query: "${query}"`);
+    // Always try to include YouTube videos for better content mix and infinite scroll
+    // Use different search variations based on offset to get variety
+    if (process.env.YOUTUBE_API_KEY) {
       try {
-        // Check cache first to avoid API calls
-        const cachedResults = getCachedSearch(query);
+        // Create search variations for different pages to get variety
+        const searchVariations = [
+          query,
+          `${query} funny`,
+          `${query} cute`,
+          `${query} compilation`,
+          `${query} viral`
+        ];
+        
+        // Use offset to determine which variation to use (rotate through them)
+        const variationIndex = Math.floor(offset / limit) % searchVariations.length;
+        const searchVariation = searchVariations[variationIndex];
+        
+        // Check cache first
+        const cachedResults = getCachedSearch(searchVariation);
         
         if (cachedResults) {
-          console.log(`[Search] Using cached YouTube results for: "${query}"`);
+          console.log(`[Search] Using cached YouTube results for: "${searchVariation}"`);
           youtubeVideos = cachedResults;
         } else {
-          // Calculate how many YouTube results we need
-          const youtubeLimit = Math.min(limit - allVideos.length, 10); // Max 10 from YouTube per search
+          // Fetch enough YouTube videos to ensure we have content after deduplication
+          const youtubeLimit = Math.max(limit, 15); // Fetch at least as many as requested
           
-          if (youtubeLimit > 0) {
-            console.log(`[Search] Searching YouTube for: "${query}" (need ${youtubeLimit} more results)`);
-            
-            const youtubeResults = await searchYouTubeVideos(query, youtubeLimit);
+          console.log(`[Search] Searching YouTube for: "${searchVariation}" (page ${Math.floor(offset / limit) + 1}, need ${youtubeLimit} results)`);
+          
+          const youtubeResults = await searchYouTubeVideos(searchVariation, youtubeLimit);
             
             // Format YouTube videos to match our video format
             youtubeVideos = youtubeResults.videos.map((video: any) => ({
@@ -385,14 +376,39 @@ export const searchVideos = async (
       }
     }
     
+    // Deduplicate: Remove YouTube videos that are already in Petflix videos
+    const petflixYouTubeIds = new Set(
+      allVideos
+        .map((v: any) => v.youtubeVideoId)
+        .filter((id: any) => id != null && id !== '')
+    );
+    
+    const uniqueYoutubeVideos = youtubeVideos.filter((v: any) => {
+      return !v.youtubeVideoId || !petflixYouTubeIds.has(v.youtubeVideoId);
+    });
+    
     // Combine results: Petflix videos first, then YouTube videos
     // This prioritizes content already shared on the platform
-    allVideos = [...allVideos, ...youtubeVideos];
+    allVideos = [...allVideos, ...uniqueYoutubeVideos];
     
-    // Apply pagination
+    // Sort combined results if not relevance (relevance keeps tag matches first)
+    if (sort !== 'relevance') {
+      allVideos.sort((a: any, b: any) => {
+        if (sort === 'recency') {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        } else if (sort === 'views') {
+          return (b.viewCount || 0) - (a.viewCount || 0);
+        } else if (sort === 'engagement') {
+          return (b.viewCount || 0) - (a.viewCount || 0);
+        }
+        return 0;
+      });
+    }
+    
+    // Apply pagination to combined results
     const totalVideos = allVideos.length;
-    const paginatedVideos = allVideos.slice(offset, offset + limit);
-    const hasMore = offset + limit < totalVideos;
+    const paginatedVideos = allVideos.slice(0, limit); // Always return first page of combined results
+    const hasMore = allVideos.length > limit || (offset + limit < totalVideos);
 
     res.json({
       videos: paginatedVideos,
