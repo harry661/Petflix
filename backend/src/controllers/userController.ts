@@ -610,7 +610,7 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
     // Get current user data to track changes
     const { data: currentUser } = await supabaseAdmin!
       .from('users')
-      .select('username, email')
+      .select('username, email, bio')
       .eq('id', req.user.userId)
       .single();
 
@@ -727,8 +727,10 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
         return;
       }
       // Sanitize bio to prevent XSS
-      updates.bio = bio ? sanitizeInput(bio) : null;
-      if (bio !== currentUser.bio) {
+      const sanitizedBio = bio ? sanitizeInput(bio) : null;
+      const currentBio = currentUser.bio || '';
+      if (sanitizedBio !== currentBio) {
+        updates.bio = sanitizedBio;
         changes.push('bio');
       }
     }
