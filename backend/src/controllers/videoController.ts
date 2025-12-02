@@ -2971,7 +2971,7 @@ export const getTrendingVideos = async (
           thumbnail: video.thumbnail,
           source: 'youtube',
           authorName: video.channelTitle,
-          authorUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(video.channelTitle || '')}`,
+          authorUrl: `https://www.youtube.com/channel/${video.channelId || ''}`, // YouTube channel URL
         }));
       } catch (err: any) {
         console.log('YouTube search error for trending:', err.message);
