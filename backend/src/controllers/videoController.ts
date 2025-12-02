@@ -325,32 +325,32 @@ export const searchVideos = async (
           console.log(`[Search] Searching YouTube for: "${searchVariation}" (page ${Math.floor(offset / limit) + 1}, fetching ${youtubeLimit} results)`);
           
           const youtubeResults = await searchYouTubeVideos(searchVariation, youtubeLimit);
-            
-            // Format YouTube videos to match our video format
-            youtubeVideos = youtubeResults.videos.map((video: any) => ({
-              id: null, // YouTube videos don't have Petflix IDs
-              youtubeVideoId: video.id,
-              title: video.title,
-              description: video.description || '',
-              userId: null,
-              createdAt: video.publishedAt,
-              updatedAt: video.publishedAt,
-              viewCount: parseInt(video.viewCount || '0'),
-              tags: [], // YouTube videos don't have tags in our system
-              user: null, // YouTube videos aren't shared by Petflix users
-              originalUser: null,
-              thumbnail: video.thumbnail,
-              source: 'youtube', // Mark as YouTube source
-              channelTitle: video.channelTitle,
-              likeCount: parseInt(video.likeCount || '0'),
-              commentCount: parseInt(video.commentCount || '0'),
-            }));
-            
-            // Cache the results
-            setCachedSearch(query, youtubeVideos);
-            console.log(`[Search] Cached ${youtubeVideos.length} YouTube results for: "${query}"`);
-          }
+          
+          // Format YouTube videos to match our video format
+          youtubeVideos = youtubeResults.videos.map((video: any) => ({
+            id: null, // YouTube videos don't have Petflix IDs
+            youtubeVideoId: video.id,
+            title: video.title,
+            description: video.description || '',
+            userId: null,
+            createdAt: video.publishedAt,
+            updatedAt: video.publishedAt,
+            viewCount: parseInt(video.viewCount || '0'),
+            tags: [], // YouTube videos don't have tags in our system
+            user: null, // YouTube videos aren't shared by Petflix users
+            originalUser: null,
+            thumbnail: video.thumbnail,
+            source: 'youtube', // Mark as YouTube source
+            channelTitle: video.channelTitle,
+            likeCount: parseInt(video.likeCount || '0'),
+            commentCount: parseInt(video.commentCount || '0'),
+          }));
+          
+          // Cache the results using the search variation
+          setCachedSearch(searchVariation, youtubeVideos);
+          console.log(`[Search] Cached ${youtubeVideos.length} YouTube results for: "${searchVariation}"`);
         }
+      }
       } catch (youtubeError: any) {
         // Log detailed error information
         console.error('[Search] YouTube search error:', {
