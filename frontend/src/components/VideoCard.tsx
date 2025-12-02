@@ -795,8 +795,9 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
               );
             }
             
-            // For reposted YouTube videos, show YouTube icon
-            if (video.source === 'youtube' && video.authorName && video.originalUser === null) {
+            // For direct YouTube videos (not shared/reposted by Petflix users), show YouTube icon
+            // This includes both direct YouTube search results and reposted YouTube videos
+            if (video.source === 'youtube' && video.authorName && video.user === null && video.originalUser === null) {
               return (
                 <a
                   href={video.authorUrl || '#'}

@@ -343,7 +343,8 @@ export const searchVideos = async (
             originalUser: null,
             thumbnail: video.thumbnail,
             source: 'youtube', // Mark as YouTube source
-            channelTitle: video.channelTitle,
+            authorName: video.channelTitle, // Use authorName to match VideoCard component
+            authorUrl: `https://www.youtube.com/channel/${video.channelId || ''}`, // YouTube channel URL
             likeCount: parseInt(video.likeCount || '0'),
             commentCount: parseInt(video.commentCount || '0'),
           }));
