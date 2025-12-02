@@ -2925,8 +2925,22 @@ export const getTrendingVideos = async (
       }
     }
 
+    // Deduplicate: Remove YouTube videos that are already in Petflix videos
+    // Create a set of YouTube video IDs from Petflix videos
+    const petflixYouTubeIds = new Set(
+      petflixFormatted
+        .map((v: any) => v.youtubeVideoId)
+        .filter((id: any) => id != null && id !== '')
+    );
+    
+    // Filter out YouTube videos that are duplicates
+    const uniqueYoutubeVideos = youtubeVideos.filter((v: any) => {
+      return !v.youtubeVideoId || !petflixYouTubeIds.has(v.youtubeVideoId);
+    });
+    
     // Combine and shuffle for variety (mix Petflix and YouTube)
-    let allVideos = [...petflixFormatted, ...youtubeVideos];
+    // Prioritize Petflix videos (they show user engagement)
+    let allVideos = [...petflixFormatted, ...uniqueYoutubeVideos];
     
     // Sort by view count (popularity)
     allVideos.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
@@ -3272,7 +3286,18 @@ export const getRecommendedVideos = async (
           authorUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(video.channelTitle || '')}`,
         }));
 
-        recommendedVideos = [...recommendedVideos, ...youtubeFormatted];
+        // Deduplicate: Remove YouTube videos that are already in recommended videos
+        const existingYouTubeIds = new Set(
+          recommendedVideos
+            .map((v: any) => v.youtubeVideoId)
+            .filter((id: any) => id != null && id !== '')
+        );
+        
+        const uniqueYoutubeFormatted = youtubeFormatted.filter((v: any) => {
+          return !v.youtubeVideoId || !existingYouTubeIds.has(v.youtubeVideoId);
+        });
+        
+        recommendedVideos = [...recommendedVideos, ...uniqueYoutubeFormatted];
       } catch (err: any) {
         console.log('YouTube search error for recommended:', err.message);
       }
