@@ -64,21 +64,23 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
           backgroundColor: '#1a1a1a',
           borderRadius: '20px',
           padding: '0',
-          maxWidth: '600px',
+          maxWidth: '520px',
           width: '90%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
+          maxHeight: '85vh',
+          overflow: 'hidden',
           boxShadow: '0 8px 48px rgba(0, 0, 0, 0.8)',
           border: '1px solid rgba(173, 216, 230, 0.2)',
           animation: 'scaleIn 0.4s ease',
-          position: 'relative'
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column'
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with gradient background */}
         <div style={{
           background: 'linear-gradient(135deg, #ADD8E6 0%, #87CEEB 100%)',
-          padding: '40px 40px 30px',
+          padding: '24px 32px 20px',
           textAlign: 'center',
           borderTopLeftRadius: '20px',
           borderTopRightRadius: '20px',
@@ -88,16 +90,16 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
             src={PawLogo} 
             alt="Petflix" 
             style={{ 
-              width: '60px', 
-              height: '60px', 
-              marginBottom: '20px',
+              width: '40px', 
+              height: '40px', 
+              marginBottom: '12px',
               filter: 'brightness(0) saturate(100%)'
             }} 
           />
           <h1 style={{
-            margin: '0 0 10px',
+            margin: '0 0 6px',
             color: '#0F0F0F',
-            fontSize: '32px',
+            fontSize: '24px',
             fontWeight: '700',
             fontFamily: 'inherit'
           }}>
@@ -106,7 +108,7 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
           <p style={{
             margin: 0,
             color: '#0F0F0F',
-            fontSize: '18px',
+            fontSize: '14px',
             opacity: 0.9,
             fontFamily: 'inherit'
           }}>
@@ -115,48 +117,48 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
         </div>
 
         {/* Content */}
-        <div style={{ padding: '40px' }}>
+        <div style={{ padding: '24px 32px', maxHeight: 'calc(90vh - 200px)', overflow: 'hidden' }}>
           <p style={{
-            margin: '0 0 30px',
+            margin: '0 0 20px',
             color: '#ffffff',
-            fontSize: '16px',
-            lineHeight: '1.6',
+            fontSize: '14px',
+            lineHeight: '1.5',
             textAlign: 'center'
           }}>
-            Petflix is your destination for discovering and sharing amazing pet videos. Here's what you can do:
+            Discover and share amazing pet videos. Here's what you can do:
           </p>
 
           {/* Features Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '20px',
-            marginBottom: '30px'
+            gap: '12px',
+            marginBottom: '20px'
           }}>
             {/* Feature 1: Watch Videos */}
             <div style={{
               backgroundColor: 'rgba(173, 216, 230, 0.1)',
               border: '1px solid rgba(173, 216, 230, 0.2)',
-              borderRadius: '12px',
-              padding: '20px',
+              borderRadius: '8px',
+              padding: '12px',
               textAlign: 'center'
             }}>
               <div style={{
-                width: '48px',
-                height: '48px',
+                width: '36px',
+                height: '36px',
                 backgroundColor: 'rgba(173, 216, 230, 0.2)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 12px'
+                margin: '0 auto 8px'
               }}>
-                <Play size={24} color="#ADD8E6" />
+                <Play size={18} color="#ADD8E6" />
               </div>
               <h3 style={{
-                margin: '0 0 8px',
+                margin: '0 0 4px',
                 color: '#ffffff',
-                fontSize: '16px',
+                fontSize: '13px',
                 fontWeight: '600'
               }}>
                 Watch Videos
@@ -164,10 +166,10 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
               <p style={{
                 margin: 0,
                 color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: '14px',
-                lineHeight: '1.5'
+                fontSize: '11px',
+                lineHeight: '1.4'
               }}>
-                Discover trending pet videos and personalized recommendations
+                Discover trending videos
               </p>
             </div>
 
@@ -175,26 +177,26 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
             <div style={{
               backgroundColor: 'rgba(173, 216, 230, 0.1)',
               border: '1px solid rgba(173, 216, 230, 0.2)',
-              borderRadius: '12px',
-              padding: '20px',
+              borderRadius: '8px',
+              padding: '12px',
               textAlign: 'center'
             }}>
               <div style={{
-                width: '48px',
-                height: '48px',
+                width: '36px',
+                height: '36px',
                 backgroundColor: 'rgba(173, 216, 230, 0.2)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 12px'
+                margin: '0 auto 8px'
               }}>
-                <Share2 size={24} color="#ADD8E6" />
+                <Share2 size={18} color="#ADD8E6" />
               </div>
               <h3 style={{
-                margin: '0 0 8px',
+                margin: '0 0 4px',
                 color: '#ffffff',
-                fontSize: '16px',
+                fontSize: '13px',
                 fontWeight: '600'
               }}>
                 Share & Repost
@@ -202,10 +204,10 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
               <p style={{
                 margin: 0,
                 color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: '14px',
-                lineHeight: '1.5'
+                fontSize: '11px',
+                lineHeight: '1.4'
               }}>
-                Share YouTube videos or repost content from other users
+                Share YouTube videos
               </p>
             </div>
 
@@ -213,26 +215,26 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
             <div style={{
               backgroundColor: 'rgba(173, 216, 230, 0.1)',
               border: '1px solid rgba(173, 216, 230, 0.2)',
-              borderRadius: '12px',
-              padding: '20px',
+              borderRadius: '8px',
+              padding: '12px',
               textAlign: 'center'
             }}>
               <div style={{
-                width: '48px',
-                height: '48px',
+                width: '36px',
+                height: '36px',
                 backgroundColor: 'rgba(173, 216, 230, 0.2)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 12px'
+                margin: '0 auto 8px'
               }}>
-                <Heart size={24} color="#ADD8E6" />
+                <Heart size={18} color="#ADD8E6" />
               </div>
               <h3 style={{
-                margin: '0 0 8px',
+                margin: '0 0 4px',
                 color: '#ffffff',
-                fontSize: '16px',
+                fontSize: '13px',
                 fontWeight: '600'
               }}>
                 Like & Comment
@@ -240,10 +242,10 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
               <p style={{
                 margin: 0,
                 color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: '14px',
-                lineHeight: '1.5'
+                fontSize: '11px',
+                lineHeight: '1.4'
               }}>
-                Engage with videos you love and join the conversation
+                Engage with videos
               </p>
             </div>
 
@@ -251,26 +253,26 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
             <div style={{
               backgroundColor: 'rgba(173, 216, 230, 0.1)',
               border: '1px solid rgba(173, 216, 230, 0.2)',
-              borderRadius: '12px',
-              padding: '20px',
+              borderRadius: '8px',
+              padding: '12px',
               textAlign: 'center'
             }}>
               <div style={{
-                width: '48px',
-                height: '48px',
+                width: '36px',
+                height: '36px',
                 backgroundColor: 'rgba(173, 216, 230, 0.2)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 12px'
+                margin: '0 auto 8px'
               }}>
-                <UserPlus size={24} color="#ADD8E6" />
+                <UserPlus size={18} color="#ADD8E6" />
               </div>
               <h3 style={{
-                margin: '0 0 8px',
+                margin: '0 0 4px',
                 color: '#ffffff',
-                fontSize: '16px',
+                fontSize: '13px',
                 fontWeight: '600'
               }}>
                 Follow Users
@@ -278,10 +280,10 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
               <p style={{
                 margin: 0,
                 color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: '14px',
-                lineHeight: '1.5'
+                fontSize: '11px',
+                lineHeight: '1.4'
               }}>
-                Follow creators to see their content in your feed
+                Follow creators
               </p>
             </div>
           </div>
@@ -290,11 +292,11 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            marginBottom: '30px',
-            padding: '16px',
+            gap: '10px',
+            marginBottom: '16px',
+            padding: '12px',
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '8px',
+            borderRadius: '6px',
             border: '1px solid rgba(255, 255, 255, 0.1)'
           }}>
             <input
@@ -303,8 +305,8 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
               checked={dontShowAgain}
               onChange={(e) => setDontShowAgain(e.target.checked)}
               style={{
-                width: '20px',
-                height: '20px',
+                width: '18px',
+                height: '18px',
                 cursor: 'pointer',
                 accentColor: '#ADD8E6'
               }}
@@ -313,7 +315,7 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
               htmlFor="dontShowAgain"
               style={{
                 color: 'rgba(255, 255, 255, 0.8)',
-                fontSize: '14px',
+                fontSize: '13px',
                 cursor: 'pointer',
                 userSelect: 'none'
               }}
@@ -328,12 +330,12 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
             disabled={saving}
             style={{
               width: '100%',
-              padding: '16px 32px',
+              padding: '12px 24px',
               backgroundColor: '#ADD8E6',
               color: '#0F0F0F',
               border: 'none',
-              borderRadius: '12px',
-              fontSize: '18px',
+              borderRadius: '10px',
+              fontSize: '16px',
               fontWeight: '600',
               cursor: saving ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s ease',
@@ -341,7 +343,7 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px'
+              gap: '6px'
             }}
             onMouseEnter={(e) => {
               if (!saving) {
