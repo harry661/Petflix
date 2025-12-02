@@ -181,12 +181,14 @@ export default function SearchPage() {
         }
         .video-grid {
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+          gap: 20px !important;
         }
         @media (min-width: 1400px) {
           .video-grid {
             grid-template-columns: repeat(5, 1fr) !important;
             max-width: 100% !important;
             margin: 0 !important;
+            gap: 20px !important;
           }
         }
       `}</style>
@@ -394,7 +396,6 @@ export default function SearchPage() {
           <>
             <div className="video-grid" style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
               gap: '20px'
             }}>
               {results.map((video, index) => (
