@@ -588,7 +588,15 @@ export const getOnboardingPreference = async (
 
     // Default to true if no preference exists OR if show_onboarding is null
     // This ensures existing users who haven't seen onboarding will see it
-    const showOnboarding = data?.show_onboarding !== false; // Only false if explicitly set to false
+    // Only false if explicitly set to false
+    const showOnboarding = data?.show_onboarding !== false;
+    
+    console.log('[Onboarding] User preference:', {
+      userId: req.user.userId,
+      hasData: !!data,
+      show_onboarding: data?.show_onboarding,
+      result: showOnboarding
+    });
     
     res.json({
       showOnboarding: showOnboarding,
