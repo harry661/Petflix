@@ -110,7 +110,7 @@ export const searchVideos = async (
     // We'll combine results after fetching
     const { data: titleDescVideos, error: titleDescError } = await videoQuery
       .order(orderBy, { ascending })
-      .limit(limit * 2); // Get more to account for deduplication
+      .range(offset, offset + (limit * 2) - 1); // Get more to account for deduplication
 
     // Get videos by tag match if there are any
     let tagVideos: any[] = [];
@@ -143,7 +143,7 @@ export const searchVideos = async (
         .in('id', tagMatchedVideoIds)
         .is('original_user_id', null) // Only show original shares, not reposts
         .order(orderBy, { ascending })
-        .limit(limit * 2);
+        .range(offset, offset + (limit * 2) - 1);
 
       if (!tagVideosError && tagMatchedVideos) {
         tagVideos = tagMatchedVideos;
