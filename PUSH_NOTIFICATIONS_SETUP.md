@@ -31,7 +31,8 @@ This will generate and display your VAPID keys.
      - **Environment:** Production, Preview, Development (select all)
 
    - **Variable Name:** `VAPID_SUBJECT`
-     - **Value:** `mailto:admin@petflix.app` (or your email)
+     - **Value:** `mailto:harry@pixelbeard.co` (or `mailto:admin@petflix.app`)
+     - **Important:** Use the format `mailto:email@domain.com` - NO angle brackets `< >`
      - **Environment:** Production, Preview, Development (select all)
 
 ### Step 3: Redeploy
@@ -56,6 +57,23 @@ Or trigger a new deployment by pushing a commit to your repository.
 ## What are VAPID Keys?
 
 VAPID (Voluntary Application Server Identification) keys are used to identify your application server to push notification services (like Chrome's FCM). They ensure that only your server can send push notifications to your users.
+
+### Important: VAPID_SUBJECT is NOT where notifications are sent!
+
+**Common Misconception:** The `VAPID_SUBJECT` email address is NOT where notifications are sent. It's just an identifier for your application server.
+
+**How Push Notifications Actually Work:**
+- Push notifications are sent to **users' browsers/devices**, not email
+- Users must **subscribe** to push notifications through your website
+- When a user subscribes, their browser stores a subscription endpoint
+- Your server sends notifications to those subscription endpoints
+- The `VAPID_SUBJECT` is just a contact identifier (like a company email) - it can be any valid `mailto:` address
+- You can use `mailto:admin@petflix.app` or your own email - it doesn't affect who receives notifications
+
+**Who Receives Notifications:**
+- Any user who visits your site and clicks "Enable Push Notifications" in their account settings
+- They grant browser permission, and then they'll receive notifications
+- The email in `VAPID_SUBJECT` is never used as a recipient - it's just metadata
 
 ## Security Note
 
