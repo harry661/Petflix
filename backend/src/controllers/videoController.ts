@@ -108,11 +108,12 @@ export const searchVideos = async (
 
     // If there are tag matches, include them using a union approach
     // We'll combine results after fetching
-    // Fetch more videos than needed to account for deduplication and YouTube mixing
-    const fetchLimit = limit * 3; // Fetch 3x the limit to ensure we have enough after processing
+    // For infinite scroll, fetch enough videos to fill the page after mixing with YouTube
+    // We'll fetch more than needed to account for deduplication
+    const dbFetchLimit = limit * 2; // Fetch 2x to ensure we have enough after YouTube mixing
     const { data: titleDescVideos, error: titleDescError } = await videoQuery
       .order(orderBy, { ascending })
-      .range(offset, offset + fetchLimit - 1);
+      .range(offset, offset + dbFetchLimit - 1);
 
     // Get videos by tag match if there are any
     let tagVideos: any[] = [];
@@ -145,7 +146,7 @@ export const searchVideos = async (
         .in('id', tagMatchedVideoIds)
         .is('original_user_id', null) // Only show original shares, not reposts
         .order(orderBy, { ascending })
-        .range(offset, offset + fetchLimit - 1);
+        .range(offset, offset + dbFetchLimit - 1);
 
       if (!tagVideosError && tagMatchedVideos) {
         tagVideos = tagMatchedVideos;
@@ -317,10 +318,11 @@ export const searchVideos = async (
           console.log(`[Search] Using cached YouTube results for: "${searchVariation}"`);
           youtubeVideos = cachedResults;
         } else {
-          // Fetch enough YouTube videos to ensure we have content after deduplication
-          const youtubeLimit = Math.max(limit, 15); // Fetch at least as many as requested
+          // Fetch enough YouTube videos to mix with Petflix results
+          // Use different search terms per page for variety
+          const youtubeLimit = limit; // Fetch same amount as requested for good mix
           
-          console.log(`[Search] Searching YouTube for: "${searchVariation}" (page ${Math.floor(offset / limit) + 1}, need ${youtubeLimit} results)`);
+          console.log(`[Search] Searching YouTube for: "${searchVariation}" (page ${Math.floor(offset / limit) + 1}, fetching ${youtubeLimit} results)`);
           
           const youtubeResults = await searchYouTubeVideos(searchVariation, youtubeLimit);
             
@@ -406,11 +408,17 @@ export const searchVideos = async (
     }
     
     // Apply pagination to combined results
-    // For infinite scroll, we need to return the correct page from the combined results
+    // Return the requested page (first 'limit' videos from combined results)
     const totalVideos = allVideos.length;
-    const paginatedVideos = allVideos.slice(0, limit); // Return first 'limit' videos from combined results
-    // Has more if we have more videos than returned, or if we fetched the full fetchLimit
-    const hasMore = allVideos.length > limit || (titleDescVideos?.length || 0) >= fetchLimit || youtubeVideos.length >= limit;
+    const paginatedVideos = allVideos.slice(0, limit);
+    
+    // Determine if there are more results
+    // Has more if:
+    // 1. We have more combined videos than returned, OR
+    // 2. We fetched the full amount from DB (suggesting there might be more), OR  
+    // 3. We got YouTube videos (suggesting there's more content available)
+    const fetchedFullDbBatch = (titleDescVideos?.length || 0) >= dbFetchLimit;
+    const hasMore = allVideos.length > limit || fetchedFullDbBatch || (youtubeVideos.length > 0 && allVideos.length >= limit);
 
     res.json({
       videos: paginatedVideos,
