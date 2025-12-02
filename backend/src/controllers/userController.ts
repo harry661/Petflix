@@ -9,7 +9,7 @@ import {
   ErrorResponse,
 } from '../types';
 import { validateEmail, validatePassword, validateUsername, sanitizeInput } from '../middleware/validation';
-import { sendSignupAttemptEmail, sendLoginAttemptEmail, sendPasswordResetEmail } from '../services/emailService';
+import { sendSignupAttemptEmail, sendLoginAttemptEmail, sendPasswordResetEmail, sendProfileChangeEmail } from '../services/emailService';
 
 /**
  * Register a new user
@@ -605,9 +605,72 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
       return;
     }
 
-    const { profile_picture_url, bio } = req.body;
+    const { profile_picture_url, bio, username, email } = req.body;
+
+    // Get current user data to track changes
+    const { data: currentUser } = await supabaseAdmin!
+      .from('users')
+      .select('username, email')
+      .eq('id', req.user.userId)
+      .single();
+
+    if (!currentUser) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
 
     const updates: any = {};
+    const changes: string[] = [];
+
+    // Handle username update
+    if (username !== undefined && username !== currentUser.username) {
+      if (!validateUsername(username)) {
+        res.status(400).json({ error: 'Username must be 3-20 characters and contain only letters, numbers, and underscores' });
+        return;
+      }
+
+      // Check if username is already taken
+      const { data: existingUser } = await supabaseAdmin!
+        .from('users')
+        .select('id')
+        .eq('username', username.trim().toLowerCase())
+        .neq('id', req.user.userId)
+        .single();
+
+      if (existingUser) {
+        res.status(400).json({ error: 'Username is already taken' });
+        return;
+      }
+
+      updates.username = sanitizeInput(username.trim());
+      changes.push('username');
+    }
+
+    // Handle email update
+    if (email !== undefined && email.toLowerCase().trim() !== currentUser.email.toLowerCase().trim()) {
+      if (!validateEmail(email)) {
+        res.status(400).json({ error: 'Invalid email format' });
+        return;
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Check if email is already taken
+      const { data: existingUser } = await supabaseAdmin!
+        .from('users')
+        .select('id')
+        .eq('email', normalizedEmail)
+        .neq('id', req.user.userId)
+        .single();
+
+      if (existingUser) {
+        res.status(400).json({ error: 'Email is already in use' });
+        return;
+      }
+
+      updates.email = normalizedEmail;
+      changes.push('email');
+    }
 
     if (profile_picture_url !== undefined) {
       // Validate URL if provided
@@ -665,6 +728,15 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
       }
       // Sanitize bio to prevent XSS
       updates.bio = bio ? sanitizeInput(bio) : null;
+      if (bio !== currentUser.bio) {
+        changes.push('bio');
+      }
+    }
+
+    // Only update if there are changes
+    if (Object.keys(updates).length === 0) {
+      res.status(400).json({ error: 'No changes to update' });
+      return;
     }
 
     const { data: updatedUser, error } = await supabaseAdmin!
@@ -677,6 +749,32 @@ export const updateProfile = async (req: Request, res: Response<UserProfileRespo
     if (error || !updatedUser) {
       res.status(500).json({ error: 'Failed to update profile' });
       return;
+    }
+
+    // Send email alert if username or email changed
+    if (changes.length > 0 && (changes.includes('username') || changes.includes('email'))) {
+      const oldValues = {
+        username: currentUser.username,
+        email: currentUser.email,
+      };
+      const newValues = {
+        username: updatedUser.username,
+        email: updatedUser.email,
+      };
+
+      // Send email to the NEW email if email changed, otherwise to current email
+      const emailToSendTo = changes.includes('email') ? updatedUser.email : currentUser.email;
+
+      // Fire and forget - don't block response
+      sendProfileChangeEmail(
+        emailToSendTo,
+        updatedUser.username,
+        changes,
+        oldValues,
+        newValues
+      ).catch((err: any) => {
+        console.error('[Profile Update] Error sending profile change email:', err);
+      });
     }
 
     res.json({

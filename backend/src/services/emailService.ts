@@ -428,3 +428,127 @@ export const sendPasswordResetEmail = async (email: string, username: string, re
     throw error;
   }
 };
+
+/**
+ * Send profile change notification email
+ */
+export const sendProfileChangeEmail = async (
+  email: string,
+  username: string,
+  changes: string[],
+  oldValues: { username: string; email: string },
+  newValues: { username: string; email: string }
+) => {
+  try {
+    if (!useSendGrid && !useSMTP) {
+      console.warn('[Email] Email service not configured - skipping profile change email');
+      return;
+    }
+
+    if (!transporter && !useSendGrid) {
+      throw new Error('Email transporter not configured');
+    }
+
+    // Build change description
+    const changeDescriptions: string[] = [];
+    if (changes.includes('username')) {
+      changeDescriptions.push(`Username: "${oldValues.username}" → "${newValues.username}"`);
+    }
+    if (changes.includes('email')) {
+      changeDescriptions.push(`Email: "${oldValues.email}" → "${newValues.email}"`);
+    }
+
+    const changesText = changeDescriptions.join('<br>');
+
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Updated - Petflix</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Quicksand', sans-serif; background-color: #0F0F0F; color: #ffffff;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #0F0F0F;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #1a1a1a; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+          <!-- Header with logo -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #ADD8E6 0%, #87CEEB 100%); padding: 40px 40px 30px; text-align: center;">
+              <img src="https://petflix-weld.vercel.app/paw-logo.png" alt="Petflix" style="width: 60px; height: 60px; margin-bottom: 20px;" />
+              <h1 style="margin: 0; color: #0F0F0F; font-size: 28px; font-weight: 700; font-family: 'Quicksand', sans-serif;">Profile Updated</h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #ffffff; font-family: 'Quicksand', sans-serif;">
+                Hi ${username},
+              </p>
+              
+              <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #ffffff; font-family: 'Quicksand', sans-serif;">
+                We're writing to confirm that your Petflix profile has been successfully updated.
+              </p>
+              
+              <div style="background-color: rgba(173, 216, 230, 0.1); border-left: 4px solid #ADD8E6; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 0 0 10px; font-size: 16px; font-weight: 600; color: #ADD8E6; font-family: 'Quicksand', sans-serif;">
+                  Changes made:
+                </p>
+                <p style="margin: 0; font-size: 14px; line-height: 1.8; color: #ffffff; font-family: 'Quicksand', sans-serif;">
+                  ${changesText}
+                </p>
+              </div>
+              
+              <p style="margin: 20px 0; font-size: 16px; line-height: 1.6; color: #ffffff; font-family: 'Quicksand', sans-serif;">
+                If you didn't make these changes, please <a href="https://petflix-weld.vercel.app/?mode=login&redirect=/settings" style="color: #ADD8E6; text-decoration: none; font-weight: 600;">sign in to your account</a> immediately and review your account settings. You may also want to change your password for security.
+              </p>
+              
+              <p style="margin: 20px 0 0; font-size: 16px; line-height: 1.6; color: #ffffff; font-family: 'Quicksand', sans-serif;">
+                If you have any questions or concerns, please contact our support team at <a href="mailto:support@petflix.app" style="color: #ADD8E6; text-decoration: none;">support@petflix.app</a>.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #1a1a1a; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+              <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255, 255, 255, 0.7); font-family: 'Quicksand', sans-serif;">
+                This is an automated notification from Petflix.
+              </p>
+              <p style="margin: 0; font-size: 12px; color: rgba(255, 255, 255, 0.5); font-family: 'Quicksand', sans-serif;">
+                © ${new Date().getFullYear()} Petflix. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    const subject = 'Your Petflix Profile Has Been Updated';
+    
+    console.log('[Email] Sending profile change email:', {
+      from: FROM_EMAIL,
+      to: email,
+      subject: subject,
+      method: useSendGrid ? 'SendGrid API' : 'SMTP',
+      changes: changes,
+    });
+
+    const info = useSendGrid 
+      ? await sendViaSendGrid(email, subject, htmlContent)
+      : await sendViaSMTP(email, subject, htmlContent);
+    
+    console.log(`[Email] ✅ Profile change email sent successfully to ${email}`);
+    console.log('[Email] Message ID:', info.messageId);
+  } catch (error: any) {
+    console.error('[Email] ❌ Error sending profile change email:', error);
+    console.error('[Email] Error code:', error.code);
+    console.error('[Email] Error message:', error.message);
+    throw error;
+  }
+};

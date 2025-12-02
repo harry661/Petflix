@@ -519,6 +519,9 @@ export default function AccountSettingsPage() {
   };
 
   const handleSaveField = async (field: string) => {
+    setError('');
+    setSuccess('');
+    
     if (field === 'profile_picture_url') {
       const urlValue = editValues[field] || '';
       
@@ -548,9 +551,80 @@ export default function AccountSettingsPage() {
       const updatedFormData = { ...formData, bio: bioValue };
       setFormData(updatedFormData);
       await handleSaveProfileWithData(updatedFormData);
+    } else if (field === 'username' || field === 'email') {
+      // Handle username and email updates
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
+      const value = editValues[field] || '';
+      
+      // Basic validation
+      if (!value.trim()) {
+        setError(`${field === 'username' ? 'Username' : 'Email'} cannot be empty`);
+        return;
+      }
+
+      if (field === 'email') {
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value.trim())) {
+          setError('Please enter a valid email address');
+          return;
+        }
+      }
+
+      if (field === 'username') {
+        // Username validation
+        const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+        if (!usernameRegex.test(value.trim())) {
+          setError('Username must be 3-20 characters and contain only letters, numbers, and underscores');
+          return;
+        }
+      }
+
+      setSaving(true);
+
+      try {
+        const response = await fetch(`${API_URL}/api/v1/users/me`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            [field]: value.trim(),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Update local user state
+          setUser((prev: any) => ({
+            ...prev,
+            [field]: data[field],
+          }));
+          setSuccess(`${field === 'username' ? 'Username' : 'Email'} updated successfully! An email confirmation has been sent.`);
+          setTimeout(() => setSuccess(''), 5000);
+          setEditingField(null);
+          setEditValues({});
+          // Dispatch auth-changed to update other components
+          window.dispatchEvent(new Event('auth-changed'));
+        } else {
+          setError(data.error || `Failed to update ${field}`);
+        }
+      } catch (err: any) {
+        setError(`Failed to update ${field}. Please try again.`);
+      } finally {
+        setSaving(false);
+      }
+    } else {
+      setEditingField(null);
+      setEditValues({});
     }
-    setEditingField(null);
-    setEditValues({});
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
