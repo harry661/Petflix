@@ -2925,10 +2925,40 @@ export const getTrendingVideos = async (
       }
     }
 
+    // Deduplicate Petflix videos: Remove reposts if original share exists
+    // Group by youtube_video_id (for YouTube videos) or by id (for Petflix-only videos)
+    const videoMap = new Map<string, any>();
+    
+    // First pass: Add original shares (prioritize these)
+    petflixFormatted.forEach((video: any) => {
+      const isRepost = video.originalUser !== null;
+      if (!isRepost) {
+        // This is an original share - use it as the canonical version
+        const key = video.youtubeVideoId || video.id;
+        if (key && !videoMap.has(key)) {
+          videoMap.set(key, video);
+        }
+      }
+    });
+    
+    // Second pass: Add reposts only if no original share exists for that video
+    petflixFormatted.forEach((video: any) => {
+      const isRepost = video.originalUser !== null;
+      if (isRepost) {
+        const key = video.youtubeVideoId || video.id;
+        if (key && !videoMap.has(key)) {
+          // No original share found, so include this repost
+          videoMap.set(key, video);
+        }
+      }
+    });
+    
+    const uniquePetflixVideos = Array.from(videoMap.values());
+    
     // Deduplicate: Remove YouTube videos that are already in Petflix videos
     // Create a set of YouTube video IDs from Petflix videos
     const petflixYouTubeIds = new Set(
-      petflixFormatted
+      uniquePetflixVideos
         .map((v: any) => v.youtubeVideoId)
         .filter((id: any) => id != null && id !== '')
     );
@@ -2940,7 +2970,7 @@ export const getTrendingVideos = async (
     
     // Combine and shuffle for variety (mix Petflix and YouTube)
     // Prioritize Petflix videos (they show user engagement)
-    let allVideos = [...petflixFormatted, ...uniqueYoutubeVideos];
+    let allVideos = [...uniquePetflixVideos, ...uniqueYoutubeVideos];
     
     // Sort by view count (popularity)
     allVideos.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
@@ -3257,6 +3287,35 @@ export const getRecommendedVideos = async (
         recommendedVideos = [...recommendedVideos, ...additionalFormatted];
       }
     }
+
+    // Deduplicate recommended videos: Remove reposts if original share exists
+    const recommendedVideoMap = new Map<string, any>();
+    
+    // First pass: Add original shares (prioritize these)
+    recommendedVideos.forEach((video: any) => {
+      const isRepost = video.originalUser !== null;
+      if (!isRepost) {
+        // This is an original share - use it as the canonical version
+        const key = video.youtubeVideoId || video.id;
+        if (key && !recommendedVideoMap.has(key)) {
+          recommendedVideoMap.set(key, video);
+        }
+      }
+    });
+    
+    // Second pass: Add reposts only if no original share exists for that video
+    recommendedVideos.forEach((video: any) => {
+      const isRepost = video.originalUser !== null;
+      if (isRepost) {
+        const key = video.youtubeVideoId || video.id;
+        if (key && !recommendedVideoMap.has(key)) {
+          // No original share found, so include this repost
+          recommendedVideoMap.set(key, video);
+        }
+      }
+    });
+    
+    recommendedVideos = Array.from(recommendedVideoMap.values());
 
     // Add YouTube videos for variety (if API key available)
     if (process.env.YOUTUBE_API_KEY && recommendedVideos.length < limit) {
