@@ -561,6 +561,85 @@ export const updateGlobalNotificationPreference = async (
 };
 
 /**
+ * Get user's onboarding preference
+ * GET /api/v1/users/me/onboarding-preference
+ */
+export const getOnboardingPreference = async (
+  req: Request,
+  res: Response<{ showOnboarding: boolean } | ErrorResponse>
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { data, error } = await supabaseAdmin!
+      .from('user_notification_preferences')
+      .select('show_onboarding')
+      .eq('user_id', req.user.userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching onboarding preference:', error);
+      res.status(500).json({ error: 'Failed to fetch onboarding preference' });
+      return;
+    }
+
+    // Default to true if no preference exists (show onboarding for new users)
+    res.json({
+      showOnboarding: data?.show_onboarding ?? true,
+    });
+  } catch (error) {
+    console.error('Get onboarding preference error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * Update user's onboarding preference
+ * PUT /api/v1/users/me/onboarding-preference
+ */
+export const updateOnboardingPreference = async (
+  req: Request<{}, { showOnboarding: boolean } | ErrorResponse, { show_onboarding: boolean }>,
+  res: Response
+) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { show_onboarding } = req.body;
+
+    const { data, error } = await supabaseAdmin!
+      .from('user_notification_preferences')
+      .upsert({
+        user_id: req.user.userId,
+        show_onboarding: show_onboarding,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id'
+      })
+      .select('show_onboarding')
+      .single();
+
+    if (error) {
+      console.error('Error updating onboarding preference:', error);
+      res.status(500).json({ error: 'Failed to update onboarding preference' });
+      return;
+    }
+
+    res.json({
+      showOnboarding: data.show_onboarding,
+    });
+  } catch (error) {
+    console.error('Update onboarding preference error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
  * Get user profile by ID
  * GET /api/v1/users/:userId
  */

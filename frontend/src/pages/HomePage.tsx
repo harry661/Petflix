@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useSearch } from '../context/SearchContext';
 import VideoCard from '../components/VideoCard';
 import { VideoGridSkeleton } from '../components/LoadingSkeleton';
+import OnboardingModal from '../components/OnboardingModal';
 import { Dog, Cat, Bird, Rabbit, Fish } from 'lucide-react';
 
 import { API_URL } from '../config/api';
@@ -19,6 +20,8 @@ export default function HomePage() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const carouselIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingUsername, setOnboardingUsername] = useState('');
 
   // Pet genres for "Pet of the Week"
   const petGenres = ['dogs', 'cats', 'birds', 'small and fluffy', 'underwater'];
@@ -112,6 +115,9 @@ export default function HomePage() {
     if (isAuthenticated && user) {
       loadTrendingVideos();
       loadRecommendedVideos();
+      
+      // Check if we should show onboarding
+      checkOnboardingPreference();
     }
     
     return () => {
@@ -120,6 +126,42 @@ export default function HomePage() {
       }
     };
   }, [isAuthenticated, authLoading, user, navigate]);
+
+  const checkOnboardingPreference = async () => {
+    // First check sessionStorage for immediate post-registration show
+    const shouldShowFromSession = sessionStorage.getItem('show_onboarding') === 'true';
+    const usernameFromSession = sessionStorage.getItem('onboarding_username');
+    
+    if (shouldShowFromSession && usernameFromSession) {
+      setOnboardingUsername(usernameFromSession);
+      setShowOnboarding(true);
+      sessionStorage.removeItem('show_onboarding');
+      sessionStorage.removeItem('onboarding_username');
+      return;
+    }
+    
+    // Otherwise check user preference
+    const token = localStorage.getItem('auth_token');
+    if (!token || !user) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/v1/users/me/onboarding-preference`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.showOnboarding) {
+          setOnboardingUsername(user.username || '');
+          setShowOnboarding(true);
+        }
+      }
+    } catch (err) {
+      console.error('Error checking onboarding preference:', err);
+    }
+  };
   
   // Auto-rotate banner carousel
   useEffect(() => {
@@ -295,6 +337,11 @@ export default function HomePage() {
 
   return (
     <>
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        username={onboardingUsername}
+      />
       <style>{`
         @media (min-width: 1200px) {
           .banner-container {

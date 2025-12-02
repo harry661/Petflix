@@ -10,6 +10,8 @@ import {
   deleteAccount,
   getGlobalNotificationPreference,
   updateGlobalNotificationPreference,
+  getOnboardingPreference,
+  updateOnboardingPreference,
   forgotPassword,
   resetPassword,
   getMostPopularUserThisWeek,
@@ -49,6 +51,8 @@ import { uploadProfilePicture, uploadMiddleware } from '../controllers/uploadCon
 router.post('/me/profile-picture', authenticate, uploadMiddleware, uploadProfilePicture);
 router.get('/me/notification-preference', authenticate, getGlobalNotificationPreference);
 router.put('/me/notification-preference', authenticate, updateGlobalNotificationPreference);
+router.get('/me/onboarding-preference', authenticate, getOnboardingPreference);
+router.put('/me/onboarding-preference', authenticate, updateOnboardingPreference);
 
 // User-specific routes (must come after /me)
 router.get('/:userId', getUserById);

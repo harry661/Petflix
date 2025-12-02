@@ -177,12 +177,14 @@ export default function LandingPage() {
         // Registration successful
         localStorage.setItem('auth_token', data.token);
         
+        // Store flag to show onboarding modal after navigation
+        sessionStorage.setItem('show_onboarding', 'true');
+        sessionStorage.setItem('onboarding_username', formData.username);
+        
         // Dispatch event to notify auth state change
         window.dispatchEvent(new Event('auth-changed'));
         
-        alert('Welcome to Petflix! Your account has been created successfully.');
-        
-        // Give auth hook a moment to update, then navigate
+        // Navigate to home (onboarding will show there)
         setTimeout(() => {
           navigate('/home', { replace: true });
         }, 200);
