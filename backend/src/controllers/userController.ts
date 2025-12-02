@@ -586,9 +586,12 @@ export const getOnboardingPreference = async (
       return;
     }
 
-    // Default to true if no preference exists (show onboarding for new users)
+    // Default to true if no preference exists OR if show_onboarding is null
+    // This ensures existing users who haven't seen onboarding will see it
+    const showOnboarding = data?.show_onboarding !== false; // Only false if explicitly set to false
+    
     res.json({
-      showOnboarding: data?.show_onboarding ?? true,
+      showOnboarding: showOnboarding,
     });
   } catch (error) {
     console.error('Get onboarding preference error:', error);

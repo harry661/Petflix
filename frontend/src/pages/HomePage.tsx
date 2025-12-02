@@ -128,6 +128,8 @@ export default function HomePage() {
   }, [isAuthenticated, authLoading, user, navigate]);
 
   const checkOnboardingPreference = async () => {
+    if (!user) return;
+    
     // First check sessionStorage for immediate post-registration show
     const shouldShowFromSession = sessionStorage.getItem('show_onboarding') === 'true';
     const usernameFromSession = sessionStorage.getItem('onboarding_username');
@@ -140,9 +142,9 @@ export default function HomePage() {
       return;
     }
     
-    // Otherwise check user preference
+    // Otherwise check user preference from backend
     const token = localStorage.getItem('auth_token');
-    if (!token || !user) return;
+    if (!token) return;
     
     try {
       const response = await fetch(`${API_URL}/api/v1/users/me/onboarding-preference`, {
@@ -153,13 +155,22 @@ export default function HomePage() {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.showOnboarding) {
+        // Show onboarding if preference is true (or null/undefined, which defaults to true)
+        if (data.showOnboarding !== false) {
           setOnboardingUsername(user.username || '');
           setShowOnboarding(true);
         }
+      } else {
+        // If API fails, default to showing onboarding (better UX for new feature)
+        console.warn('Failed to fetch onboarding preference, defaulting to show');
+        setOnboardingUsername(user.username || '');
+        setShowOnboarding(true);
       }
     } catch (err) {
       console.error('Error checking onboarding preference:', err);
+      // On error, default to showing onboarding
+      setOnboardingUsername(user.username || '');
+      setShowOnboarding(true);
     }
   };
   
