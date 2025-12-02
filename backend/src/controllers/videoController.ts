@@ -352,7 +352,6 @@ export const searchVideos = async (
           setCachedSearch(searchVariation, youtubeVideos);
           console.log(`[Search] Cached ${youtubeVideos.length} YouTube results for: "${searchVariation}"`);
         }
-      }
       } catch (youtubeError: any) {
         // Log detailed error information
         console.error('[Search] YouTube search error:', {
