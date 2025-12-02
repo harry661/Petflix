@@ -3399,6 +3399,11 @@ export const getRecommendedVideos = async (
           tags: [],
           user: null,
           originalUser: null,
+          source: 'youtube',
+          authorName: video.channelTitle,
+          authorUrl: `https://www.youtube.com/channel/${video.channelId || ''}`, // YouTube channel URL
+          user: null,
+          originalUser: null,
           thumbnail: video.thumbnail,
           source: 'youtube',
           authorName: video.channelTitle,
