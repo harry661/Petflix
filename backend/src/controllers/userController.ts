@@ -623,6 +623,17 @@ export const updateOnboardingPreference = async (
 
     const { show_onboarding } = req.body;
 
+    if (typeof show_onboarding !== 'boolean') {
+      res.status(400).json({ error: 'show_onboarding must be a boolean' });
+      return;
+    }
+
+    console.log('[Onboarding] Updating preference:', {
+      userId: req.user.userId,
+      show_onboarding: show_onboarding
+    });
+
+    // First, ensure the row exists (upsert will create if it doesn't exist)
     const { data, error } = await supabaseAdmin!
       .from('user_notification_preferences')
       .upsert({
@@ -636,10 +647,15 @@ export const updateOnboardingPreference = async (
       .single();
 
     if (error) {
-      console.error('Error updating onboarding preference:', error);
+      console.error('[Onboarding] Error updating onboarding preference:', error);
       res.status(500).json({ error: 'Failed to update onboarding preference' });
       return;
     }
+
+    console.log('[Onboarding] Preference updated successfully:', {
+      userId: req.user.userId,
+      show_onboarding: data.show_onboarding
+    });
 
     res.json({
       showOnboarding: data.show_onboarding,

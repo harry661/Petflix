@@ -22,7 +22,7 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
       const token = localStorage.getItem('auth_token');
       if (token) {
         try {
-          await fetch(`${API_URL}/api/v1/users/me/onboarding-preference`, {
+          const response = await fetch(`${API_URL}/api/v1/users/me/onboarding-preference`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -30,8 +30,18 @@ export default function OnboardingModal({ isOpen, onClose, username }: Onboardin
             },
             body: JSON.stringify({ show_onboarding: false }),
           });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('[Onboarding] Failed to save preference:', errorData);
+            // Still close the modal even if save fails - don't block user
+          } else {
+            const data = await response.json();
+            console.log('[Onboarding] Preference saved successfully:', data);
+          }
         } catch (err) {
-          console.error('Error saving onboarding preference:', err);
+          console.error('[Onboarding] Error saving onboarding preference:', err);
+          // Still close the modal even if save fails - don't block user
         }
       }
       setSaving(false);

@@ -156,13 +156,16 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json();
         console.log('[Onboarding] Preference check result:', data);
-        // Show onboarding if preference is true (or null/undefined, which defaults to true)
-        if (data.showOnboarding !== false) {
-          console.log('[Onboarding] Showing onboarding modal');
+        // Only show onboarding if preference is explicitly true or undefined/null
+        // If it's explicitly false, don't show it
+        if (data.showOnboarding === true || data.showOnboarding === undefined || data.showOnboarding === null) {
+          console.log('[Onboarding] Showing onboarding modal (preference:', data.showOnboarding, ')');
           setOnboardingUsername(user.username || '');
           setShowOnboarding(true);
-        } else {
-          console.log('[Onboarding] User has dismissed onboarding, not showing');
+        } else if (data.showOnboarding === false) {
+          console.log('[Onboarding] User has dismissed onboarding (preference: false), not showing');
+          // Explicitly don't show
+          setShowOnboarding(false);
         }
       } else {
         // If API fails, default to showing onboarding (better UX for new feature)
