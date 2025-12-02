@@ -406,9 +406,11 @@ export const searchVideos = async (
     }
     
     // Apply pagination to combined results
+    // For infinite scroll, we need to return the correct page from the combined results
     const totalVideos = allVideos.length;
-    const paginatedVideos = allVideos.slice(0, limit); // Always return first page of combined results
-    const hasMore = allVideos.length > limit || (offset + limit < totalVideos);
+    const paginatedVideos = allVideos.slice(0, limit); // Return first 'limit' videos from combined results
+    // Has more if we have more videos than returned, or if we fetched the full fetchLimit
+    const hasMore = allVideos.length > limit || (titleDescVideos?.length || 0) >= fetchLimit || youtubeVideos.length >= limit;
 
     res.json({
       videos: paginatedVideos,
