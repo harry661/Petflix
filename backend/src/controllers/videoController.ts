@@ -291,7 +291,9 @@ export const searchVideos = async (
     }));
 
     // Combine Petflix videos with YouTube search results
-    let allVideos = sharedVideosFormatted;
+    // Ensure sharedVideosFormatted is always an array
+    const sharedVideosFormattedArray = sharedVideosFormatted || [];
+    let allVideos = sharedVideosFormattedArray;
     let youtubeVideos: any[] = [];
     
     // Always try to include YouTube videos for better content mix and infinite scroll
