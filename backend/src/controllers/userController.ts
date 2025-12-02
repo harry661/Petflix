@@ -580,9 +580,28 @@ export const getOnboardingPreference = async (
       .eq('user_id', req.user.userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching onboarding preference:', error);
-      res.status(500).json({ error: 'Failed to fetch onboarding preference' });
+    // Handle case where column doesn't exist (migration not run yet)
+    if (error) {
+      // PGRST116 = no rows returned (user has no preferences row)
+      if (error.code === 'PGRST116') {
+        // No preference exists, default to showing onboarding
+        console.log('[Onboarding] No preference row found, defaulting to show');
+        res.json({ showOnboarding: true });
+        return;
+      }
+      
+      // Check if error is about missing column
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('column') && errorMessage.includes('show_onboarding')) {
+        console.warn('[Onboarding] Column show_onboarding does not exist. Please run migration 015_add_onboarding_preference.sql');
+        // Column doesn't exist yet - default to showing onboarding
+        res.json({ showOnboarding: true });
+        return;
+      }
+      
+      console.error('[Onboarding] Error fetching onboarding preference:', error);
+      // On other errors, default to showing onboarding (better UX)
+      res.json({ showOnboarding: true });
       return;
     }
 
@@ -647,6 +666,15 @@ export const updateOnboardingPreference = async (
       .single();
 
     if (error) {
+      // Check if error is about missing column
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('column') && errorMessage.includes('show_onboarding')) {
+        console.warn('[Onboarding] Column show_onboarding does not exist. Please run migration 015_add_onboarding_preference.sql');
+        // Column doesn't exist - return success anyway (preference will be saved once migration runs)
+        res.json({ showOnboarding: show_onboarding });
+        return;
+      }
+      
       console.error('[Onboarding] Error updating onboarding preference:', error);
       res.status(500).json({ error: 'Failed to update onboarding preference' });
       return;
