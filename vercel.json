@@ -4,14 +4,14 @@
   "installCommand": "cd frontend && npm install && cd ../backend && npm install",
   "framework": "vite",
   "functions": {
-    "api/index.ts": {
+    "backend/api/index.ts": {
       "includeFiles": "backend/**"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/backend/api/index"
     },
     {
       "source": "/(.*)",
