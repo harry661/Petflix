@@ -23,8 +23,10 @@ Petflix/
 │   │   ├── services/     # Business logic services
 │   │   ├── types/        # TypeScript type definitions
 │   │   └── utils/        # Utility functions
-│   ├── api/              # Vercel serverless function entry point
-│   │   └── index.ts      # Express app exported for Vercel
+│   ├── api/              # Vercel serverless function implementation
+│   │   └── index.ts      # Express app (actual implementation)
+├── api/                  # Vercel serverless function entry point (root)
+│   └── index.ts          # Re-exports from backend/api/index.ts
 │   ├── migrations/       # Database migration SQL files
 │   ├── scripts/          # Utility scripts (VAPID keys, storage setup, etc.)
 │   ├── dist/             # Compiled JavaScript (gitignored)
@@ -57,13 +59,17 @@ Petflix/
 - **`backend/scripts/`**: Utility TypeScript scripts
 
 ### API Entry Point
-The `backend/api/index.ts` file is the Vercel serverless function entry point. It:
-- Imports routes from `../src/routes`
-- Sets up Express middleware (CORS, JSON parsing, error handling)
-- Exports the Express app for Vercel
+- **`backend/api/index.ts`**: The actual Express app implementation
+  - Imports routes from `../src/routes`
+  - Sets up Express middleware (CORS, JSON parsing, error handling)
+  - Exports the Express app using `module.exports`
+- **`api/index.ts`** (root): Thin wrapper that re-exports from `backend/api/index.ts`
+  - Required by Vercel (serverless functions must be in root `api/` directory)
+  - Simply imports and re-exports the backend implementation
 
 ### Vercel Configuration
-- **Function Location**: `backend/api/index.ts`
+- **Function Location**: `api/index.ts` (root) - re-exports from `backend/api/index.ts`
+- **Include Files**: `backend/**` (all backend files are included in the function)
 - **Rewrite Rule**: `/api/*` → `/api/index` (handled by the Express app)
 - **Build**: Frontend builds to `frontend/dist`
 - **Install**: Installs dependencies for both frontend and backend

@@ -4,7 +4,7 @@
   "installCommand": "cd frontend && npm install && cd ../backend && npm install",
   "framework": "vite",
   "functions": {
-    "backend/api/index.ts": {
+    "api/index.ts": {
       "includeFiles": "backend/**"
     }
   },
