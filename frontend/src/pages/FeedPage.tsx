@@ -20,41 +20,6 @@ export default function FeedPage() {
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) {
-      return; // Still checking auth
-    }
-    if (!isAuthenticated) {
-      navigate('/');
-      return;
-    }
-    loadFeed(true);
-  }, [isAuthenticated, authLoading, navigate, loadFeed]);
-
-  // Infinite scroll for feed
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore && !selectedFilter) {
-          loadFeed(false);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasMore, loading, loadingMore, selectedFilter, loadFeed]);
-
   const loadFeed = useCallback(async (reset: boolean = false, currentOffset?: number) => {
     try {
       if (reset) {
@@ -115,6 +80,41 @@ export default function FeedPage() {
       setLoadingMore(false);
     }
   }, [offset, navigate]);
+
+  useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) {
+      return; // Still checking auth
+    }
+    if (!isAuthenticated) {
+      navigate('/');
+      return;
+    }
+    loadFeed(true);
+  }, [isAuthenticated, authLoading, navigate, loadFeed]);
+
+  // Infinite scroll for feed
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore && !selectedFilter) {
+          loadFeed(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, loadingMore, selectedFilter, loadFeed]);
 
   // Filter videos by selected tag
   useEffect(() => {
