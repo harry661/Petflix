@@ -132,7 +132,27 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
     // Reset canRepost state
     setCanRepost(null);
     
-    if (!isAuthenticated || !user || !video.id) {
+    if (!isAuthenticated || !user) {
+      setCanRepost(false);
+      return;
+    }
+
+    // For YouTube videos without a Petflix ID, allow reposting (they haven't been shared yet)
+    const isYouTubeVideo = video.source === 'youtube' || (!video.id && video.youtubeVideoId);
+    if (isYouTubeVideo && video.youtubeVideoId) {
+      // YouTube videos can be reposted (they're not owned by any Petflix user)
+      // Only check if user already owns it (unlikely for direct YouTube videos, but check anyway)
+      if (video.userId === user.id) {
+        setCanRepost(false);
+        return;
+      }
+      // YouTube videos can be reposted
+      setCanRepost(true);
+      return;
+    }
+
+    // For Petflix videos, need video.id to check
+    if (!video.id) {
       setCanRepost(false);
       return;
     }
@@ -183,7 +203,7 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
     };
 
     checkCanRepost();
-  }, [isAuthenticated, user?.id, video.id, video.userId, video.originalUser?.id]);
+  }, [isAuthenticated, user?.id, video.id, video.youtubeVideoId, video.userId, video.originalUser?.id, video.source]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -987,7 +1007,19 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
                           try {
                             const token = localStorage.getItem('auth_token');
                             
-                            const response = await fetch(`${API_URL}/api/v1/videos/${video.id}/repost`, {
+                            // For YouTube videos, use YouTube video ID format
+                            // For Petflix videos, use the video ID
+                            const videoId = video.id || (video.youtubeVideoId ? `youtube_${video.youtubeVideoId}` : null);
+                            
+                            if (!videoId) {
+                              setRepostErrorMessage('Invalid video ID');
+                              setShowRepostError(true);
+                              setSharing(false);
+                              setShowMenu(false);
+                              return;
+                            }
+                            
+                            const response = await fetch(`${API_URL}/api/v1/videos/${videoId}/repost`, {
                               method: 'POST',
                               headers: {
                                 'Authorization': `Bearer ${token}`,
