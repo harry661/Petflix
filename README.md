@@ -16,9 +16,26 @@ A responsive web application, enhanced by PWA functionality, designed to provide
 Petflix/
 ├── frontend/          # React application
 ├── backend/           # Express API server
+├── docs/              # All project documentation (organized by category)
+│   ├── setup/         # Setup and configuration guides
+│   ├── deployment/     # Deployment guides
+│   ├── features/       # Feature documentation
+│   ├── troubleshooting/# Troubleshooting guides
+│   ├── migrations/     # Database migration guides
+│   └── api/           # API documentation
 ├── .gitignore
 └── README.md
 ```
+
+## Documentation
+
+All project documentation is organized in the [`docs/`](./docs/) folder:
+
+- **Getting Started**: See [`docs/START_HERE.md`](./docs/START_HERE.md) or [`docs/QUICK_START.md`](./docs/QUICK_START.md)
+- **Setup Guides**: See [`docs/setup/`](./docs/setup/) for environment variables, service setup, etc.
+- **Deployment**: See [`docs/deployment/`](./docs/deployment/) for Vercel and monorepo setup
+- **Troubleshooting**: See [`docs/troubleshooting/`](./docs/troubleshooting/) for common issues and fixes
+- **Migrations**: See [`docs/migrations/`](./docs/migrations/) for database migration instructions
 
 ## Getting Started
 
