@@ -25,8 +25,8 @@ Petflix/
 │   │   └── utils/        # Utility functions
 │   ├── api/              # Vercel serverless function implementation
 │   │   └── index.ts      # Express app (actual implementation)
-├── api/                  # Vercel serverless function entry point (root)
-│   └── index.ts          # Re-exports from backend/api/index.ts
+├── api/                  # Symlink to backend/api/ (Vercel requirement)
+│   └── index.ts          # Points to backend/api/index.ts
 │   ├── migrations/       # Database migration SQL files
 │   ├── scripts/          # Utility scripts (VAPID keys, storage setup, etc.)
 │   ├── dist/             # Compiled JavaScript (gitignored)
@@ -63,12 +63,13 @@ Petflix/
   - Imports routes from `../src/routes`
   - Sets up Express middleware (CORS, JSON parsing, error handling)
   - Exports the Express app using `module.exports`
-- **`api/index.ts`** (root): Thin wrapper that re-exports from `backend/api/index.ts`
+- **`api/`** (root): Symbolic link pointing to `backend/api/`
   - Required by Vercel (serverless functions must be in root `api/` directory)
-  - Simply imports and re-exports the backend implementation
+  - The symlink allows Vercel to find the function while keeping code in `backend/api/`
+  - Git tracks the symlink, so it works across all environments
 
 ### Vercel Configuration
-- **Function Location**: `api/index.ts` (root) - re-exports from `backend/api/index.ts`
+- **Function Location**: `api/index.ts` (root symlink → `backend/api/index.ts`)
 - **Include Files**: `backend/**` (all backend files are included in the function)
 - **Rewrite Rule**: `/api/*` → `/api/index` (handled by the Express app)
 - **Build**: Frontend builds to `frontend/dist`
