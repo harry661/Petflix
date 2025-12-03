@@ -681,6 +681,9 @@ function VideoCard({ video, onVideoClick }: VideoCardProps) {
           cursor: 'pointer',
           transition: 'transform 0.2s, box-shadow 0.2s',
           position: 'relative', // Ensure positioning context
+          width: '100%',
+          maxWidth: '100%',
+          minWidth: 0
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateY(-4px)';
