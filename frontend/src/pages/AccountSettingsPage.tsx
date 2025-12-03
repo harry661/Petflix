@@ -13,7 +13,7 @@ export default function AccountSettingsPage() {
   const { isAuthenticated, user: authUser, loading: authLoading, logout } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabType>('personal');
+  const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [formData, setFormData] = useState({
     profile_picture_url: '',
     bio: '',
