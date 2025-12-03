@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import VideoCard from '../components/VideoCard';
+import { Dog, Cat, Bird, Rabbit, Fish } from 'lucide-react';
 
 import { API_URL } from '../config/api';
 
 export default function FeedPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tagFilter = searchParams.get('tag') || '';
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [videos, setVideos] = useState<any[]>([]);
+  const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -49,7 +53,9 @@ export default function FeedPage() {
       }
 
       const data = await response.json();
-      setVideos(data.videos || []);
+      const feedVideos = data.videos || [];
+      setAllVideos(feedVideos);
+      setVideos(feedVideos);
     } catch (err: any) {
       setError('Failed to load feed. Please try again.');
     } finally {
