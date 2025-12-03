@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import VideoCard from '../components/VideoCard';
+import { VideoGridSkeleton } from '../components/LoadingSkeleton';
 import { Dog, Cat, Bird, Rabbit, Fish } from 'lucide-react';
 
 import { API_URL } from '../config/api';
@@ -12,8 +13,12 @@ export default function FeedPage() {
   const [videos, setVideos] = useState<any[]>([]);
   const [allVideos, setAllVideos] = useState<any[]>([]); // Store all videos for filtering
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Wait for auth to finish loading
@@ -24,20 +29,54 @@ export default function FeedPage() {
       navigate('/');
       return;
     }
-    loadFeed();
-  }, [isAuthenticated, authLoading, navigate]);
+    loadFeed(true);
+  }, [isAuthenticated, authLoading, navigate, loadFeed]);
 
-  const loadFeed = async () => {
-    setLoading(true);
-    setError('');
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      navigate('/');
-      return;
+  // Infinite scroll for feed
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore && !selectedFilter) {
+          loadFeed(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
     }
 
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, loadingMore, selectedFilter, loadFeed]);
+
+  const loadFeed = useCallback(async (reset: boolean = false, currentOffset?: number) => {
     try {
-      const response = await fetch(`${API_URL}/api/v1/videos/feed`, {
+      if (reset) {
+        setLoading(true);
+        setVideos([]);
+        setAllVideos([]);
+        setOffset(0);
+        currentOffset = 0;
+      } else {
+        setLoadingMore(true);
+        currentOffset = currentOffset ?? offset;
+      }
+      setError('');
+      
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        navigate('/');
+        return;
+      }
+
+      const limit = 20; // Load 20 videos at a time
+      const response = await fetch(`${API_URL}/api/v1/videos/feed?limit=${limit}&offset=${currentOffset}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -47,20 +86,35 @@ export default function FeedPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         setError(errorData.error || 'Failed to load feed');
-        setLoading(false);
+        if (reset) {
+          setLoading(false);
+        } else {
+          setLoadingMore(false);
+        }
         return;
       }
 
       const data = await response.json();
       const feedVideos = data.videos || [];
-      setAllVideos(feedVideos); // Store all videos
-      setVideos(feedVideos); // Initially show all videos
+      
+      if (reset) {
+        setAllVideos(feedVideos);
+        setVideos(feedVideos);
+        setOffset(feedVideos.length);
+      } else {
+        setAllVideos(prev => [...prev, ...feedVideos]);
+        setVideos(prev => [...prev, ...feedVideos]);
+        setOffset(prev => prev + feedVideos.length);
+      }
+      
+      setHasMore(data.hasMore !== false && feedVideos.length === limit);
     } catch (err: any) {
       setError('Failed to load feed. Please try again.');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [offset, navigate]);
 
   // Filter videos by selected tag
   useEffect(() => {
@@ -125,10 +179,12 @@ export default function FeedPage() {
       <div style={{
         minHeight: '100vh',
         backgroundColor: '#0F0F0F',
-        padding: '40px',
-        textAlign: 'center'
+        padding: '40px'
       }}>
-        <p style={{ color: '#ffffff' }}>Loading your feed...</p>
+        <div className="page-content-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 40px' }}>
+          <h1 style={{ color: '#ffffff', marginBottom: '30px', fontSize: '32px', fontWeight: '600' }}>Following</h1>
+          <VideoGridSkeleton count={10} />
+        </div>
       </div>
     );
   }
@@ -340,15 +396,39 @@ export default function FeedPage() {
             </div>
           </div>
         ) : (
-          <div className="video-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '20px'
-          }}>
-            {videos.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))}
-          </div>
+          <>
+            <div className="video-grid" style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '20px'
+            }}>
+              {videos.map((video) => (
+                <VideoCard key={video.id || `youtube_${video.youtubeVideoId}`} video={video} />
+              ))}
+            </div>
+
+            {/* Infinite scroll trigger */}
+            <div ref={observerTarget} style={{ height: '20px', marginTop: '20px' }}>
+              {loadingMore && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: '#ffffff'
+                }}>
+                  <p>Loading more videos...</p>
+                </div>
+              )}
+              {!hasMore && videos.length > 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '40px',
+                  color: 'rgba(255, 255, 255, 0.7)'
+                }}>
+                  <p>You've reached the end of your feed!</p>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
       </div>
