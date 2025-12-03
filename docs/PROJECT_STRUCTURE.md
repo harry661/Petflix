@@ -2,115 +2,97 @@
 
 ## Overview
 
-This is a monorepo structure with separate frontend and backend applications.
+Petflix is a monorepo containing a React frontend and Express backend, deployed together on Vercel.
+
+## Directory Structure
 
 ```
 Petflix/
-├── frontend/              # React + Vite + TailwindCSS + Shadcn UI
-│   ├── src/
-│   │   ├── components/   # React components
-│   │   │   └── ui/        # Shadcn UI components (Button, Card, Input, Dialog)
-│   │   ├── pages/         # Page components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── services/      # API service functions
-│   │   ├── types/         # TypeScript type definitions
-│   │   ├── context/       # React context providers
-│   │   ├── utils/         # Utility functions
-│   │   └── lib/           # Library configurations (utils.ts)
-│   ├── public/            # Static assets
-│   └── package.json
+├── frontend/              # React + Vite frontend application
+│   ├── src/               # Source code
+│   ├── public/           # Static assets
+│   ├── dist/             # Build output (gitignored)
+│   └── package.json      # Frontend dependencies
 │
-├── backend/               # Express + TypeScript
-│   ├── src/
-│   │   ├── routes/        # API route handlers
-│   │   ├── controllers/  # Request controllers
+├── backend/              # Express API server
+│   ├── src/              # Source code
+│   │   ├── config/       # Configuration (Supabase, etc.)
+│   │   ├── controllers/ # Route controllers
 │   │   ├── middleware/   # Express middleware
-│   │   ├── models/        # Data models
-│   │   ├── services/      # Business logic services
-│   │   ├── utils/         # Utility functions
-│   │   └── types/         # TypeScript type definitions
-│   ├── dist/              # Compiled JavaScript (generated)
-│   └── package.json
+│   │   ├── routes/       # API route definitions
+│   │   ├── services/     # Business logic services
+│   │   ├── types/        # TypeScript type definitions
+│   │   └── utils/        # Utility functions
+│   ├── api/              # Vercel serverless function entry point
+│   │   └── index.ts      # Express app exported for Vercel
+│   ├── migrations/       # Database migration SQL files
+│   ├── scripts/          # Utility scripts (VAPID keys, storage setup, etc.)
+│   ├── dist/             # Compiled JavaScript (gitignored)
+│   └── package.json      # Backend dependencies
 │
-├── .gitignore
-├── README.md
-├── SETUP.md
-└── PROJECT_STRUCTURE.md
+├── docs/                  # All project documentation
+│   ├── setup/            # Setup and configuration guides
+│   ├── deployment/       # Deployment guides
+│   ├── features/        # Feature documentation
+│   ├── troubleshooting/ # Troubleshooting guides
+│   ├── migrations/      # Migration guides
+│   └── api/             # API documentation
+│
+├── scripts/              # Root-level utility scripts
+│   ├── start-frontend.sh
+│   ├── start-backend.sh
+│   ├── setup-env.sh
+│   └── test-email.sh
+│
+├── vercel.json           # Vercel deployment configuration
+└── README.md             # Main project README
 ```
 
-## Frontend Structure
+## Key Points
 
-### Components
-- **UI Components** (`src/components/ui/`): Shadcn UI components
-  - Button
-  - Card
-  - Input
-  - Dialog
+### Backend Structure
+- **`backend/src/`**: Main application code
+- **`backend/api/index.ts`**: Vercel serverless function entry point (imports from `src/`)
+- **`backend/migrations/`**: SQL migration files (numbered sequentially)
+- **`backend/scripts/`**: Utility TypeScript scripts
 
-### Pages (to be created)
-- Landing page
-- Search results page
-- Video detail page
-- User profile page
-- Account settings page
-- Shared video feed
+### API Entry Point
+The `backend/api/index.ts` file is the Vercel serverless function entry point. It:
+- Imports routes from `../src/routes`
+- Sets up Express middleware (CORS, JSON parsing, error handling)
+- Exports the Express app for Vercel
 
-### Services (to be created)
-- API client for backend communication
-- Supabase client
-- YouTube API integration
+### Vercel Configuration
+- **Function Location**: `backend/api/index.ts`
+- **Rewrite Rule**: `/api/*` → `/api/index` (handled by the Express app)
+- **Build**: Frontend builds to `frontend/dist`
+- **Install**: Installs dependencies for both frontend and backend
 
-## Backend Structure
+### Dependencies
+- **Frontend**: Managed in `frontend/package.json`
+- **Backend**: Managed in `backend/package.json` (includes API entry point dependencies)
 
-### Routes (to be created)
-- `/api/v1/users/*` - User management
-- `/api/v1/videos/*` - Video operations
-- `/api/v1/comments/*` - Comment operations
-- `/api/v1/playlists/*` - Playlist operations
-- `/api/v1/push_notifications/*` - Push notification subscriptions
+## Development
 
-### Controllers (to be created)
-- User controllers
-- Video controllers
-- Comment controllers
-- Playlist controllers
+### Local Development
+```bash
+# Frontend (from frontend/)
+npm run dev
 
-### Services (to be created)
-- Authentication service
-- YouTube API service
-- Supabase service
-- Notification service
+# Backend (from backend/)
+npm run dev
+```
 
-## Technology Stack
+### Scripts
+Utility scripts are in the root `scripts/` folder for easy access:
+- `start-frontend.sh`: Start frontend dev server
+- `start-backend.sh`: Start backend dev server
+- `setup-env.sh`: Environment variable setup helper
 
-### Frontend
-- **React 19** - UI library
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **TailwindCSS** - Utility-first CSS
-- **Shadcn UI** - Component library
-- **Radix UI** - Accessible component primitives
+## Deployment
 
-### Backend
-- **Express 5** - Web framework
-- **TypeScript** - Type safety
-- **Node.js** - Runtime
-- **Supabase** - Database and auth
-- **YouTube Data API v3** - Video data
-
-## Color Palette
-
-- **Cream**: #F0F0DC (background)
-- **Charcoal**: #36454F (text)
-- **Light Blue**: #ADD8E6 (primary/accent)
-
-## Next Steps
-
-1. Set up Supabase database schema
-2. Implement authentication (Supabase Auth)
-3. Create API routes and controllers
-4. Build frontend pages
-5. Implement PWA features
-6. Add web push notifications
-7. Implement TV casting
-
+The project is configured for Vercel monorepo deployment:
+1. Frontend builds to `frontend/dist`
+2. Backend API function is at `backend/api/index.ts`
+3. All `/api/*` requests are routed to the backend function
+4. All other requests serve the frontend SPA
