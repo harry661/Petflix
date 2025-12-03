@@ -1968,6 +1968,7 @@ export const repostVideo = async (
       return;
     }
 
+    const userId = req.user.userId; // Store userId after null check for TypeScript
     const { id } = req.params;
 
     // Check if this is a YouTube video ID (starts with "youtube_" or is a YouTube video ID format)
