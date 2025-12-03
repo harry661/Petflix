@@ -175,16 +175,16 @@ export default function HomePage() {
           setShowOnboarding(false);
         }
       } else {
-        // If API fails, default to showing onboarding (better UX for new feature)
-        console.warn('[Onboarding] Failed to fetch onboarding preference, defaulting to show');
-        setOnboardingUsername(user.username || '');
-        setShowOnboarding(true);
+        // If API fails, don't show onboarding (user has likely seen it before)
+        // Only show on explicit sessionStorage flag (new signup)
+        console.warn('[Onboarding] Failed to fetch onboarding preference, not showing (likely already dismissed)');
+        setShowOnboarding(false);
       }
     } catch (err) {
       console.error('Error checking onboarding preference:', err);
-      // On error, default to showing onboarding
-      setOnboardingUsername(user.username || '');
-      setShowOnboarding(true);
+      // On error, don't show onboarding (user has likely seen it before)
+      // Only show on explicit sessionStorage flag (new signup)
+      setShowOnboarding(false);
     }
   };
   
