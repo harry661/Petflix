@@ -6,7 +6,7 @@ import ProfilePicture from '../components/ProfilePicture';
 
 import { API_URL } from '../config/api';
 
-type TabType = 'profile' | 'personal' | 'security';
+type TabType = 'profile' | 'security';
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
@@ -1066,23 +1066,6 @@ export default function AccountSettingsPage() {
               Profile
             </button>
             <button
-              onClick={() => setActiveTab('personal')}
-              style={{
-                padding: '12px 0',
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: activeTab === 'personal' ? '#ADD8E6' : 'rgba(255, 255, 255, 0.7)',
-                fontSize: '16px',
-                fontWeight: activeTab === 'personal' ? '600' : '400',
-                cursor: 'pointer',
-                borderBottom: activeTab === 'personal' ? '2px solid #ADD8E6' : '2px solid transparent',
-                marginBottom: '-2px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Personal Info
-            </button>
-            <button
               onClick={() => setActiveTab('security')}
               style={{
                 padding: '12px 0',
@@ -1300,40 +1283,50 @@ export default function AccountSettingsPage() {
 
               {/* Bio Field */}
               {renderField('About', 'bio', formData.bio || '', 'textarea')}
-            </div>
-          )}
 
-          {/* Personal Info Tab */}
-          {activeTab === 'personal' && (
-            <div>
-              {renderField('Name', 'username', user.username)}
-              {renderField('Email', 'email', user.email)}
+              {/* Personal Info Section */}
               <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '16px 0',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                marginTop: '40px',
+                paddingTop: '40px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: '14px',
-                    fontWeight: '500'
-                  }}>
-                    Member Since
-                  </label>
-                  <div style={{
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    fontSize: '16px'
-                  }}>
-                    {new Date(user.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                <h2 style={{
+                  color: '#ffffff',
+                  marginBottom: '24px',
+                  fontSize: '20px',
+                  fontWeight: '600'
+                }}>
+                  Personal Info
+                </h2>
+                {renderField('Name', 'username', user.username)}
+                {renderField('Email', 'email', user.email)}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '16px 0',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{
+                      display: 'block',
+                      marginBottom: '8px',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>
+                      Member Since
+                    </label>
+                    <div style={{
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '16px'
+                    }}>
+                      {new Date(user.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
