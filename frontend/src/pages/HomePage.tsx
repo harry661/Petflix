@@ -99,9 +99,6 @@ export default function HomePage() {
     }
   };
 
-  // Track if we've already checked onboarding to prevent multiple checks
-  const hasCheckedOnboarding = useRef(false);
-
   useEffect(() => {
     // Wait for auth check to complete
     if (authLoading) {
@@ -120,10 +117,17 @@ export default function HomePage() {
       loadRecommendedVideos();
       
       // Check onboarding preference only once per session
-      // Only show on first signup (sessionStorage) or if user hasn't dismissed it
-      if (!hasCheckedOnboarding.current) {
+      // Use sessionStorage to persist across component remounts
+      const hasCheckedThisSession = sessionStorage.getItem('onboarding_checked_this_session') === 'true';
+      const hasShownThisSession = sessionStorage.getItem('onboarding_shown_this_session') === 'true';
+      
+      // Only check if we haven't checked this session
+      if (!hasCheckedThisSession) {
         checkOnboardingPreference();
-        hasCheckedOnboarding.current = true;
+        sessionStorage.setItem('onboarding_checked_this_session', 'true');
+      } else if (hasShownThisSession) {
+        // If we've already shown it this session, don't show again
+        setShowOnboarding(false);
       }
     }
     
@@ -142,10 +146,15 @@ export default function HomePage() {
     const usernameFromSession = sessionStorage.getItem('onboarding_username');
     
     if (shouldShowFromSession && usernameFromSession) {
-      setOnboardingUsername(usernameFromSession);
-      setShowOnboarding(true);
-      sessionStorage.removeItem('show_onboarding');
-      sessionStorage.removeItem('onboarding_username');
+      // Check if we've already shown onboarding this session
+      const hasShownThisSession = sessionStorage.getItem('onboarding_shown_this_session') === 'true';
+      if (!hasShownThisSession) {
+        setOnboardingUsername(usernameFromSession);
+        setShowOnboarding(true);
+        sessionStorage.setItem('onboarding_shown_this_session', 'true');
+        sessionStorage.removeItem('show_onboarding');
+        sessionStorage.removeItem('onboarding_username');
+      }
       return;
     }
     
@@ -163,12 +172,20 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json();
         console.log('[Onboarding] Preference check result:', data);
-        // Only show onboarding if preference is explicitly true or undefined/null
-        // If it's explicitly false, don't show it
-        if (data.showOnboarding === true || data.showOnboarding === undefined || data.showOnboarding === null) {
+        // Check if we've already shown onboarding this session
+        const hasShownThisSession = sessionStorage.getItem('onboarding_shown_this_session') === 'true';
+        
+        if (hasShownThisSession) {
+          // Already shown this session, don't show again
+          console.log('[Onboarding] Already shown this session, not showing again');
+          setShowOnboarding(false);
+        } else if (data.showOnboarding === true || data.showOnboarding === undefined || data.showOnboarding === null) {
+          // Only show onboarding if preference is explicitly true or undefined/null
+          // AND we haven't shown it this session
           console.log('[Onboarding] Showing onboarding modal (preference:', data.showOnboarding, ')');
           setOnboardingUsername(user.username || '');
           setShowOnboarding(true);
+          sessionStorage.setItem('onboarding_shown_this_session', 'true');
         } else if (data.showOnboarding === false) {
           console.log('[Onboarding] User has dismissed onboarding (preference: false), not showing');
           // Explicitly don't show
