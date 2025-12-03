@@ -150,6 +150,9 @@ export default function UserProfilePage() {
     try {
       setError('');
       
+      // Get token for authenticated requests
+      const token = localStorage.getItem('auth_token');
+      
       // Get current user from context to check if viewing own profile
       // No API call needed - use context data
 
