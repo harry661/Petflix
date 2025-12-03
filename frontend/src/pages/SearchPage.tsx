@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ArrowUpDown, X, Clock } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 import { VideoGridSkeleton } from '../components/LoadingSkeleton';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
 import Dropdown from '../components/Dropdown';
 

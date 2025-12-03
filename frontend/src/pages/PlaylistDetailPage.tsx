@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { Play, Shuffle, MoreVertical, Trash2, X } from 'lucide-react';
 
 import { API_URL } from '../config/api';

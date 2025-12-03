@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { Save, LogOut, User, Mail, Lock, Bell, Trash2, Eye, EyeOff, Camera, Edit, X } from 'lucide-react';
 import ProfilePicture from '../components/ProfilePicture';
 
@@ -10,7 +10,7 @@ type TabType = 'profile' | 'security';
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, user: authUser, loading: authLoading, logout } = useAuth();
+  const { isAuthenticated, user: authUser, loading: authLoading, logout, refreshUser } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('profile');
@@ -75,42 +75,17 @@ export default function AccountSettingsPage() {
   }, [isAuthenticated, authLoading, navigate, justSaved]);
 
   const loadUser = async () => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      navigate('/', { replace: true });
-      return;
-    }
-    
-    // Always fetch fresh data from API to avoid stale data issues
-    // Don't rely on authUser as it might be outdated after profile updates
-
-    try {
-      const response = await fetch(`${API_URL}/api/v1/users/me`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+    // Use context's refreshUser to get fresh data and update cache
+    const userData = await refreshUser();
+    if (userData) {
+      setUser(userData);
+      setFormData({
+        profile_picture_url: userData.profile_picture_url || '',
+        bio: userData.bio || '',
       });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        setFormData({
-          profile_picture_url: userData.profile_picture_url || '',
-          bio: userData.bio || '',
-        });
-        loadNotificationPreferences();
-      } else {
-        if (response.status === 401) {
-          localStorage.removeItem('auth_token');
-          window.dispatchEvent(new Event('auth-changed'));
-          navigate('/', { replace: true });
-          return;
-        }
-        setError('Failed to load user data');
-      }
-    } catch (err: any) {
-      setError('Failed to load user data');
-    } finally {
-      setLoading(false);
+      loadNotificationPreferences();
     }
+    setLoading(false);
   };
 
   const checkPushSupport = () => {
@@ -337,8 +312,8 @@ export default function AccountSettingsPage() {
         // Prevent reloading user data immediately after save
         setJustSaved(true);
         setTimeout(() => setJustSaved(false), 1000); // Allow reloads after 1 second
-        // Dispatch auth-changed to update other components
-        window.dispatchEvent(new Event('auth-changed'));
+        // Refresh context cache with new data
+        await refreshUser();
         setTimeout(() => setSuccess(''), 3000);
         setEditingField(null);
       } else {
@@ -611,8 +586,8 @@ export default function AccountSettingsPage() {
           setTimeout(() => setSuccess(''), 5000);
           setEditingField(null);
           setEditValues({});
-          // Dispatch auth-changed to update other components
-          window.dispatchEvent(new Event('auth-changed'));
+          // Refresh context cache with new data
+          await refreshUser();
         } else {
           setError(data.error || `Failed to update ${field}`);
         }

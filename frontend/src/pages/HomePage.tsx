@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { useSearch } from '../context/SearchContext';
 import VideoCard from '../components/VideoCard';
 import { VideoGridSkeleton } from '../components/LoadingSkeleton';

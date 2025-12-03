@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { useSearch } from '../context/SearchContext';
 import { Search, Bell, ChevronDown, X, UserPlus, Video, Heart, MessageCircle } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';

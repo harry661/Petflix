@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { SearchProvider } from './context/SearchContext';
+import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/ToastContainer';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
@@ -78,13 +79,15 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <ToastProvider>
-        <SearchProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </SearchProvider>
-      </ToastProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <SearchProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </SearchProvider>
+        </ToastProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

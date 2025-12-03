@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { useMetaTags } from '../hooks/useMetaTags';
 import { Edit2, Trash2, Save, X as CloseIcon, Heart, Flag, Repeat2, Share2, Facebook, ChevronDown, Link2, ListPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';

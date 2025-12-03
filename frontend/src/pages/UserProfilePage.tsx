@@ -4,6 +4,7 @@ import { Upload, Pencil, CheckCircle2, Bell, BellOff } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
 import ProfilePicture from '../components/ProfilePicture';
 import PlaylistCard from '../components/PlaylistCard';
+import { useAuth } from '../context/AuthContext';
 
 import { API_URL } from '../config/api';
 
@@ -27,6 +28,7 @@ const extractYouTubeVideoId = (url: string): string | null => {
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [sharedVideos, setSharedVideos] = useState<any[]>([]);
   const [repostedVideos, setRepostedVideos] = useState<any[]>([]);
@@ -148,22 +150,8 @@ export default function UserProfilePage() {
     try {
       setError('');
       
-      // Get current user to check if viewing own profile
-      const token = localStorage.getItem('auth_token');
-      let currentUser = null;
-      if (token) {
-        try {
-          const currentUserRes = await fetch(`${API_URL}/api/v1/users/me`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-            credentials: 'include',
-          });
-          if (currentUserRes.ok) {
-            currentUser = await currentUserRes.json();
-          }
-        } catch (err) {
-          // Error fetching current user - continue anyway
-        }
-      }
+      // Get current user from context to check if viewing own profile
+      // No API call needed - use context data
 
       // Search for user by username
       let response;

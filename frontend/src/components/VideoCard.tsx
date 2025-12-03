@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { MoreVertical, CheckCircle2, Trash2, XCircle } from 'lucide-react';
 import AddToPlaylistModal from './AddToPlaylistModal';
 import ProfilePicture from './ProfilePicture';

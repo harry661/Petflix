@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 import PawLogo from '../assets/Paw.svg';
 import PetflixLogo from '../assets/PETFLIX.svg';

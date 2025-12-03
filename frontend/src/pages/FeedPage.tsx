@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import VideoCard from '../components/VideoCard';
 import { Dog, Cat, Bird, Rabbit, Fish } from 'lucide-react';
 
