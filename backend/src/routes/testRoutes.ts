@@ -76,7 +76,7 @@ router.post('/test-email', async (req, res) => {
     }
 
     // Import email service
-    const { sendSignupAttemptEmail, sendLoginAttemptEmail } = await import('../services/emailService');
+    const { sendSignupAttemptEmail, sendLoginAttemptEmail } = await import('../services/emailService.js');
     
     if (type === 'signup') {
       await sendSignupAttemptEmail(
