@@ -191,6 +191,10 @@ export default function SearchPage() {
             gap: 20px !important;
           }
         }
+        .video-grid > * {
+          max-width: 100% !important;
+          min-width: 0 !important;
+        }
       `}</style>
       <div style={{
         minHeight: '100vh',
@@ -396,7 +400,9 @@ export default function SearchPage() {
           <>
             <div className="video-grid" style={{
               display: 'grid',
-              gap: '20px'
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '20px',
+              width: '100%'
             }}>
               {results.map((video, index) => (
                 <VideoCard key={video.id || video.youtubeVideoId || `video-${index}`} video={video} />
