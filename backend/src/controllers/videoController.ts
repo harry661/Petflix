@@ -2006,7 +2006,7 @@ export const repostVideo = async (
 
       if (existingSharedVideos && existingSharedVideos.length > 0) {
         // Find the first video shared by someone else (not current user)
-        const otherUserShare = existingSharedVideos.find(v => v.user_id !== req.user.userId);
+        const otherUserShare = existingSharedVideos.find(v => v.user_id !== userId);
         
         if (otherUserShare) {
           // Video is already shared by someone else, repost that video
@@ -2030,7 +2030,7 @@ export const repostVideo = async (
           .from('videos')
           .select('user_id, original_user_id')
           .eq('youtube_video_id', youtubeVideoId)
-          .neq('user_id', req.user.userId) // Exclude current user
+          .neq('user_id', userId) // Exclude current user
           .order('created_at', { ascending: true })
           .limit(1);
         
