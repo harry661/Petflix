@@ -869,20 +869,14 @@ export const clearSearchHistory = async (req: Request, res: Response) => {
 
 /**
  * Get user's feed (videos from followed users)
- * GET /api/v1/videos/feed?limit=20&offset=0
+ * GET /api/v1/videos/feed
  */
-export const getFeed = async (
-  req: Request<{}, any, {}, { limit?: string; offset?: string }>,
-  res: Response
-) => {
+export const getFeed = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required' });
       return;
     }
-
-    const limit = parseInt(req.query.limit || '20');
-    const offset = parseInt(req.query.offset || '0');
 
     // Get users that the current user follows
     const { data: following, error: followingError } = await supabaseAdmin!
@@ -900,20 +894,14 @@ export const getFeed = async (
 
     if (!following || following.length === 0) {
       console.log('No users being followed, returning empty feed');
-      res.json({ videos: [], hasMore: false, total: 0 });
+      res.json({ videos: [] });
       return;
     }
 
     const followingIds = following.map(f => f.following_id);
     console.log('Following user IDs:', followingIds);
 
-    // Get total count for hasMore calculation
-    const { count: totalCount } = await supabaseAdmin!
-      .from('videos')
-      .select('*', { count: 'exact', head: true })
-      .in('user_id', followingIds);
-
-    // Get videos from followed users with pagination
+    // Get videos from followed users
     // IMPORTANT: Include original_user_id and original_user to show original uploader for reposted videos
     const { data: videos, error: videosError } = await supabaseAdmin!
       .from('videos')
@@ -942,7 +930,7 @@ export const getFeed = async (
       `)
       .in('user_id', followingIds)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(50);
 
     if (videosError) {
       console.error('Error fetching videos from followed users:', videosError);
@@ -1056,14 +1044,8 @@ export const getFeed = async (
     }));
 
     console.log(`Returning ${videosFormatted.length} formatted videos`);
-    
-    // Determine if there are more videos
-    const hasMore = (totalCount || 0) > (offset + videosFormatted.length);
-    
     res.json({
       videos: videosFormatted,
-      total: totalCount || 0,
-      hasMore: hasMore,
     });
   } catch (error) {
     console.error('Get feed error:', error);
