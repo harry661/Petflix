@@ -99,6 +99,9 @@ export default function HomePage() {
     }
   };
 
+  // Track if we've already checked onboarding to prevent multiple checks
+  const hasCheckedOnboarding = useRef(false);
+
   useEffect(() => {
     // Wait for auth check to complete
     if (authLoading) {
@@ -116,8 +119,12 @@ export default function HomePage() {
       loadTrendingVideos();
       loadRecommendedVideos();
       
-      // Check if we should show onboarding
-      checkOnboardingPreference();
+      // Check onboarding preference only once per session
+      // Only show on first signup (sessionStorage) or if user hasn't dismissed it
+      if (!hasCheckedOnboarding.current) {
+        checkOnboardingPreference();
+        hasCheckedOnboarding.current = true;
+      }
     }
     
     return () => {
