@@ -391,19 +391,237 @@ export const searchVideos = async (
       return !v.youtubeVideoId || !petflixYouTubeIds.has(v.youtubeVideoId);
     });
     
-    // Combine results: Petflix videos first, then YouTube videos
-    // This prioritizes content already shared on the platform
-    allVideos = [...allVideos, ...uniqueYoutubeVideos];
+    // Get current user's shares/reposts if authenticated (to prioritize them)
+    let userVideos: any[] = [];
+    if (req.user) {
+      try {
+        // Get user's shared videos (original_user_id IS NULL)
+        const { data: userSharedVideos } = await supabaseAdmin!
+          .from('videos')
+          .select(`
+            id,
+            youtube_video_id,
+            title,
+            description,
+            user_id,
+            original_user_id,
+            created_at,
+            updated_at,
+            view_count,
+            users:user_id (
+              id,
+              username,
+              email,
+              profile_picture_url
+            )
+          `)
+          .eq('user_id', req.user.userId)
+          .is('original_user_id', null)
+          .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+          .limit(50); // Get up to 50 user videos
+
+        // Get user's reposted videos (original_user_id IS NOT NULL)
+        const { data: userRepostedVideos } = await supabaseAdmin!
+          .from('videos')
+          .select(`
+            id,
+            youtube_video_id,
+            title,
+            description,
+            user_id,
+            original_user_id,
+            created_at,
+            updated_at,
+            view_count,
+            users:user_id (
+              id,
+              username,
+              email,
+              profile_picture_url
+            ),
+            original_user:original_user_id (
+              id,
+              username,
+              email,
+              profile_picture_url
+            )
+          `)
+          .eq('user_id', req.user.userId)
+          .not('original_user_id', 'is', null)
+          .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+          .limit(50); // Get up to 50 user reposts
+
+        // Format user's videos
+        const allUserVideos = [...(userSharedVideos || []), ...(userRepostedVideos || [])];
+        
+        // Get tags for user videos
+        const userVideoIds = allUserVideos.map((v: any) => v.id);
+        let userVideoTagsMap: { [key: string]: string[] } = {};
+        
+        if (userVideoIds.length > 0) {
+          const { data: userTags } = await supabaseAdmin!
+            .from('video_tags_direct')
+            .select('video_id, tag_name')
+            .in('video_id', userVideoIds);
+          
+          if (userTags) {
+            userTags.forEach((tagRow: any) => {
+              if (!userVideoTagsMap[tagRow.video_id]) {
+                userVideoTagsMap[tagRow.video_id] = [];
+              }
+              userVideoTagsMap[tagRow.video_id].push(tagRow.tag_name);
+            });
+          }
+        }
+
+        // Format user videos
+        userVideos = await Promise.all(allUserVideos.map(async (video: any) => {
+          const userData = Array.isArray(video.users) ? video.users[0] : video.users;
+          const originalUserData = video.original_user_id 
+            ? (Array.isArray(video.original_user) ? video.original_user[0] : video.original_user)
+            : null;
+          
+          let thumbnail: string | null = null;
+          if (video.youtube_video_id && /^[a-zA-Z0-9_-]{11}$/.test(video.youtube_video_id)) {
+            thumbnail = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+          }
+
+          let authorName: string | undefined;
+          let authorUrl: string | undefined;
+          let source: 'petflix' | 'youtube' = 'petflix';
+          
+          if (video.youtube_video_id) {
+            try {
+              const metadata = await getYouTubeVideoMetadata(video.youtube_video_id);
+              if (metadata?.authorName) {
+                authorName = metadata.authorName;
+                authorUrl = metadata.authorUrl;
+                source = 'youtube';
+              }
+            } catch (err) {
+              // Silently fail
+            }
+          }
+
+          const isReposted = !!video.original_user_id;
+
+          return {
+            id: video.id,
+            youtubeVideoId: video.youtube_video_id,
+            title: video.title,
+            description: video.description,
+            userId: video.user_id,
+            createdAt: video.created_at,
+            updatedAt: video.updated_at,
+            viewCount: video.view_count || 0,
+            tags: userVideoTagsMap[video.id] || [],
+            user: (source === 'youtube' && authorName) ? null : (isReposted ? null : (userData ? {
+              id: userData.id,
+              username: userData.username,
+              email: userData.email,
+              profile_picture_url: userData.profile_picture_url,
+            } : null)),
+            originalUser: (source === 'youtube' && authorName) ? null : (originalUserData ? {
+              id: originalUserData.id,
+              username: originalUserData.username,
+              email: originalUserData.email,
+              profile_picture_url: originalUserData.profile_picture_url,
+            } : null),
+            thumbnail: thumbnail,
+            source: source,
+            authorName: authorName,
+            authorUrl: authorUrl,
+            isUserVideo: true, // Mark as user's video for prioritization
+          };
+        }));
+      } catch (userVideosError) {
+        console.error('Error fetching user videos:', userVideosError);
+        // Continue without user videos if there's an error
+      }
+    }
+
+    // Remove user videos from allVideos to avoid duplicates
+    const userVideoIds = new Set(userVideos.map((v: any) => v.id).filter((id: any) => id != null));
+    const userYouTubeIds = new Set(
+      userVideos
+        .map((v: any) => v.youtubeVideoId)
+        .filter((id: any) => id != null && id !== '')
+    );
     
-    // Sort combined results if not relevance (relevance keeps tag matches first)
+    // Remove duplicates: exclude videos that are in userVideos
+    const filteredAllVideos = allVideos.filter((v: any) => {
+      // Exclude if it's a user video by ID
+      if (v.id && userVideoIds.has(v.id)) {
+        return false;
+      }
+      // Exclude if it's a user video by YouTube ID
+      if (v.youtubeVideoId && userYouTubeIds.has(v.youtubeVideoId)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Also remove user videos from YouTube results
+    const filteredYoutubeVideos = uniqueYoutubeVideos.filter((v: any) => {
+      return !v.youtubeVideoId || !userYouTubeIds.has(v.youtubeVideoId);
+    });
+
+    // Combine results: User videos first (prioritized), then mix Petflix and YouTube videos
+    // Interleave user videos with other results for better mix (every 3rd video is a user video)
+    const mixedVideos: any[] = [];
+    const userVideoIndex = 0;
+    let userVideoPointer = 0;
+    let otherVideoPointer = 0;
+    const otherVideos = [...filteredAllVideos, ...filteredYoutubeVideos];
+    
+    // Mix user videos with other videos (user video every 3rd position, but ensure all user videos appear)
+    while (userVideoPointer < userVideos.length || otherVideoPointer < otherVideos.length) {
+      // Add user video every 3rd position, or if we're running out of other videos
+      if (userVideoPointer < userVideos.length && 
+          (mixedVideos.length % 3 === 0 || otherVideoPointer >= otherVideos.length)) {
+        mixedVideos.push(userVideos[userVideoPointer]);
+        userVideoPointer++;
+      } else if (otherVideoPointer < otherVideos.length) {
+        mixedVideos.push(otherVideos[otherVideoPointer]);
+        otherVideoPointer++;
+      } else {
+        // Add remaining user videos
+        if (userVideoPointer < userVideos.length) {
+          mixedVideos.push(userVideos[userVideoPointer]);
+          userVideoPointer++;
+        }
+      }
+    }
+    
+    allVideos = mixedVideos;
+    
+    // Sort combined results if not relevance (relevance keeps user videos and tag matches first)
     if (sort !== 'relevance') {
       allVideos.sort((a: any, b: any) => {
+        // User videos always come first
+        if (a.isUserVideo && !b.isUserVideo) return -1;
+        if (!a.isUserVideo && b.isUserVideo) return 1;
+        
         if (sort === 'recency') {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         } else if (sort === 'views') {
           return (b.viewCount || 0) - (a.viewCount || 0);
         } else if (sort === 'engagement') {
           return (b.viewCount || 0) - (a.viewCount || 0);
+        }
+        return 0;
+      });
+    } else {
+      // For relevance, ensure user videos are prioritized but mixed in
+      // User videos should appear early but not all at the top
+      allVideos.sort((a: any, b: any) => {
+        // User videos get slight priority but are still mixed
+        if (a.isUserVideo && !b.isUserVideo) {
+          // Every 3rd position preference
+          return Math.random() > 0.33 ? -1 : 1;
+        }
+        if (!a.isUserVideo && b.isUserVideo) {
+          return Math.random() > 0.33 ? 1 : -1;
         }
         return 0;
       });
